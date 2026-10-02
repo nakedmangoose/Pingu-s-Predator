@@ -231,10 +231,7 @@ const ITEMS={
  tonic:{n:'Sea Salt Tonic',d:'Double XP for 120s',buff:'xp',dur:120,base:80},
  harpoon:{n:'Harpoon',d:'+50% strike damage in your next boss fight',buff:null,dur:0,base:250}};
 const ZMULT=[1,6,40,300,2500,20000];
-const EGGS=[
- {id:'pond',n:'Pond Egg',p:400,lvl:1,pal:{b:'#cfe3c4',l:'#f4fbef',d:'#7fae6a'},mult:1,pets:[['duck','Duckling',0,'coin',.05,45],['frog','Frog',1,'speed',.04,35],['otter','Otter',2,'xp',.10,15],['heron','Heron',3,'luck',.15,5]]},
- {id:'reef',n:'Reef Egg',p:20000,lvl:12,pal:{b:'#ffb39a',l:'#ffe6dc',d:'#e05a6a'},mult:25,pets:[['crab','Hermit Crab',1,'coin',.15,45],['pelican','Pelican',1,'speed',.08,35],['seal','Seal Pup',2,'xp',.2,15],['narwhal','Narwhal',3,'luck',.3,5]]},
- {id:'cosmic',n:'Cosmic Egg',p:800000,lvl:30,pal:{b:'#8a6ae8',l:'#d8c8ff',d:'#ffcd3c'},mult:600,pets:[['jelly','Moon Jelly',2,'coin',.4,45],['fox','Comet Fox',3,'speed',.15,35],['starcat','Star Cat',3,'luck',.5,15],['dragon','Void Dragon',4,'all',.35,5]]}];
+const EGGS=[];
 /* ---- crafting skills ---- */
 const SKILLS={
  cooking:{n:'Cooking',col:'#ff4a3a',hat:'chef',hats:'chef hats',perk:'+1% coins per level',recipes:['Grilled Minnow','Fish Tacos','Seafood Chowder','Sushi Platter','Lobster Thermidor','Leviathan Feast']},
@@ -242,7 +239,7 @@ const SKILLS={
  smithing:{n:'Smithing',col:'#8a96a8',hat:'goggles',hats:'goggles',perk:'+2% boss strike per level',recipes:['Fish Hooks','Iron Lures','Steel Reel','Titanium Gaff','Abyssal Anchor','Starforged Harpoon']},
  alchemy:{n:'Alchemy',col:'#2fb84a',hat:'wizard',hats:'wizard hats',perk:'+1% luck per level',recipes:['Bubble Tonic','Glow Potion','Gill Elixir','Tide Philter','Kraken Ink Draught','Elixir of the Deep']},
  engineering:{n:'Engineering',col:'#2f6fe0',hat:'hard',hats:'hard hats',perk:'+0.5% catch speed per level',recipes:['Bobber Spring','Line Winch','Fish Finder','Auto-Reeler','Submarine Drone','Tide Engine']},
- tailoring:{n:'Tailoring',col:'#ff6ab0',hat:'bow',hats:'ribbon bows',perk:'+1% pet bonuses per level',recipes:['Knit Mittens','Fishing Vest','Rain Slicker','Woven Net','Silk Sail','Starweave Cloak']},
+ tailoring:{n:'Tailoring',col:'#ff6ab0',hat:'bow',hats:'ribbon bows',perk:'+1% crafting speed per level',recipes:['Knit Mittens','Fishing Vest','Rain Slicker','Woven Net','Silk Sail','Starweave Cloak']},
  enchanting:{n:'Enchanting',col:'#20c8c8',hat:'hood',hats:'hoods',perk:'+1% crafted goods value per level',recipes:['Lucky Rune','Glimmer Scale','Moonlit Lure','Tide Sigil','Abyssal Glyph','Celestial Orb']}};
 const SK_ORDER=Object.keys(SKILLS);
 const REC_LVL=[1,5,12,20,30,40],REC_COST=[15,90,600,4000,30000,250000],REC_TIME=[6,10,15,22,30,40],REC_XP=[4,10,25,60,150,400],SK_MAX=50;
@@ -441,7 +438,7 @@ function xpNeed(l){return Math.floor(15*Math.pow(1.2,l-1))}
 function now(){return Date.now()}
 function buffOn(k){return S.buffs[k]>now()}
 function petStarMult(id){return 1+0.5*((S.pets[id]||1)-1)}
-function petBonus(type){return petBonus0(type)*(1+.01*(skL('tailoring')-1))}
+function petBonus(type){return petBonus0(type)}
 function petBonus0(type){let s=0;S.eq.forEach(id=>{const p=PETS[id];if(!p)return;if(p.type===type||(p.type==='all'&&type!=='speed'))s+=p.val*petStarMult(id)});return s}
 function petDps(){let s=0;S.eq.forEach(id=>{const p=PETS[id];if(p)s+=DPSBASE[p.tier]*EGGS[p.egg].mult*petStarMult(id)});return s}
 function zonesComplete(){return ZONES.filter((z,zi)=>z.fish.every((f,fi)=>S.idx[zi+'-'+fi])).length}
@@ -506,12 +503,12 @@ function craftTick(dt){
   if(S.craft&&craftPetFor(S.craft))S.craft=null;
   SK_ORDER.forEach(k=>{const j=skJ(k);if(!j.on)return;const pet=craftPetFor(k);if(!pet&&(S.craft!==k||B))return;
     if(!j.paid){const cost=REC_COST[j.rec];if(S.coins<cost){j.on=false;if(S.craft===k)S.craft=null;toast(`Not enough coins for ${SKILLS[k].recipes[j.rec]}. ${SKILLS[k].n} stopped`);if(tab==='craft')renderPanel();return}S.coins-=cost;j.paid=true}
-    j.p+=dt*(pet?petSpeedOf(pet):1);
+    j.p+=dt*(pet?petSpeedOf(pet):1)*(1+.01*(skL('tailoring')-1));
     if(j.p>=REC_TIME[j.rec]){j.p=0;j.paid=false;const v=recValue(k,j.rec,pet);S.coins+=v;
       const pos=pet&&window.__petPos&&window.__petPos[pet]?window.__petPos[pet]:{x:76,y:HZ-2};floats.push({x:pos.x,y:pos.y-4,t:0,txt:'+'+fmt(v),col:SKILLS[k].col});
       skGain(k,REC_XP[j.rec])}})}
 function craftOffline(away){let total=0;SK_ORDER.forEach(k=>{const j=skJ(k);if(!j.on)return;const pet=craftPetFor(k);if(!pet&&S.craft!==k)return;
-  const cyc=Math.min(2000,Math.floor(away*.5*(pet?petSpeedOf(pet):1)/REC_TIME[j.rec]));if(cyc<1||S.coins<REC_COST[j.rec])return;
+  const cyc=Math.min(2000,Math.floor(away*.5*(pet?petSpeedOf(pet):1)*(1+.01*(skL('tailoring')-1))/REC_TIME[j.rec]));if(cyc<1||S.coins<REC_COST[j.rec])return;
   const net=(recValue(k,j.rec,pet)-REC_COST[j.rec])*cyc;S.coins+=net;total+=net;for(let i=0;i<cyc&&skL(k)<SK_MAX;i++)skGain(k,REC_XP[j.rec])});return total}
 /* ---------- bosses ---------- */
 function bossReady(i){return unlocked(i)&&(S.beaten[i]>0||S.zc[i]>=15)}
@@ -639,24 +636,23 @@ function renderPanel(){
   else if(tab==='pets'){
     const tot=['coin','speed','xp','luck'].map(t=>`<span>${BTYPE[t][0].toUpperCase()+BTYPE[t].slice(1)}</span><span class="num">+${Math.round(petBonus(t)*100)}%</span>`).join('');
     const eggCard=(e,i)=>{const lock=S.lvl<e.lvl;return`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">${e.skill?`10 pets in ${SKILLS[e.skill].hats}. They do ${SKILLS[e.skill].n.toLowerCase()} while you fish.`:e.pets.map(p=>p[1]).join(', ')}</div>${lock?`<button class="btn" disabled>Level ${e.lvl}</button>`:`<button class="btn" data-act="hatch" data-arg="${i}" data-cost="${e.p}">${money(e.p)}</button>`}</div>`};
-    h+=`<div class="sect"><h3>Hatchery</h3><p>Pets ride behind your boat in rubber dinghies the colour of their egg. Fishing pets give lasting bonuses; craft pets do a craft for you so you can fish at the same time. Rarer pets are better. Duplicates add a star, up to 5★.</p>
-      <div class="egghead">Fishing eggs</div><div class="eggs">${EGGS.map((e,i)=>e.skill?'':eggCard(e,i)).join('')}</div>
-      <div class="egghead">Craft eggs</div><div class="eggs">${EGGS.map((e,i)=>e.skill?eggCard(e,i):'').join('')}</div></div>`;
-    h+=`<div class="sect"><h3>Equipped ${S.eq.length}/3</h3><p class="hint" style="margin:0">${SK_ORDER.filter(k=>craftPetFor(k)).map(k=>SKILLS[k].n).join(', ')?'Crafting while you fish: '+SK_ORDER.filter(k=>craftPetFor(k)).map(k=>SKILLS[k].n).join(', '):'No craft pets equipped.'}</p><div class="kv">${tot}<span>Boss bite</span><span class="num">${fmt(petDps())}/s</span></div></div>`;
+    h+=`<div class="sect"><h3>Hatchery</h3><p>Pets ride behind your boat in rubber dinghies the colour of their egg. Each pet does its craft for you, so you can fish and craft at the same time. Rarer pets are better. Duplicates add a star, up to 5★.</p>
+      <div class="eggs">${EGGS.map((e,i)=>e.skill?eggCard(e,i):'').join('')}</div></div>`;
+    h+=`<div class="sect"><h3>Equipped ${S.eq.length}/3</h3><p class="hint" style="margin:0">${SK_ORDER.filter(k=>craftPetFor(k)).map(k=>SKILLS[k].n).join(', ')?'Crafting while you fish: '+SK_ORDER.filter(k=>craftPetFor(k)).map(k=>SKILLS[k].n).join(', '):'No craft pets equipped.'}</p><div class="kv"><span>Boss bite</span><span class="num">${fmt(petDps())}/s</span></div></div>`;
     const owned=Object.keys(S.pets);
     const petCard=p=>{
       const st=S.pets[p.id];if(!st)return`<div class="card px locked"><div class="pic">${imgTag(petSpr(p.id,'#3a4a72'),3)}</div><span class="rar" style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span><div class="nm">???</div><div class="ds">${EGGS[p.egg].n}</div></div>`;
       const desc=p.skill?`${SKILLS[p.skill].n}: ${petSpeedOf(p.id).toFixed(2)}× speed, +${Math.round(petValOf(p.id)*100)}% value`:`+${Math.round(p.val*petStarMult(p.id)*100)}% ${BTYPE[p.type]}`;
       const eq=S.eq.includes(p.id);return`<div class="card px ${eq?'eq':''}"><div class="pic">${imgTag(petSpr(p.id),3)}</div><span class="rar" style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span><div class="nm">${p.n}</div><div class="stars">${'★'.repeat(st)}<span style="opacity:.25">${'★'.repeat(5-st)}</span></div><div class="ds">${desc}</div><button class="btn ${eq?'ghost':''}" data-act="equip" data-arg="${p.id}">${eq?'Unequip':'Equip'}</button></div>`};
     h+=`<div class="sect"><h3>Collection</h3>`+(owned.length?EGGS.map(e=>{const list=Object.values(PETS).filter(p=>EGGS[p.egg]===e);const got=list.filter(p=>S.pets[p.id]).length;
-      return`<div class="egghead" style="color:${e.pal.b}">${e.n} · ${got}/${list.length}</div><div class="grid">${list.map(petCard).join('')}</div>`}).join(''):`<p>No pets yet. A Pond Egg costs 400 coins and a craft egg costs 1,500.</p>`)+`</div>`;
+      return`<div class="egghead" style="color:${e.pal.b}">${e.n} · ${got}/${list.length}</div><div class="grid">${list.map(petCard).join('')}</div>`}).join(''):`<p>No pets yet. Each craft egg costs 1,500 coins.</p>`)+`</div>`;
   }
   else if(tab==='craft'){
     const k=crSel,SK=SKILLS[k],j=skJ(k),pet=craftPetFor(k),aj=avatarJob();
     h+=`<div class="sect"><h3>Crafts</h3><p>Craft goods to sell and level up each craft for a lasting bonus. Your fisher can work one craft at a time and stops fishing while they do. Equip a pet from that craft's egg and the pet does the work, so you keep fishing.</p>
       <div class="sk-row">${SK_ORDER.map(q=>`<button class="skc px" data-act="crsel" data-arg="${q}" aria-pressed="${q===k}"><i style="background:${SKILLS[q].col}"></i>${SKILLS[q].n} <span class="num">${skL(q)}</span>${skJ(q).on&&(craftPetFor(q)||S.craft===q)?'<span class="run">ON</span>':''}</button>`).join('')}</div></div>`;
     const lvPct=j.lvl>=SK_MAX?100:j.xp/skNeed(j.lvl)*100;
-    const bonusNow={cooking:`+${j.lvl-1}% coins`,brewing:`+${j.lvl-1}% XP`,smithing:`+${(j.lvl-1)*2}% boss strike`,alchemy:`+${j.lvl-1}% luck`,engineering:`+${((j.lvl-1)*.5).toFixed(1)}% catch speed`,tailoring:`+${j.lvl-1}% pet bonuses`,enchanting:`+${j.lvl-1}% crafted goods value`}[k];
+    const bonusNow={cooking:`+${j.lvl-1}% coins`,brewing:`+${j.lvl-1}% XP`,smithing:`+${(j.lvl-1)*2}% boss strike`,alchemy:`+${j.lvl-1}% luck`,engineering:`+${((j.lvl-1)*.5).toFixed(1)}% catch speed`,tailoring:`+${j.lvl-1}% crafting speed`,enchanting:`+${j.lvl-1}% crafted goods value`}[k];
     h+=`<div class="sect"><h3 style="color:${SK.col}">${SK.n} · Lv ${j.lvl}${j.lvl>=SK_MAX?' (max)':''}</h3><div class="prog"><div class="bar"><b style="width:${lvPct}%"></b></div><span class="num">${j.lvl>=SK_MAX?'MAX':fmt(j.xp)+'/'+fmt(skNeed(j.lvl))}</span></div><p>${SK.perk}. Now: ${bonusNow}.</p>`;
     const worker=pet?`<div class="worker">${imgTag(petSpr(pet),2)}<span><b style="color:var(--foam)">${PETS[pet].n}</b> works this for you at ${petSpeedOf(pet).toFixed(2)}× speed and +${Math.round(petValOf(pet)*100)}% value. You keep fishing.</span></div>`
       :`<div class="worker"><span>No ${SK.n} pet equipped, so your ${curC().animal.toLowerCase()} does this and stops fishing. Hatch a ${SK.n} Egg in Pets to do both.</span></div>`;
@@ -1097,7 +1093,9 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 function save(){S.last=now();if(S.cls)PROF[S.cls]=S;try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:2,active:S.cls,profiles:PROF}))}catch(e){}}
-function fromData(d){/* v2: separate profiles. v1 (older single save): becomes the chosen fisher's save; other fishers keep only their level */
+function cleanPets(o){if(!o)return o;for(const id in o.pets||{})if(!PETS[id])delete o.pets[id];o.eq=(o.eq||[]).filter(id=>PETS[id]);return o}
+function fromData(d){const r0=fromData0(d);if(r0){for(const k in r0.P)cleanPets(r0.P[k]);cleanPets(r0.pending)}return r0}
+function fromData0(d){/* v2: separate profiles. v1 (older single save): becomes the chosen fisher's save; other fishers keep only their level */
   const P={};if(d&&d.profiles){for(const k in d.profiles)if(CLS[k])P[k]=Object.assign(fresh(),d.profiles[k],{cls:k});return{P,active:CLS[d.active]?d.active:null}}
   if(!d)return null;const o=Object.assign(fresh(),d);const ch=o.chars||{};delete o.chars;
   if(o.cls){P[o.cls]=o;for(const k in ch)if(k!==o.cls&&CLS[k])P[k]=Object.assign(fresh(),{cls:k,lvl:ch[k].lvl,xp:ch[k].xp})}
@@ -1127,7 +1125,7 @@ window.addEventListener('pagehide',save);
 function start(data){
   for(let i=0;i<RODS.length;i++)ROD_IC[i]=rodIcon(i);for(let i=0;i<BAITS.length;i++)BAIT_IC[i]=baitIcon(i);
   setLogo();
-  const l=(data&&data.P)?{P:data.P,active:data.active}:load();if(l){PROF=l.P;S=l.active?PROF[l.active]:(l.pending||fresh());if(l.active)offline()}
+  const l=(data&&data.P)?{P:Object.fromEntries(Object.entries(data.P).map(([k,v])=>[k,cleanPets(v)])),active:data.active}:load();if(l){PROF=l.P;S=l.active?PROF[l.active]:(l.pending||fresh());if(l.active)offline()}
   wxTick();started=true;_zcDone=zonesComplete();castMax=castLeft=castTime();spawnAmbient();renderAll();
   if(!S.cls)openPicker();
   requestAnimationFrame(t=>{lastT=t;requestAnimationFrame(loop)});
