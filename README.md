@@ -1,4 +1,4 @@
-# Pingus Predator
+# Pingu's Predator
 
 A pixel-art idle fishing game that runs in the browser. Open `index.html` to play — no build step or server needed.
 
