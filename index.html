@@ -178,7 +178,7 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
     </aside>
   </main>
 </div>
-<div class="picker" id="picker" hidden><div class="pk-in px"><h2>Choose your fisher</h2><p class="hint">Each fisher catches fish their own way, has a perk and levels up separately. Coins, gear, pets and the index are shared. Switch any time from the bar at the top.</p><div class="pk-grid" id="pkgrid"></div></div></div>
+<div class="picker" id="picker" hidden><div class="pk-in px"><h2>Choose your fisher</h2><p class="hint">Each fisher catches fish their own way and has a perk. Every fisher is a separate save with their own level, coins, gear, pets, bosses and fish index. Switch any time from the bar at the top.</p><div class="pk-grid" id="pkgrid"></div></div></div>
 <div id="toasts" aria-live="polite"></div>
 
 <script>
@@ -340,7 +340,8 @@ function url(c,scale){const k=c.toDataURL();return k}
 function imgTag(c,scale,alt){const key=(c._u||(c._u=c.toDataURL()));return`<img src="${key}" width="${c.width*scale}" height="${c.height*scale}" alt="${alt||''}">`}
 
 function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},
- buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,chars:{}}}
+ buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null}}
+let PROF={}; /* every fisher is a separate save: PROF[cls] holds their whole state; S is the active one */
 let S=fresh(), B=null, tab='shop', castLeft=4, castMax=4, logItems=[];
 
 /* ---------- helpers ---------- */
@@ -431,18 +432,19 @@ function loseBoss(){const b=ZONES[B.zi].boss;B=null;splash(200,110,20,'#e8f6ff')
 /* ---------- actions ---------- */
 function openPicker(){$('pkgrid').innerHTML=CLS_ORDER.map(k=>{const C=CLS[k];const c=sitCanvas(k);
   return`<button class="pk px ${S.cls===k?'cur':''}" data-act="choose" data-arg="${k}"><div class="pic" style="background:${mix('#0b0f1c',C.col,.14)}">${imgTag(c,4,C.animal)}</div><span class="el" style="color:${C.col}">${C.el}</span><span class="nm">${C.animal} · ${C.title}</span><span class="perk">${C.perk}</span><span class="ds">${C.desc}</span><span class="go px">${S.cls===k?'Keep':'Choose'}</span></button>`}).join('');$('picker').hidden=false}
-function charLv(k){return k===S.cls?{lvl:S.lvl,xp:S.xp}:(S.chars[k]||{lvl:1,xp:0})}
+function charLv(k){const o=k===S.cls?S:PROF[k];return o?{lvl:o.lvl,xp:o.xp,coins:o.coins,on:true}:{lvl:1,xp:0,coins:0,on:false}}
 function renderCrew(){$('crew').innerHTML=CLS_ORDER.map(k=>{const C=CLS[k],c=charLv(k),on=S.cls===k;
-  return`<button class="mate px" data-act="choose" data-arg="${k}" aria-pressed="${on}"><span class="pic">${imgTag(sitCanvas(k),2,C.animal)}</span><span class="info"><span class="nm">${C.animal}</span><span class="lv">${C.title} · Lv <span class="num" id="crewlv-${k}">${c.lvl}</span></span><span class="bar"><b id="crewxp-${k}" style="width:${c.xp/xpNeed(c.lvl)*100}%"></b></span></span></button>`}).join('')}
+  return`<button class="mate px" data-act="choose" data-arg="${k}" aria-pressed="${on}"><span class="pic">${imgTag(sitCanvas(k),2,C.animal)}</span><span class="info"><span class="nm">${C.animal}</span><span class="lv">${c.on?`Lv <span class="num" id="crewlv-${k}">${c.lvl}</span> · ${fmt(c.coins)} coins`:'New · Lv 1'}</span><span class="bar"><b id="crewxp-${k}" style="width:${c.xp/xpNeed(c.lvl)*100}%"></b></span></span></button>`}).join('')}
 function setLogo(){$('logo').src=avatarCanvas(S.cls||'std').toDataURL();$('hint').textContent=`Your ${curC().animal.toLowerCase()} fishes on its own. Tap the water to ${curC().verb} and land fish faster.`}
 const act={
   pick(){if(!B)openPicker()},
   choose(k){if(!CLS[k])return;if(B){toast('Finish the boss fight before switching fishers');return}if(S.cls===k){$('picker').hidden=true;return}
     const first=!S.cls;
-    if(first)S.chars[k]={lvl:S.lvl,xp:S.xp};else S.chars[S.cls]={lvl:S.lvl,xp:S.xp};
-    const nc=S.chars[k]||{lvl:1,xp:0};S.lvl=nc.lvl;S.xp=nc.xp;S.cls=k;
+    if(first){S.cls=k;S.last=now();PROF[k]=S}
+    else{S.last=now();PROF[S.cls]=S;const isNew=!PROF[k];S=PROF[k]||Object.assign(fresh(),{cls:k});S.cls=k;S.last=now();PROF[k]=S;if(isNew)S.zone=0}
+    logItems=[];_zcDone=zonesComplete();renderLog();renderBuffs();
     if(!unlocked(S.zone))S.zone=maxZone();spawnAmbient();wxTick();$('picker').hidden=true;setLogo();castMax=castLeft=castTime();renderAll();
-    toast(first?`${CLS[k].animal} the ${CLS[k].title} takes the boat`:`${CLS[k].animal} the ${CLS[k].title} takes the boat · Lv ${S.lvl}`)},
+    toast(`${CLS[k].animal} the ${CLS[k].title} takes the boat · Lv ${S.lvl}`)},
   zone(i){i=+i;if(B||!unlocked(i))return;S.zone=i;wxTick();renderZones();castLeft=castMax=castTime();spawnAmbient()},
   rod(i){i=+i;const r=RODS[i];if(!S.rods.includes(i)){if(S.coins<r.p)return;S.coins-=r.p;S.rods.push(i);toast(`Bought ${gearName(i)}`)}S.rod=i;renderPanel()},
   bait(i){i=+i;const b=BAITS[i];if(!S.baits.includes(i)){if(S.coins<b.p)return;S.coins-=b.p;S.baits.push(i);toast(`Bought ${b.n}`)}S.bait=i;renderPanel()},
@@ -461,7 +463,7 @@ const act={
   boss(i){startBoss(+i)},
   strike(){hitBoss();refreshPanel()},
   reset(){if(!resetArm){resetArm=true;renderPanel();setTimeout(()=>{resetArm=false;if(tab==='bag')renderPanel()},4000);return}
-    S=fresh();B=null;resetArm=false;logItems=[];try{localStorage.removeItem(SAVE_KEY)}catch(e){}renderAll();toast('Fresh start. Good luck out there')}
+    const k=S.cls;S=Object.assign(fresh(),{cls:k});if(k)PROF[k]=S;B=null;resetArm=false;logItems=[];save();castMax=castLeft=castTime();spawnAmbient();renderAll();toast(`${curC().animal} starts fresh. Good luck out there`)}
 };
 let resetArm=false;
 
@@ -552,7 +554,7 @@ function renderPanel(){
       <span>Coin bonus</span><span class="num">×${coinMult().toFixed(2)}</span><span>XP bonus</span><span class="num">×${xpMult().toFixed(2)}</span>
       <span>Boss strike</span><span class="num">${fmt(RODS[S.rod].pow*(1+S.lvl*0.05))}</span><span>Fish caught</span><span class="num">${fmt(S.total)}</span>
       <span>Bosses beaten</span><span class="num">${S.beaten.filter(Boolean).length}/${ZONES.length}</span></div></div>`;
-    h+=`<div class="sect"><h3>Save</h3><p>Progress saves in this browser every few seconds. While you are away your penguin keeps fishing at half speed, for up to 8 hours.</p><div><button class="btn ghost" data-act="reset">${resetArm?'Tap again to erase everything':'Start over'}</button></div></div>`;
+    h+=`<div class="sect"><h3>Save</h3><p>Progress saves in this browser every few seconds, and each fisher has a separate save. While you are away your active fisher keeps fishing at half speed, for up to 8 hours.</p><div><button class="btn ghost" data-act="reset">${resetArm?`Tap again to erase this ${curC().animal.toLowerCase()}`:'Start this fisher over'}</button></div></div>`;
   }
   P.innerHTML=h;refreshPanel();
 }
@@ -855,8 +857,13 @@ function loop(t){
   saveAcc+=dt;if(saveAcc>5){saveAcc=0;save()}
   requestAnimationFrame(loop);
 }
-function save(){S.last=now();if(S.cls)S.chars[S.cls]={lvl:S.lvl,xp:S.xp};try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}}
-function load(){try{const r=localStorage.getItem(SAVE_KEY);if(r){const d=JSON.parse(r);const o=Object.assign(fresh(),d);if(!o.chars)o.chars={};if(o.cls&&!o.chars[o.cls])o.chars[o.cls]={lvl:o.lvl,xp:o.xp};return o}}catch(e){}return null}
+function save(){S.last=now();if(S.cls)PROF[S.cls]=S;try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:2,active:S.cls,profiles:PROF}))}catch(e){}}
+function fromData(d){/* v2: separate profiles. v1 (older single save): becomes the chosen fisher's save; other fishers keep only their level */
+  const P={};if(d&&d.profiles){for(const k in d.profiles)if(CLS[k])P[k]=Object.assign(fresh(),d.profiles[k],{cls:k});return{P,active:CLS[d.active]?d.active:null}}
+  if(!d)return null;const o=Object.assign(fresh(),d);const ch=o.chars||{};delete o.chars;
+  if(o.cls){P[o.cls]=o;for(const k in ch)if(k!==o.cls&&CLS[k])P[k]=Object.assign(fresh(),{cls:k,lvl:ch[k].lvl,xp:ch[k].xp})}
+  return{P,active:o.cls||null,pending:o.cls?null:o}}
+function load(){try{const r=localStorage.getItem(SAVE_KEY);if(r)return fromData(JSON.parse(r))}catch(e){}return null}
 function offline(){
   const away=Math.min((now()-S.last)/1000,8*3600);if(away<30)return;
   const n=Math.floor(away/castTime()*0.5);if(n<1)return;const sim=Math.min(n,400),scale=n/sim;let coins=0,xp=0,news=0;
@@ -880,12 +887,12 @@ window.addEventListener('pagehide',save);
 function start(data){
   for(let i=0;i<RODS.length;i++)ROD_IC[i]=rodIcon(i);for(let i=0;i<BAITS.length;i++)BAIT_IC[i]=baitIcon(i);
   setLogo();
-  if(data&&data.S){S=Object.assign(fresh(),data.S);if(!S.chars)S.chars={}}else{const l=load();if(l){S=l;offline()}}
+  const l=(data&&data.P)?{P:data.P,active:data.active}:load();if(l){PROF=l.P;S=l.active?PROF[l.active]:(l.pending||fresh());if(l.active)offline()}
   wxTick();started=true;_zcDone=zonesComplete();castMax=castLeft=castTime();spawnAmbient();renderAll();
   if(!S.cls)openPicker();
   requestAnimationFrame(t=>{lastT=t;requestAnimationFrame(loop)});
 }
-try{window.claude?.hot?.snapshot(()=>({S}))}catch(e){}
+try{window.claude?.hot?.snapshot(()=>{if(S.cls)PROF[S.cls]=S;return{P:PROF,active:S.cls}})}catch(e){}
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 })();
 </script>

@@ -4,7 +4,7 @@ A pixel-art idle fishing game that runs in the browser. Open `index.html` to pla
 
 ## Features
 
-- **Five fishers**, each with their own way of catching fish, boss attack and perk, and their own level:
+- **Five fishers**, each a separate save with their own level, coins, gear, pets and fish index, plus their own way of catching fish, boss attack and perk:
   - Penguin · Angler: rod and bobber, +15% coins
   - Fox · Pyromancer: boils the water with fire magic, +40% boss strike damage
   - Polar Cub · Cryomancer: freezes fish in ice, +10% luck and longer boss fights
