@@ -726,11 +726,11 @@ function draw(dt){
   R(cx,40+1,HZ+12+Math.round(Math.sin(T*1.6))-14,1,15,'#3a2a1a');R(cx,40-1,HZ+12+Math.round(Math.sin(T*1.6))-14,3,1,'#3a2a1a');blit(mk(LANT,{y:lightOn?'#ffe08a':'#6a5a3a'}),40-2,HZ+12+Math.round(Math.sin(T*1.6))-13);
   // avatar: lounging, pushes hat up to peek, hat slides back down (5s loop)
   const cls=S.cls||'std',C=CLS[cls],hat=HATS[cls],mage=cls!=='std';
-  pT=(pT+dt)%5;const p=pT;
+  pT=(pT+dt)%6.5;const p=pT;
   const pengX=boatX+3,pengY=deckY-9+(Math.sin(T*1.7)>.55?-1:0);
-  const hatSt=p<2.8?0:p<2.95?1:p<4?2:p<4.2?1:0;
+  const hatSt=p<2.8?0:p<2.95?1:p<5.5?2:p<5.7?1:0;
   const flipSt=p<2.6?0:p<2.75?1:p<3.25?2:p<3.4?1:0;
-  const closed=hatSt===2&&p>3.6&&p<3.72;
+  const closed=hatSt===2&&((p>3.6&&p<3.72)||(p>4.8&&p<4.92));
   if(C.tail)blit(mk(MAPS.TAIL,C.tail),pengX-5,pengY+4+(Math.sin(T*2)>.3?1:0));
   blit(mk(bodyMap(cls,closed),C.pal),pengX,pengY);
   if(flipSt===0)blit(mk(MAPS.FLIP0,C.pal),pengX+6,pengY+6);
