@@ -145,6 +145,14 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
 .worker{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
 .worker img{image-rendering:pixelated;flex:none}
 .egghead{font-family:var(--display);font-size:9px;color:var(--muted);margin:4px 0 0}
+.eggbtns{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
+.dexbtn{padding:6px 8px}
+.dexbtn img{image-rendering:pixelated;display:block}
+.dexhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.dexgrid .card .pic{height:62px}
+.dexgrid .chance{font-family:var(--mono);font-size:18px;color:var(--brass)}
+.dexgrid .own{font-size:13px;color:var(--mint)}
+.dexgrid .notyet{font-size:13px;color:var(--muted)}
 #toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;align-items:center;z-index:10;pointer-events:none;width:min(92vw,440px)}
 .toast{background:var(--edge);color:var(--foam);font-weight:600;padding:9px 14px;text-align:center;animation:tin .2s steps(3);box-shadow:0 -3px 0 0 var(--brass),0 3px 0 0 var(--brass),-3px 0 0 0 var(--brass),3px 0 0 0 var(--brass)}
 @keyframes tin{from{transform:translateY(10px);opacity:0}}
@@ -190,6 +198,7 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
   </main>
 </div>
 <div class="picker" id="picker" hidden><div class="pk-in px"><h2>Choose your fisher</h2><p class="hint">Each fisher catches fish their own way and has a perk. Every fisher is a separate save with their own level, coins, gear, pets, bosses and fish index. Switch any time from the bar at the top.</p><div class="pk-grid" id="pkgrid"></div></div></div>
+<div class="picker" id="eggdex" hidden><div class="pk-in px"><div class="dexhead"><h2 id="dextitle"></h2><button class="btn ghost" data-act="closedex">Close</button></div><p class="hint" id="dexsub"></p><div class="grid dexgrid" id="dexgrid"></div></div></div>
 <div id="toasts" aria-live="polite"></div>
 
 <script>
@@ -547,9 +556,21 @@ function charLv(k){const o=k===S.cls?S:PROF[k];return o?{lvl:o.lvl,xp:o.xp,coins
 function renderCrew(){$('crew').innerHTML=CLS_ORDER.map(k=>{const C=CLS[k],c=charLv(k),on=S.cls===k;
   return`<button class="mate px" data-act="choose" data-arg="${k}" aria-pressed="${on}"><span class="pic">${imgTag(sitCanvas(k),2,C.animal)}</span><span class="info"><span class="nm">${C.animal}</span><span class="lv">${c.on?`Lv <span class="num" id="crewlv-${k}">${c.lvl}</span> · ${fmt(c.coins)} coins`:'New · Lv 1'}</span><span class="bar"><b id="crewxp-${k}" style="width:${c.xp/xpNeed(c.lvl)*100}%"></b></span></span></button>`}).join('')}
 function setLogo(){$('logo').src=avatarCanvas(S.cls||'std').toDataURL();$('hint').textContent=`Your ${curC().animal.toLowerCase()} fishes on its own. Tap the water to ${curC().verb} and land fish faster.`}
-let crSel='cooking';
+let crSel='cooking',_dexIc=null;
+/* small pixel "pet book" icon */
+function DEX_IC(){return _dexIc||(_dexIc=mk(["kkkkkkkk.","kwwkwwwwk","kwwkwbbwk","kwwkwwwwk","kwwkwbbwk","kwwkwwwwk","kwwkwbbwk","kkkkkkkk."],{w:'#f4efe2',b:'#9aa6c4'}))}
+function openDex(i){const e=EGGS[i];if(!e)return;const tw=e.pets.reduce((a,p)=>a+p[5],0);
+  $('dextitle').textContent=e.n;$('dextitle').style.color=e.pal.b;
+  $('dexsub').textContent=e.skill?`Every pet in this egg wears ${SKILLS[e.skill].hats} and does ${SKILLS[e.skill].n.toLowerCase()} for you while you fish. Rarer pets craft faster and earn more. Duplicates add a star (up to 5★), and each star adds another 10%.`:'';
+  $('dexgrid').innerHTML=e.pets.map(pp=>{const p=PETS[pp[0]],st=S.pets[p.id]||0,pct=pp[5]/tw*100;
+    const perk=p.skill?`${(PET_SPEED[p.tier]).toFixed(2)}× speed · +${Math.round(PET_VAL[p.tier]*100)}% value`:'';
+    return`<div class="card px"><div class="pic">${imgTag(petSpr(p.id),3,p.n)}</div><span class="rar" style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span><div class="nm">${p.n}</div><div class="chance">${pct<1?pct.toFixed(1):Math.round(pct)}%</div><div class="ds">${perk}</div>${st?`<div class="own">Owned ${'★'.repeat(st)}</div>`:'<div class="notyet">Not hatched yet</div>'}</div>`}).join('');
+  $('eggdex').hidden=false}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('eggdex').hidden)$('eggdex').hidden=true});
 function craftArgs(a){const [k,i]=String(a).split(':');return[k,+i]}
 const act={
+  eggdex(i){openDex(+i)},
+  closedex(){$('eggdex').hidden=true},
   crsel(k){if(SKILLS[k]){crSel=k;renderPanel()}},
   recipe(a){const [k,i]=craftArgs(a);const j=skJ(k);if(j.lvl<REC_LVL[i])return;if(j.paid){S.coins+=REC_COST[j.rec];j.paid=false}j.rec=i;j.p=0;renderPanel()},
   craftgo(k){const j=skJ(k);if(B&&!craftPetFor(k)){toast('Finish the boss fight first');return}
@@ -635,7 +656,7 @@ function renderPanel(){
   }
   else if(tab==='pets'){
     const tot=['coin','speed','xp','luck'].map(t=>`<span>${BTYPE[t][0].toUpperCase()+BTYPE[t].slice(1)}</span><span class="num">+${Math.round(petBonus(t)*100)}%</span>`).join('');
-    const eggCard=(e,i)=>{const lock=S.lvl<e.lvl;return`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">${e.skill?`10 pets in ${SKILLS[e.skill].hats}. They do ${SKILLS[e.skill].n.toLowerCase()} while you fish.`:e.pets.map(p=>p[1]).join(', ')}</div>${lock?`<button class="btn" disabled>Level ${e.lvl}</button>`:`<button class="btn" data-act="hatch" data-arg="${i}" data-cost="${e.p}">${money(e.p)}</button>`}</div>`};
+    const eggCard=(e,i)=>{const lock=S.lvl<e.lvl;return`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">${e.skill?`10 pets in ${SKILLS[e.skill].hats}. They do ${SKILLS[e.skill].n.toLowerCase()} while you fish.`:e.pets.map(p=>p[1]).join(', ')}</div><div class="eggbtns">${lock?`<button class="btn" disabled>Level ${e.lvl}</button>`:`<button class="btn" data-act="hatch" data-arg="${i}" data-cost="${e.p}">${money(e.p)}</button>`}<button class="btn ghost dexbtn" data-act="eggdex" data-arg="${i}" title="See the pets in the ${e.n}" aria-label="See the pets in the ${e.n}">${imgTag(DEX_IC(),2)}</button></div></div>`};
     h+=`<div class="sect"><h3>Hatchery</h3><p>Pets ride behind your boat in rubber dinghies the colour of their egg. Each pet does its craft for you, so you can fish and craft at the same time. Rarer pets are better. Duplicates add a star, up to 5★.</p>
       <div class="eggs">${EGGS.map((e,i)=>e.skill?eggCard(e,i):'').join('')}</div></div>`;
     h+=`<div class="sect"><h3>Equipped ${S.eq.length}/3</h3><p class="hint" style="margin:0">${SK_ORDER.filter(k=>craftPetFor(k)).map(k=>SKILLS[k].n).join(', ')?'Crafting while you fish: '+SK_ORDER.filter(k=>craftPetFor(k)).map(k=>SKILLS[k].n).join(', '):'No craft pets equipped.'}</p><div class="kv"><span>Boss bite</span><span class="num">${fmt(petDps())}/s</span></div></div>`;
@@ -1112,7 +1133,7 @@ function offline(){
 }
 
 /* ---------- input ---------- */
-document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b&&!b.disabled&&act[b.dataset.act])act[b.dataset.act](b.dataset.arg)});
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='eggdex'){$('eggdex').hidden=true;return}const b=e.target.closest('[data-act]');if(b&&!b.disabled&&act[b.dataset.act])act[b.dataset.act](b.dataset.arg)});
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;tab=b.dataset.tab;renderTabs();renderPanel()});
 cv.addEventListener('pointerdown',e=>{
   const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;
