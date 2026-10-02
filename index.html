@@ -1035,8 +1035,8 @@ function draw(dt){
   const deckY=HZ+12+bob,boatX=64;
   window.__petPos={};let ropeX=boatX+1,ropeY=deckY+3;
   S.eq.forEach((id,i)=>{const P=PETS[id];if(!P||!CPET[id])return;const egg=EGGS[P.egg],col=egg.pal.b,H=HAT2[SKILLS[P.skill].hat];
-    const dx=boatX-22-i*21,dy=deckY+3+Math.round(Math.sin(T*1.9+i*1.3));
-    line(ropeX,ropeY,dx+17,dy+2,'#c8b080');ropeX=dx;ropeY=dy+2;
+    const dx=boatX-36-i*21,dy=deckY+3+Math.round(Math.sin(T*1.9+i*1.3));
+    {const x0=ropeX,y0=ropeY,x1=dx+17,y1=dy+2,sag=2+Math.sin(T*1.3)*1;cx.fillStyle='#c8b080';for(let n=0;n<=30;n++){const u=n/30;cx.fillRect(Math.round(x0+(x1-x0)*u),Math.round(y0+(y1-y0)*u+Math.sin(u*Math.PI)*sag),1,1)}}ropeX=dx;ropeY=dy+2;
     const dp={b:col,d:mix(col,'#05060c',.3),l:mix(col,'#ffffff',.45)};
     blit(mk(MAPS.DINGHY,dp),dx,dy);
     const working=skJ(P.skill).on&&craftPetFor(P.skill)===id,pt=T+i*2.17,r=petPose(P.skill,pt,working);
