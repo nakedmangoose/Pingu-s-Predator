@@ -92,7 +92,7 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
 .card .nm{font-weight:600;font-size:15px;overflow-wrap:anywhere}
 .card .ds{font-size:13px;color:var(--muted)}
 .card .btn{margin-top:6px;justify-content:center;padding:5px 8px;font-size:14px}
-.card .pic{height:40px;display:flex;align-items:center;justify-content:center;background:var(--edge);margin-bottom:4px}
+.card .pic{min-height:40px;padding:4px 0;display:flex;align-items:center;justify-content:center;background:var(--edge);margin-bottom:4px}
 .card .pic img{image-rendering:pixelated}
 .stars{color:var(--brass);letter-spacing:1px;font-size:13px}
 .rar{font-family:var(--display);font-size:7px;line-height:1.6}
@@ -149,10 +149,12 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
 .dexbtn{padding:6px 8px}
 .dexbtn img{image-rendering:pixelated;display:block}
 .dexhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.dexgrid .card .pic{height:62px}
+.dexgrid .card .pic{min-height:62px}
 .dexgrid .chance{font-family:var(--mono);font-size:18px;color:var(--brass)}
 .dexgrid .own{font-size:13px;color:var(--mint)}
 .dexgrid .notyet{font-size:13px;color:var(--muted)}
+.rsel{font:inherit;font-size:15px;background:var(--edge);color:var(--foam);border:0;padding:6px 8px;max-width:100%;box-shadow:0 -3px 0 0 var(--hi),0 3px 0 0 var(--hi),-3px 0 0 0 var(--hi),3px 0 0 0 var(--hi);margin:3px}
+.rsel:focus-visible{outline:3px solid var(--brass);outline-offset:4px}
 #toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;align-items:center;z-index:10;pointer-events:none;width:min(92vw,440px)}
 .toast{background:var(--edge);color:var(--foam);font-weight:600;padding:9px 14px;text-align:center;animation:tin .2s steps(3);box-shadow:0 -3px 0 0 var(--brass),0 3px 0 0 var(--brass),-3px 0 0 0 var(--brass),3px 0 0 0 var(--brass)}
 @keyframes tin{from{transform:translateY(10px);opacity:0}}
@@ -392,42 +394,94 @@ function fishPal(f){const [b,l,d]=f[5];return{b,l,d,e:lum(b)<.35?'#f4f4f4':'#0e0
 function fishSpr(f,mono){return mk(MAPS[f[4]],fishPal(f),mono)}
 function bossSpr(z,mono){const b=z.boss,[bb,l,d]=b.pal;return mk(MAPS[b.spr],{b:bb,l,d,e:b.eye||'#ffcd3c',g:'#bff7ff'},mono)}
 function petSpr(id,mono){if(CPET[id])return craftPetCanvas(id,mono);const [m,p]=PSPR[id];return mk(MAPS[m],p,mono)}
-/* craft pets: chibi front-facing body + ears + markings + craft hat, 14×18 */
-const PB=["....kkkkkk....","..kkbbbbbbkk..",".kbbbbbbbbbbk.",".kbbebbbbebbk.","kbbbbbbbbbbbbk","kbbppbmmbppbbk",".kbbbbmmbbbbk.","..kkbbbbbbkk..","..kbllllllbk..","..kbllllllbk..","..kkk.kk.kkk.."];
-const EARS2={pointy:{b:[[1,".k..........k."],[2,"kbk........kbk"],[3,"kdbk......kbdk"],[4,".kbk......kbk."]]},
- round:{b:[[2,".kkk......kkk."],[3,"kbdbk....kbdbk"],[4,"kbbk......kbbk"]]},
- long:{b:[[0,"..kk......kk.."],[1,".kdbk....kbdk."],[2,".kdbk....kbdk."],[3,".kdbk....kbdk."],[4,".kbk......kbk."]]},
- floppy:{f:[[4,"kkk........kkk"],[5,"kddk......kddk"],[6,"kddk......kddk"],[7,"kddk......kddk"],[8,".kk........kk."]]},
- bumps:{b:[[2,"..kkk....kkk.."],[3,".kbebk..kbebk."]],noEyes:1},
- horns:{b:[[1,"..k........k.."],[2,".kdk......kdk."],[3,".kdk......kdk."],[4,"..kdk....kdk.."]]},
- tuft:{b:[[2,".k..........k."],[3,".kbk......kbk."],[4,"..kbk....kbk.."]]},none:{}};
-const HAT2={chef:{x:2,y:2,map:["..kkkkkk..",".kwwwwwwk.","kwwwwwwwwk","kwwwwwwwwk",".kwwwwwwk.",".kkkkkkkk."],pal:{w:'#ffffff'}},
- can:{x:0,y:4,map:["kkk........kkk","krk........krk","kwk........kwk","krkkkkkkkkkkrk","kkkw......wkkk","....w....w....",".....w..w.....","......ww......"],pal:{r:'#d6334a',w:'#f4f4f4'}},
- wizard:{x:2,y:1,map:["......kk..",".....kpk..","....kppk..","...kpypk..","..kppppk..",".kppppppk.","kkkkkkkkkk"],pal:{p:'#6a3ab0',y:'#ffcd3c'}},
- goggles:{x:0,y:9,map:["..kkkk..kkkk..","kdkgwkkkkgwkdk","..kkkk..kkkk.."],pal:{d:'#5a3a20',g:'#9fe0ff',w:'#ffffff'}},
- hard:{x:1,y:4,map:["...kkkkkk...","..kyyyyyyk..",".kyywyyyyyk.","kkkkkkkkkkkk"],pal:{y:'#ffcd3c',w:'#fff6c8'}},
- bow:{x:7,y:4,map:[".kk...kk.","kppk.kppk","kpppkpppk","kppkkkppk",".kk...kk."],pal:{p:'#ff5a9a'}},
- hood:{x:0,y:6,map:[".....kkkk.....","...kkhhhhkk...","..khhhhhhhhk..",".khhkkkkkkhhk.","khhk......khhk","khk........khk","khk........khk","khk........khk","khk........khk","khk........khk","khhk......khhk",".khhhhhhhhhhk."],pal:{h:'#3a2a6a'}}};
+/* craft pets: side-on, facing right like the penguin; layered so they can animate (body / paw / hat) */
+const PB=["................","................","................",".......kkkkk....","......kbbbbbk...",".....kbbbbbbbk..","..kkkkbbbbbebk..",".kbbbbbbbbbbmmk.","kbbbbbbbbpbbmmnk","kbbbbbbbbbbbkkk.","kbbbllllllbbk...","kbbllllllllbk...",".kbllllllllk....","..kkkkkkkkk....."];
+const EARS2={pointy:{b:[[0,"........k......."],[1,".......kbk......"],[2,".......kdbk....."],[3,".......kbbk....."]]},
+ round:{b:[[2,"......kkk......."],[3,".....kbdbk......"],[4,".....kbbk......."]]},
+ long:{b:[[0,"....kk.........."],[1,"...kdbk........."],[2,"....kdbk........"],[3,".....kdbk......."],[4,"......kbk......."]]},
+ floppy:{f:[[5,".....kkk........"],[6,".....kddk......."],[7,".....kddk......."],[8,"......kk........"]]},
+ bumps:{b:[[3,"..........kkk..."],[4,".........kbebk.."]],noEyes:1},
+ horns:{b:[[1,".........k......"],[2,"........kdk....."],[3,".......kdk......"]]},
+ tuft:{b:[[2,".......k.k......"],[3,".......kbk......"]]},none:{}};
+/* hats: x,y in body coordinates (head top is row 3). DOWN tips over the eyes, UP is pushed back */
+const HAT2={chef:{x:6,y:-2,map:["..kkkk..",".kwwwwk.","kwwwwwwk","kwwwwwwk",".kwwwwk.","kkkkkkkk"],pal:{w:'#ffffff'}},
+ can:{x:6,y:-1,map:["..kkk.....","..krk.....","..kwk.....","..krk.....","kkkkkkk..."],pal:{r:'#d6334a',w:'#f4f4f4'},straw:1},
+ wizard:{x:5,y:-2,map:["kk.......",".kpk.....","..kppk...","..kpypk..",".kpppppk.","kkkkkkkkk"],pal:{p:'#6a3ab0',y:'#ffcd3c'}},
+ goggles:{x:6,y:5,map:["....kkkk.","ddddkgwk.","....kkkk."],pal:{d:'#5a3a20',g:'#9fe0ff',w:'#ffffff'},gog:1},
+ hard:{x:5,y:0,map:["..kkkkk....",".kyyyyyk...","kyywyyyykk.","kkkkkkkkkkk"],pal:{y:'#ffcd3c',w:'#fff6c8'}},
+ bow:{x:5,y:1,map:["kk.kk","kpkpk",".kpk.","kpkpk","kk.kk"],pal:{p:'#ff5a9a'}},
+ hood:{x:4,y:1,map:["....kkkk...","..kkhhhhk..",".khhhhhhhk.",".khhhkkkkk.","khhhk......","khhk.......","khhk.......","khhhk......",".khhhk.....","..khhhhkk.."],pal:{h:'#3a2a6a'}}};
+const PAW={rest:{x:10,y:9,map:[".kk.","kbbk",".kk."]},fwd:{x:11,y:8,map:["kkkk.","kbbbk","kkkk."]},up:{x:9,y:3,map:["...kk","..kbk",".kbk.","kbk..","kk..."]}};
+function hatOff(H,st){/* st: 0 down, 1 mid, 2 up */if(H.gog)return st===2?[0,-3]:st===1?[0,-1]:[0,0];return st===2?[-1,-2]:st===1?[0,0]:[1,1]}
 const cpCache={};
-function overlay(rows){const m=Array.from({length:14},()=>'..............');rows.forEach(([r,str])=>m[r]=str);return m}
-function craftPetCanvas(id,mono){const key=id+(mono||'');if(cpCache[key])return cpCache[key];const P=CPET[id],E=EARS2[P.ears]||{};
-  const base=PB.slice();base.unshift('..............','..............','..............');
-  /* PB starts at body row 3 of the 14-row layout */
-  if(E.noEyes)base[6]=".kbbbbbbbbbbk.";
-  if(P.snout==='pig')base[8]="kbbppbnnbppbbk";
-  if(P.snout==='tusk')base[10]="..kkbwbbwbkk..";
-  if(P.snout==='trunk'){base[10]="..kkbbmmbbkk..";base[11]="..kbllmmllbk..";base[12]="..kbllmmllbk.."}
-  if(P.mark==='stripe'){base[4]="..kkbdbbdbkk..";base[5]=".kbbdbbbbdbbk."}
-  if(P.mark==='mask')base[6]=".kbdedbbdedbk.";
-  if(P.mark==='spots'){base[7]="kbdbbbbbbbbdbk";base[11]="..kbldlldlbk.."}
-  if(P.mark==='shell'){base[11]="..kbdbdbdbbk..";base[12]="..kbdbdbdbbk.."}
-  const c=document.createElement('canvas');c.width=14;c.height=18;const g=c.getContext('2d');
-  if(E.b)g.drawImage(mk(overlay(E.b),P.pal),0,4);
-  g.drawImage(mk(base,P.pal),0,4);
-  if(E.f)g.drawImage(mk(overlay(E.f),P.pal),0,4);
-  const H=HAT2[SKILLS[P.skill].hat];g.drawImage(mk(H.map,H.pal),H.x,H.y);
-  if(mono){g.globalCompositeOperation='source-in';g.fillStyle=mono;g.fillRect(0,0,14,18)}
+function overlay(rows){const m=Array.from({length:14},()=>'................');rows.forEach(([r,str])=>m[r]=str);return m}
+function petBody(id,closed){const key='b'+id+(closed?1:0);if(cpCache[key])return cpCache[key];const P=CPET[id],E=EARS2[P.ears]||{};
+  const base=PB.slice();
+  if(E.noEyes)base[6]="..kkkkbbbbbbbk..";
+  if(P.snout==='tusk')base[9]="kbbbbbbbbbbbkwk.";
+  if(P.snout==='trunk'){base[9]="kbbbbbbbbbbbkmk.";base[10]="kbbbllllllbbkmk.";base[11]="kbbllllllllbkk.."}
+  if(P.mark==='stripe'){base[5]=".....kbdbdbbbk..";base[10]="kbdbllllllbbk..."}
+  if(P.mark==='mask')base[6]="..kkkkbbbbdedk..";
+  if(P.mark==='spots'){base[7]=".kbdbbdbbbbbmmk.";base[11]="kbdllllllllbk..."}
+  if(P.mark==='shell'){base[7]=".kdbdbdbbbbbmmk.";base[8]="kdbdbdbbbpbbmmnk";base[9]="kbdbdbdbbbbbkkk."}
+  if(closed){if(E.noEyes)return cpCache[key]=petBody(id,false);base[6]=base[6].replace('e','k')}
+  const c=document.createElement('canvas');c.width=16;c.height=14;const g=c.getContext('2d');
+  if(E.b)g.drawImage(mk(overlay(E.b),P.pal),0,0);g.drawImage(mk(base,P.pal),0,0);if(E.f)g.drawImage(mk(overlay(E.f),P.pal),0,0);
   return cpCache[key]=c}
+function hatCv(skill){const key='h'+skill;if(cpCache[key])return cpCache[key];const H=HAT2[SKILLS[skill].hat],m=mk(H.map,H.pal);
+  if(!H.straw)return cpCache[key]=m;const c=document.createElement('canvas');c.width=10;c.height=11;const g=c.getContext('2d');g.drawImage(m,0,0);line(4,1,8,9,'#0e0f17',g);line(4,0,8,8,'#f4f4f4',g);return cpCache[key]=c}
+function pawCv(id,pose){return mk(PAW[pose].map,CPET[id].pal)}
+function craftPetCanvas(id,mono){const key=id+(mono||'');if(cpCache[key])return cpCache[key];const P=CPET[id],H=HAT2[SKILLS[P.skill].hat];
+  const c=document.createElement('canvas');c.width=17;c.height=18;const g=c.getContext('2d');
+  g.drawImage(petBody(id,false),0,4);const pw=PAW.rest;g.drawImage(pawCv(id,'rest'),pw.x,pw.y+4);const [ox,oy]=hatOff(H,1);g.drawImage(hatCv(P.skill),H.x+ox,H.y+oy+4);
+  if(mono){g.globalCompositeOperation='source-in';g.fillStyle=mono;g.fillRect(0,0,17,18)}
+  return cpCache[key]=c}
+let PSOOT=null;function petSoot(){if(PSOOT)return PSOOT;const r=rng(91);PSOOT=[];PB.forEach((row,y)=>{if(y<3||y>9)return;for(let x=0;x<row.length;x++)if(row[x]!=='.'&&row[x]!=='k'&&r()<.45)PSOOT.push([x,y,r()])});return PSOOT}
+/* pet poses: idle = hat push like the penguin; crafting = the craft's own 5s loop */
+function petPose(skill,t,crafting){const r={paw:'rest',hat:2,closed:false,dx:0,dy:0,face:null,soot:0};
+  if(!crafting){const p=t%6.5;r.hat=p<2.8?0:p<2.95?1:p<5.5?2:p<5.7?1:0;r.paw=p>=2.6&&p<3.4?'up':'rest';r.closed=r.hat===2&&((p>3.6&&p<3.72)||(p>4.8&&p<4.92));return r}
+  t=t%5;
+  if(skill==='cooking'){const fl=t>=2.4&&t<3.4;r.paw=fl?'up':'fwd';r.dy=fl&&t<2.6?-1:0;r.face=fl?'shock':null}
+  else if(skill==='brewing'){const dr=t>=1.5&&t<4.5;r.dx=dr?Math.round(Math.sin(T*2.5)):0;r.face=dr?'drunk':'happy';r.paw=t<1.5?'fwd':'rest'}
+  else if(skill==='smithing'){if(t<3){r.paw='fwd';r.dy=0;r.face='focus'}else if(t<4.4){r.paw='up';r.face='happy'}}
+  else if(skill==='alchemy'){r.soot=t<2?0:t<3.4?1:t<4.4?1-(t-3.4):0;if(t>=3.4&&t<4.4)r.dx=Math.floor(T*20)%2?1:-1;r.face=t>=1.6&&t<4.4?'soot':null;r.paw=t>=1.6&&t<2?'up':'fwd'}
+  else if(skill==='engineering'){r.paw=t<4.4?'fwd':'rest';r.face=t>=.8&&t<2.7?'confused':t>=2.7&&t<4.4?'idea':null}
+  else if(skill==='tailoring'){r.paw='fwd';r.face=t>=2.2&&t<3.8?'worried':null}
+  else if(skill==='enchanting'){const bu=t>=1.5&&t<3.5;r.face=bu?'surprised':null;r.paw=bu?'up':'fwd';r.dy=bu&&t<1.7?-1:0}
+  return r}
+function drawPetStation(skill,t,px,py,dx,dy,dt,id){
+  t=t%5;const K='#0e0f17',ix=dx+14,ib=dy+1,ex=px+11,ey=py+6,P=CPET[id];
+  if(skill==='cooking'){R(cx,ix-1,ib-2,5,2,K);R(cx,ix,ib-2,3,1,'#5a5a68');R(cx,ix+4,ib-3,2,1,'#6a4a2a');if(Math.floor(T*12)%2)R(cx,ix+1,ib-3,1,1,'#ffb050');
+    if(t>=2.4&&t<3.4){const q=t-2.4,h=Math.round((q<.3?q/.3:1-(q-.3)/.7*.8)*9)+1;for(let y=0;y<h;y++){const w=Math.max(1,Math.round((1-y/h)*3+Math.random()));R(cx,ix+1-Math.floor(w/2)+Math.round((Math.random()-.5)),ib-3-y,w,1,y<h*.3?'#fff0a0':y<h*.65?'#ffb030':'#ff5a1e')}glowAt(ix+1,ib-5,6,'#ff8a2e',.45)}
+    else if(Math.random()<dt*3)mote(ix+Math.random()*3,ib-3,'#e8e8f0',0,-7,.6)}
+  else if(skill==='brewing'){R(cx,ix,ib-4,4,5,K);R(cx,ix+1,ib-3,2,3,'#d89a2a');R(cx,ix,ib-5,4,2,'#fff8e0');R(cx,ix+4,ib-3,1,2,K);
+    for(let st=0;st<2;st++)for(let n=0;n<7;n++){const u=(n/7+T*.5+st*.5)%1;const x=ix+1+(px+14-ix-1)*u+Math.sin(u*7+T*4+st)*1.2,y=ib-6+(py+6-ib+6)*u-Math.sin(u*Math.PI)*4;cx.globalAlpha=Math.sin(u*Math.PI)*.8;R(cx,x,y,1,1,'#f8e0a8');cx.globalAlpha=1}}
+  else if(skill==='smithing'){R(cx,ix-1,ib-2,5,2,K);R(cx,ix,ib-2,3,1,'#6a6a7a');R(cx,ix,ib-3,3,1,'#ff9a3a');
+    if(t<3){const up=Math.floor(t*4)%2===1,hy=up?ib-9:ib-5;line(px+14,py+9,ix+1,hy+1,'#8a5a2a');R(cx,ix,hy-1,3,2,K);R(cx,ix,hy-1,2,1,'#9aa0b0');
+      const step=Math.floor(t*4);if(!P._ls)P._ls=-1;if(step!==P._ls){P._ls=step;if(!up)for(let n=0;n<6;n++)parts.push({x:ix+1,y:ib-4,vx:(Math.random()-.5)*60,vy:-25-Math.random()*30,t:.25,col:Math.random()<.5?'#ffcd3c':'#ff8a2e'})}}
+    else if(t<3.3&&Math.random()<dt*10)mote(px+10,py+3,'#9fe0ff',10,-6,.6)}
+  else if(skill==='alchemy'){const j=t>1&&t<1.6?Math.round((Math.random()-.5)*2):0;disc(cx,ix+1+j,ib-2,2,K);R(cx,ix+j,ib-3,3,2,'#3ad06a');R(cx,ix+1+j,ib-6,1,3,'#d8f0ff');
+    if(t>=1.6&&t<2.4){const q=(t-1.6)/.8;cx.globalAlpha=1-q*.6;[[ix+1,ib-6],[px+11,py+4],[px+8,py+3],[px+13,py+8]].forEach(([x,y],n)=>disc(cx,Math.round(x),Math.round(y-q*3),Math.round(2+q*3),n%2?'#6a6a78':'#9a9aa8'));cx.globalAlpha=1}
+    const so=petPose('alchemy',t,true).soot;if(so>0){petSoot().forEach(([x,y,v])=>{if(v<so)R(cx,px+x,py+y,1,1,'#1a1a20')});R(cx,ex,ey,1,1,'#ffffff');
+      if(t>=3.4&&t<4.4&&Math.random()<dt*15)parts.push({x:px+4+Math.random()*10,y:py+3+Math.random()*5,vx:(Math.random()-.5)*50,vy:-8-Math.random()*15,t:.3,col:'#1a1a20'})}}
+  else if(skill==='engineering'){R(cx,ix,ib-2,5,3,K);R(cx,ix+1,ib-1,3,1,'#d6334a');
+    if(t<4.4){const bx=px+12,by=py+1,up=t>=2.7;let sc=1;if(t>=2.4&&t<3)sc=Math.max(.15,Math.abs(Math.cos(Math.PI*(t-2.4)/.6)));
+      const bp=mk(["kkkkkkk","kbbwbbk","kbwbwbk","kbwwwbk","kkkkkkk"],{b:'#2f6fe0',w:'#e0f0ff'});cx.save();cx.translate(bx,by+2.5);cx.scale(1,(up?1:-1)*sc);cx.drawImage(bp,0,-2.5);cx.restore()}}
+  else if(skill==='tailoring'){const rr=t<2.2?2-t/2.2*.8:t<3.8?1:1+(t-3.8)/1.2;disc(cx,ix+1,ib-2,Math.round(rr)+1,K);disc(cx,ix+1,ib-2,Math.round(rr),'#ff6ab0');
+    const amp=t<2.2?t/2.2*2.5:t<3.8?2:2*(1-(t-3.8)/1.2);for(let n=0;n<=12;n++){const u=n/12;R(cx,ix+1+(px+15-ix-1)*u,ib-3+(py+9-ib+3)*u+Math.sin(n*1.4+T*6)*amp*Math.sin(u*Math.PI),1,1,'#ff6ab0')}
+    const kq=t<2.2?0:t<2.6?(t-2.2)/.4:t<3.8?1:1-(t-3.8)/1.2;if(kq>0)for(let a2=0;a2<26;a2++){const an=a2*.9+T*.5,rd=(1.5+((a2*37)%5)*.4)*kq;R(cx,px+15+Math.cos(an)*rd*1.3,py+8+Math.sin(an*1.3)*rd,1,1,a2%3?'#ff6ab0':'#ffa0d0')}}
+  else if(skill==='enchanting'){R(cx,ix-1,ib-1,6,2,K);R(cx,ix,ib-1,2,1,'#fff8e0');R(cx,ix+3,ib-1,1,1,'#fff8e0');const ox=ix+1,oy=ib-5+Math.round(Math.sin(T*2)),hue=(T*80+id.length*40)%360;
+    glowAt(ox,oy,5,`hsl(${hue},90%,65%)`,.45);disc(cx,ox,oy,1,`hsl(${hue},90%,75%)`);if(Math.random()<dt*5)mote(ox,oy,`hsl(${Math.random()*360},90%,70%)`,(Math.random()-.5)*8,-10,1);
+    if(t>=1.5&&t<3.5){if(Math.random()<dt*25)mote(ox,oy,`hsl(${Math.random()*360},95%,70%)`,(Math.random()-.5)*36,(Math.random()-.5)*30,.8);
+      for(let n=0;n<5;n++){const an=T*3+n*1.25,rd=4+(t-1.5)/2*8,x=Math.round(ox+Math.cos(an)*rd),y=Math.round(oy+Math.sin(an)*rd*.6),c=`hsl(${(n*70+T*200)%360},95%,70%)`;R(cx,x-1,y,3,1,c);R(cx,x,y-1,1,3,c)}}}}
+function drawPetFace(face,px,py,id){const K='#0e0f17',ex=px+11,ey=py+6,w=CPET[id].pal.b;
+  if(face==='shock'||face==='surprised'){R(cx,ex-1,ey-1,3,3,'#ffffff');R(cx,ex,ey,1,1,K);R(cx,ex-1,ey-2,3,1,K);if(face==='surprised')R(cx,ex-1,ey-1,1,1,'#ffcd3c');else ptext('!',px+10,py-10,'#ffffff')}
+  else if(face==='drunk'){R(cx,ex-1,ey,3,1,K);R(cx,ex-1,ey-1,3,1,w);R(cx,ex-1,ey+2,2,1,'#ff7a90')}
+  else if(face==='happy'){R(cx,ex,ey,1,1,w);R(cx,ex-1,ey,1,1,K);R(cx,ex,ey-1,1,1,K);R(cx,ex+1,ey,1,1,K)}
+  else if(face==='focus')R(cx,ex-1,ey-1,3,1,K);
+  else if(face==='confused'){R(cx,ex-1,ey-2,1,1,K);R(cx,ex,ey-1,2,1,K);ptext('?',px+10,py-10,'#ffffff')}
+  else if(face==='idea'){ptext('!',px+10,py-10,'#ffcd3c');glowAt(px+10,py-8,4,'#ffcd3c',.3)}
+  else if(face==='worried'){R(cx,ex-1,ey-2,1,1,K);R(cx,ex+1,ey-3,1,1,K);R(cx,px+6,py+4,1,2,'#9fe0ff')}}
 MAPS.DINGHY=["..kkkkkkkkkkkkkk..",".kddddddddddddddk.","kbbbbbbbbbbbbbbbbk","kblbbbbdbbbbdbbbbk",".kbbbbbbbbbbbbbbk.","..kkkkkkkkkkkkkk.."];
 MAPS.DINGHYF=MAPS.DINGHY.map((r,i)=>i<2?'..................':r);
 MAPS.BP=["kkkkkkkkkkkk","kbbbbbbbbbbk","kbbbbwbbbbbk","kbbbwbwbbbbk","kbbwbbbwbbbk","kbbwbwbwbbbk","kbbwwwwwbbbk","kbbbbbbbbbbk","kkkkkkkkkkkk"];
@@ -657,6 +711,14 @@ function renderPanel(){
   else if(tab==='pets'){
     const tot=['coin','speed','xp','luck'].map(t=>`<span>${BTYPE[t][0].toUpperCase()+BTYPE[t].slice(1)}</span><span class="num">+${Math.round(petBonus(t)*100)}%</span>`).join('');
     const eggCard=(e,i)=>{const lock=S.lvl<e.lvl;return`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">${e.skill?`10 pets in ${SKILLS[e.skill].hats}. They do ${SKILLS[e.skill].n.toLowerCase()} while you fish.`:e.pets.map(p=>p[1]).join(', ')}</div><div class="eggbtns">${lock?`<button class="btn" disabled>Level ${e.lvl}</button>`:`<button class="btn" data-act="hatch" data-arg="${i}" data-cost="${e.p}">${money(e.p)}</button>`}<button class="btn ghost dexbtn" data-act="eggdex" data-arg="${i}" title="See the pets in the ${e.n}" aria-label="See the pets in the ${e.n}">${imgTag(DEX_IC(),2)}</button></div></div>`};
+    const crew=S.eq.filter(id=>CPET[id]);
+    h+=`<div class="sect"><h3>Your crew</h3><p>Equipped pets ride in dinghies behind your boat. Pick what each one makes and press Start. They keep working while you fish.</p>`+
+      (crew.length?crew.map(id=>{const P=PETS[id],k=P.skill,SK=SKILLS[k],j=skJ(k),boss=craftPetFor(k);
+        if(boss!==id)return`<div class="job px"><div class="worker">${imgTag(petSpr(id),2)}<span><b style="color:var(--foam)">${P.n}</b> is resting. ${PETS[boss].n} is already doing ${SK.n.toLowerCase()}, and only one pet works each craft.</span></div></div>`;
+        const run=j.on;return`<div class="job px"><div class="top"><div class="worker">${imgTag(petSpr(id),2)}<span><b style="color:var(--foam)">${P.n}</b><br><span style="color:${SK.col}">${SK.n} · Lv ${j.lvl}</span></span></div>${run?`<button class="btn ghost" data-act="craftstop" data-arg="${k}">Stop</button>`:`<button class="btn" data-act="craftgo" data-arg="${k}" ${S.coins<REC_COST[j.rec]?'disabled':''}>Start</button>`}</div>
+          <label class="hint" for="crew-${k}">Making</label><select id="crew-${k}" class="rsel" data-chg="recipe" data-skill="${k}">${SK.recipes.map((rn,i)=>`<option value="${i}" ${i===j.rec?'selected':''} ${j.lvl<REC_LVL[i]?'disabled':''}>${rn}${j.lvl<REC_LVL[i]?` (Lv ${REC_LVL[i]})`:` · ${fmt(REC_COST[i])} → ${fmt(recValue(k,i,id))}`}</option>`).join('')}</select>
+          <div class="bar"><b id="cpb-${k}" style="width:${j.p/REC_TIME[j.rec]*100}%"></b></div><div class="hint">${run?'Working':'Not started'} · ${petSpeedOf(id).toFixed(2)}× speed · +${Math.round(petValOf(id)*100)}% value</div></div>`}).join('')
+      :`<p class="hint">No pets equipped yet. Hatch an egg below, then press Equip on a pet in your collection.</p>`)+`</div>`;
     h+=`<div class="sect"><h3>Hatchery</h3><p>Pets ride behind your boat in rubber dinghies the colour of their egg. Each pet does its craft for you, so you can fish and craft at the same time. Rarer pets are better. Duplicates add a star, up to 5★.</p>
       <div class="eggs">${EGGS.map((e,i)=>e.skill?eggCard(e,i):'').join('')}</div></div>`;
     h+=`<div class="sect"><h3>Equipped ${S.eq.length}/3</h3><p class="hint" style="margin:0">${SK_ORDER.filter(k=>craftPetFor(k)).map(k=>SKILLS[k].n).join(', ')?'Crafting while you fish: '+SK_ORDER.filter(k=>craftPetFor(k)).map(k=>SKILLS[k].n).join(', '):'No craft pets equipped.'}</p><div class="kv"><span>Boss bite</span><span class="num">${fmt(petDps())}/s</span></div></div>`;
@@ -670,7 +732,7 @@ function renderPanel(){
   }
   else if(tab==='craft'){
     const k=crSel,SK=SKILLS[k],j=skJ(k),pet=craftPetFor(k),aj=avatarJob();
-    h+=`<div class="sect"><h3>Crafts</h3><p>Craft goods to sell and level up each craft for a lasting bonus. Your fisher can work one craft at a time and stops fishing while they do. Equip a pet from that craft's egg and the pet does the work, so you keep fishing.</p>
+    h+=`<div class="sect"><h3>Crafts</h3><p>Craft goods to sell and level up each craft for a lasting bonus. Your fisher can work one craft at a time and stops fishing while they do. Equip a pet from that craft's egg and the pet does the work, so you keep fishing. You can also start your pets from the crew list in the Pets tab.</p>
       <div class="sk-row">${SK_ORDER.map(q=>`<button class="skc px" data-act="crsel" data-arg="${q}" aria-pressed="${q===k}"><i style="background:${SKILLS[q].col}"></i>${SKILLS[q].n} <span class="num">${skL(q)}</span>${skJ(q).on&&(craftPetFor(q)||S.craft===q)?'<span class="run">ON</span>':''}</button>`).join('')}</div></div>`;
     const lvPct=j.lvl>=SK_MAX?100:j.xp/skNeed(j.lvl)*100;
     const bonusNow={cooking:`+${j.lvl-1}% coins`,brewing:`+${j.lvl-1}% XP`,smithing:`+${(j.lvl-1)*2}% boss strike`,alchemy:`+${j.lvl-1}% luck`,engineering:`+${((j.lvl-1)*.5).toFixed(1)}% catch speed`,tailoring:`+${j.lvl-1}% crafting speed`,enchanting:`+${j.lvl-1}% crafted goods value`}[k];
@@ -720,7 +782,7 @@ function refreshPanel(){
   document.querySelectorAll('#panel [data-cost]').forEach(b=>{b.disabled=S.coins<+b.dataset.cost});
   if(B&&$('bhp')){$('bhp').style.width=Math.max(0,B.hp/B.max*100)+'%';$('btext').textContent=`${fmt(Math.max(0,B.hp))} / ${fmt(B.max)} HP`;$('btime').textContent=Math.max(0,(B.ends-now())/1000).toFixed(1)+'s'}
   if(B)$('bosshp').style.width=Math.max(0,B.hp/B.max*100)+'%';
-  if(tab==='craft')SK_ORDER.forEach(k=>{const b=$('cpb-'+k);if(b&&document.body.contains?true:true){const j=skJ(k);if(b)b.style.width=Math.min(100,j.p/REC_TIME[j.rec]*100)+'%'}});
+  if(tab==='craft'||tab==='pets')SK_ORDER.forEach(k=>{const b=$('cpb-'+k);if(b&&document.body.contains?true:true){const j=skJ(k);if(b)b.style.width=Math.min(100,j.p/REC_TIME[j.rec]*100)+'%'}});
 }
 function renderHeader(){if(S.cls){const b=$('crewxp-'+S.cls);if(b)b.style.width=(S.xp/xpNeed(S.lvl)*100)+'%'}
   $('coins').textContent=fmt(S.coins);$('lvl').textContent=S.lvl;$('xpbar').style.width=(S.xp/xpNeed(S.lvl)*100)+'%';
@@ -950,23 +1012,20 @@ function draw(dt){
   const bob=Math.round(Math.sin(T*1.6));
   const deckY=HZ+12+bob,boatX=64;
   window.__petPos={};let ropeX=boatX+1,ropeY=deckY+3;
-  S.eq.forEach((id,i)=>{const P=PETS[id];if(!P||(!CPET[id]&&!PSPR[id]))return;const sp=petSpr(id),egg=EGGS[P.egg],col=egg.pal.b;
+  S.eq.forEach((id,i)=>{const P=PETS[id];if(!P||!CPET[id])return;const egg=EGGS[P.egg],col=egg.pal.b,H=HAT2[SKILLS[P.skill].hat];
     const dx=boatX-22-i*21,dy=deckY+3+Math.round(Math.sin(T*1.9+i*1.3));
     line(ropeX,ropeY,dx+17,dy+2,'#c8b080');ropeX=dx;ropeY=dy+2;
     const dp={b:col,d:mix(col,'#05060c',.3),l:mix(col,'#ffffff',.45)};
     blit(mk(MAPS.DINGHY,dp),dx,dy);
-    const px=dx+Math.round((18-sp.width)/2),py=dy+(CPET[id]?7:5)-sp.height;
-    blit(sp,px,py,1,!CPET[id]);
+    const working=skJ(P.skill).on&&craftPetFor(P.skill)===id,pt=T+i*2.17,r=petPose(P.skill,pt,working);
+    const px=dx-1+r.dx,py=dy-8+r.dy;
+    blit(petBody(id,r.closed),px,py);
+    const pw=PAW[r.paw],pawY=py+pw.y+(working&&P.skill==='smithing'&&(pt%5)<3&&Math.floor((pt%5)*4)%2===1?-2:0);
+    blit(pawCv(id,r.paw),px+pw.x,pawY);
+    const [ox,oy]=hatOff(H,working?2:r.hat);blit(hatCv(P.skill),px+H.x+ox,py+H.y+oy);
     blit(mk(MAPS.DINGHYF,dp),dx,dy);R(cx,dx+1,dy+6,16,1,hl);
-    window.__petPos[id]={x:dx+9,y:py+(CPET[id]?4:0)};
-    if(P.skill&&skJ(P.skill).on&&craftPetFor(P.skill)===id){const hx=dx+9,hy=py+4,k=P.skill;
-      if(k==='cooking'&&Math.random()<dt*6)mote(hx+(Math.random()-.5)*8,hy+8,Math.random()<.5?'#ffb050':'#ff5a1e',0,-14,.5);
-      if(k==='brewing'&&Math.random()<dt*4)mote(hx+(Math.random()-.5)*8,hy+6,'#fff3b0',(Math.random()-.5)*4,-9,1);
-      if(k==='smithing'&&Math.random()<dt*2)for(let n=0;n<5;n++)parts.push({x:hx+4,y:hy+8,vx:(Math.random()-.5)*50,vy:-20-Math.random()*30,t:.2,col:Math.random()<.5?'#ffcd3c':'#ff8a2e'});
-      if(k==='alchemy'&&Math.random()<dt*5)mote(hx+(Math.random()-.5)*8,hy,'#9aa0b0',(Math.random()-.5)*6,-8,1.2);
-      if(k==='engineering'&&Math.random()<dt*3)mote(hx+(Math.random()-.5)*10,hy,'#ffcd3c',0,-10,.8);
-      if(k==='tailoring'&&Math.random()<dt*4)mote(hx+(Math.random()-.5)*10,hy+2,'#ff6ab0',(Math.random()-.5)*8,-6,.9);
-      if(k==='enchanting'&&Math.random()<dt*8)mote(hx+(Math.random()-.5)*12,hy,`hsl(${Math.random()*360},90%,70%)`,(Math.random()-.5)*8,-12,1)}});
+    if(working){drawPetStation(P.skill,pt,px,py,dx,dy,dt,id);drawPetFace(r.face,px,py,id)}
+    window.__petPos[id]={x:dx+8,y:py+2}});
   // boat reflection
   const bsp=mk(MAPS.BOAT,BOAT_PAL);cx.globalAlpha=.22;cx.save();cx.translate(boatX,deckY+14);cx.scale(1,-1);cx.drawImage(mk(MAPS.BOAT,BOAT_PAL,'#05060c'),0,0);cx.restore();cx.globalAlpha=1;
   R(cx,boatX+1,deckY-14,1,15,'#3a2a1a');R(cx,boatX-1,deckY-14,3,1,'#3a2a1a');blit(mk(LANT,{y:lightOn?'#ffe08a':'#6a5a3a'}),boatX-2,deckY-13);
@@ -1133,6 +1192,7 @@ function offline(){
 }
 
 /* ---------- input ---------- */
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.chg==='recipe')act.recipe(t.dataset.skill+':'+t.value)});
 document.addEventListener('click',e=>{if(e.target&&e.target.id==='eggdex'){$('eggdex').hidden=true;return}const b=e.target.closest('[data-act]');if(b&&!b.disabled&&act[b.dataset.act])act[b.dataset.act](b.dataset.arg)});
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;tab=b.dataset.tab;renderTabs();renderPanel()});
 cv.addEventListener('pointerdown',e=>{
