@@ -13,7 +13,8 @@ A pixel-art idle fishing game that runs in the browser. Open `index.html` to pla
 - **Six zones** from Willow Pond to Starfall Abyss, each with 7 fish across five rarities
 - **Boss fights** for every zone
 - **Shop** with rods/staffs, bait and timed supplies
-- **Pets** hatched from eggs, with star ranks, bonuses and boss damage
+- **Seven crafts** (cooking, brewing, smithing, alchemy, engineering, tailoring, enchanting), each with levels, six recipes and a lasting bonus. Crafting yourself pauses fishing; a craft pet does it for you
+- **Pets** hatched from 10 eggs: 3 fishing eggs and 7 craft eggs with 10 hat-wearing pets each. Equipped pets ride in rubber dinghies the colour of their egg
 - **Fish index** with catch counts and best weights
 - **Day and night cycle** (20 minutes per full day) and **random weather** (rain, storms, fog, snow, meteor showers, aurora) with small bonuses
 - Saves in the browser and keeps fishing at half speed while you're away (up to 8 hours)

@@ -135,6 +135,16 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
 .mate .lv{font-size:13px;color:var(--muted)}
 .mate .bar{height:8px;padding:1px;min-width:70px}
 .mate[aria-pressed="true"] .lv{color:var(--brass)}
+.sk-row{display:flex;flex-wrap:wrap;gap:10px;padding:3px}
+.skc{background:var(--panel2);border:0;padding:6px 10px;display:flex;align-items:center;gap:7px;font-weight:600;color:var(--muted);font-size:14px}
+.skc i{width:10px;height:10px;display:inline-block;flex:none}
+.skc[aria-pressed="true"]{background:var(--hi);color:var(--foam)}
+.skc .run{color:var(--mint);font-family:var(--display);font-size:7px}
+.job{background:var(--panel2);padding:12px;display:flex;flex-direction:column;gap:8px;margin-inline:3px}
+.job .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.worker{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.worker img{image-rendering:pixelated;flex:none}
+.egghead{font-family:var(--display);font-size:9px;color:var(--muted);margin:4px 0 0}
 #toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;align-items:center;z-index:10;pointer-events:none;width:min(92vw,440px)}
 .toast{background:var(--edge);color:var(--foam);font-weight:600;padding:9px 14px;text-align:center;animation:tin .2s steps(3);box-shadow:0 -3px 0 0 var(--brass),0 3px 0 0 var(--brass),-3px 0 0 0 var(--brass),3px 0 0 0 var(--brass)}
 @keyframes tin{from{transform:translateY(10px);opacity:0}}
@@ -170,6 +180,7 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
       <div class="tabs" role="tablist" id="tabs">
         <button class="tab" role="tab" data-tab="shop">Shop</button>
         <button class="tab" role="tab" data-tab="pets">Pets</button>
+        <button class="tab" role="tab" data-tab="craft">Crafts</button>
         <button class="tab" role="tab" data-tab="boss">Bosses</button>
         <button class="tab" role="tab" data-tab="index">Index</button>
         <button class="tab" role="tab" data-tab="bag">Bag</button>
@@ -224,7 +235,46 @@ const EGGS=[
  {id:'pond',n:'Pond Egg',p:400,lvl:1,pal:{b:'#cfe3c4',l:'#f4fbef',d:'#7fae6a'},mult:1,pets:[['duck','Duckling',0,'coin',.05,45],['frog','Frog',1,'speed',.04,35],['otter','Otter',2,'xp',.10,15],['heron','Heron',3,'luck',.15,5]]},
  {id:'reef',n:'Reef Egg',p:20000,lvl:12,pal:{b:'#ffb39a',l:'#ffe6dc',d:'#e05a6a'},mult:25,pets:[['crab','Hermit Crab',1,'coin',.15,45],['pelican','Pelican',1,'speed',.08,35],['seal','Seal Pup',2,'xp',.2,15],['narwhal','Narwhal',3,'luck',.3,5]]},
  {id:'cosmic',n:'Cosmic Egg',p:800000,lvl:30,pal:{b:'#8a6ae8',l:'#d8c8ff',d:'#ffcd3c'},mult:600,pets:[['jelly','Moon Jelly',2,'coin',.4,45],['fox','Comet Fox',3,'speed',.15,35],['starcat','Star Cat',3,'luck',.5,15],['dragon','Void Dragon',4,'all',.35,5]]}];
-const PETS={};EGGS.forEach((e,ei)=>e.pets.forEach(p=>PETS[p[0]]={id:p[0],n:p[1],tier:p[2],type:p[3],val:p[4],w:p[5],egg:ei}));
+/* ---- crafting skills ---- */
+const SKILLS={
+ cooking:{n:'Cooking',col:'#ff4a3a',hat:'chef',hats:'chef hats',perk:'+1% coins per level',recipes:['Grilled Minnow','Fish Tacos','Seafood Chowder','Sushi Platter','Lobster Thermidor','Leviathan Feast']},
+ brewing:{n:'Brewing',col:'#e8a020',hat:'can',hats:'soda can hats',perk:'+1% XP per level',recipes:['Pond Fizz','Ginger Root Soda','Kelp Ale','Sea Salt Stout','Stormcloud Cider','Starfall Mead']},
+ smithing:{n:'Smithing',col:'#8a96a8',hat:'goggles',hats:'goggles',perk:'+2% boss strike per level',recipes:['Fish Hooks','Iron Lures','Steel Reel','Titanium Gaff','Abyssal Anchor','Starforged Harpoon']},
+ alchemy:{n:'Alchemy',col:'#2fb84a',hat:'wizard',hats:'wizard hats',perk:'+1% luck per level',recipes:['Bubble Tonic','Glow Potion','Gill Elixir','Tide Philter','Kraken Ink Draught','Elixir of the Deep']},
+ engineering:{n:'Engineering',col:'#2f6fe0',hat:'hard',hats:'hard hats',perk:'+0.5% catch speed per level',recipes:['Bobber Spring','Line Winch','Fish Finder','Auto-Reeler','Submarine Drone','Tide Engine']},
+ tailoring:{n:'Tailoring',col:'#ff6ab0',hat:'bow',hats:'ribbon bows',perk:'+1% pet bonuses per level',recipes:['Knit Mittens','Fishing Vest','Rain Slicker','Woven Net','Silk Sail','Starweave Cloak']},
+ enchanting:{n:'Enchanting',col:'#20c8c8',hat:'hood',hats:'hoods',perk:'+1% crafted goods value per level',recipes:['Lucky Rune','Glimmer Scale','Moonlit Lure','Tide Sigil','Abyssal Glyph','Celestial Orb']}};
+const SK_ORDER=Object.keys(SKILLS);
+const REC_LVL=[1,5,12,20,30,40],REC_COST=[15,90,600,4000,30000,250000],REC_TIME=[6,10,15,22,30,40],REC_XP=[4,10,25,60,150,400],SK_MAX=50;
+const PET_SPEED=[1,1.15,1.35,1.6,2],PET_VAL=[0,.05,.1,.2,.35];
+/* [id, name, ears, snout, mark, body, belly, muzzle, dark, eye?] — 10 per craft, common → legendary */
+const CPET_LIST={
+ cooking:[['kitten','Kitten','pointy','','','#f0a050','#fff1dc','#fff1dc','#c87830'],['piglet','Piglet','pointy','pig','','#ffb0c0','#ffd8e0','#ff8aa0','#e0708a'],['mouse','Mouse','round','','','#a8a8b8','#e8e8f0','#f0d0d8','#ff9ab0'],
+  ['puppy','Puppy','floppy','','','#d8b080','#fff4e0','#fff4e0','#8a5a3a'],['hamster','Hamster','round','','','#f0c070','#fff8e8','#fff8e8','#e0a050'],['bunny','Bunny','long','','','#f4f0ec','#ffffff','#ffe0e8','#ffb0c0'],
+  ['raccoon','Raccoon','round','','mask','#8a8a98','#e0e0e8','#e8e8f0','#2a2a3a','#ffffff'],['bearcub','Bear Cub','round','','','#8a5a3a','#d0a070','#d0a070','#5a3a20'],['redpanda','Red Panda','pointy','','mask','#d85a20','#fff1e0','#fff1e0','#5a2a10','#ffffff'],['goldtiger','Golden Tiger','pointy','','stripe','#ffc83a','#fff8e0','#fff8e0','#8a4a10']],
+ brewing:[['frog','Frog','bumps','','','#5fc85a','#d8f0a0','#d8f0a0','#3a8a3a'],['duckling','Duckling','none','','','#ffd83a','#fff3b0','#ff9a2e','#e0a020'],['lamb','Lamb','floppy','','','#f4f0e8','#ffffff','#f0d8c8','#d8d0c0'],
+  ['beagle','Beagle','floppy','','spots','#f8f4ec','#ffffff','#ffffff','#b06a2a'],['otter','Otter','round','','','#8a5a3c','#d9b48f','#d9b48f','#5a3a20'],['squirrel','Squirrel','pointy','','','#c86a30','#f8e0c0','#f8e0c0','#8a4020'],
+  ['badger','Badger','round','','stripe','#5a5a62','#e8e8e8','#e8e8e8','#ffffff','#ffffff'],['koala','Koala','round','','','#9aa0aa','#e8ecf0','#3a3a44','#d8dce4'],['walrus','Walrus','none','tusk','','#a8705a','#d8a890','#d8a890','#6a4030'],['grizzly','Grizzly King','round','','','#6a4a2a','#a87a50','#c8a070','#3a2410','#ffffff']],
+ smithing:[['mole','Mole','none','','','#5a4a5e','#8a7a90','#f0a0b0','#3a2a3e','#ffffff'],['hedgehog','Hedgehog','pointy','','spots','#8a6a4a','#f0d8b8','#f0d8b8','#5a3a20'],['beaver','Beaver','round','tusk','','#8a5a30','#c89060','#c89060','#5a3a1a'],
+  ['boar','Boar','pointy','pig','','#5a4030','#8a6a50','#a07a60','#3a2818','#ffffff'],['bulldog','Bulldog','floppy','','','#d8b890','#fff0dc','#f0d8c0','#8a6a4a'],['ram','Ram','horns','','','#f0ece0','#ffffff','#d8c8b8','#b89a6a'],
+  ['rhino','Rhino','horns','','','#9aa0a8','#c8ccd2','#b8bcc4','#e8e0d0'],['gorilla','Gorilla','round','','','#3a3a44','#6a6a78','#8a8a98','#2a2a30','#ffffff'],['armadillo','Armadillo','pointy','','shell','#b8a088','#e0d0b8','#e0d0b8','#8a7258'],['forgelion','Forge Lion','round','','','#e8a040','#fff0d0','#fff0d0','#a85a20']],
+ alchemy:[['toad','Toad','bumps','','spots','#8a7a3a','#c8b870','#c8b870','#5a4a20'],['newt','Newt','bumps','','','#ff8a3a','#ffd0a0','#ffd0a0','#c05a1a'],['bat','Bat','pointy','','','#4a3a5a','#7a6a8a','#8a7a9a','#2a1a3a','#ffffff'],
+  ['blackcat','Black Cat','pointy','','','#2a2a34','#4a4a58','#4a4a58','#1a1a22','#ffe040'],['owl','Owl','tuft','','','#a87a50','#f0e0c0','#ffb030','#6a4a2a'],['rat','Rat','round','','','#8a8090','#c8c0d0','#ffb0c0','#ff9ab0'],
+  ['raven','Raven','none','','','#2a2a3a','#4a4a6a','#5a5a6a','#1a1a2a','#ffffff'],['chameleon','Chameleon','bumps','','spots','#4ad08a','#c8f0a0','#c8f0a0','#2a9a5a'],['axolotl','Axolotl','pointy','','','#ffb0d0','#ffe0ec','#ffe0ec','#ff6aa0'],['crystalfox','Crystal Fox','pointy','','','#9fe8ff','#ffffff','#ffffff','#5ab0e0']],
+ engineering:[['chipmunk','Chipmunk','round','','stripe','#c88a50','#f8e8d0','#f8e8d0','#6a4020'],['gecko','Gecko','bumps','','spots','#9ad84a','#e0f8b0','#e0f8b0','#5a9a2a'],['pigeon','Pigeon','none','','','#8a94a8','#c8d0dc','#4a4a58','#5fb0a0'],
+  ['monkey','Monkey','round','','','#8a5a3a','#f0c8a0','#f0c8a0','#5a3a20'],['meerkat','Meerkat','round','','mask','#d8b888','#f8e8d0','#f8e8d0','#6a4a2a','#ffffff'],['crow','Crow','none','','','#2a2a34','#44445a','#5a5a6a','#1a1a22','#ffffff'],
+  ['platypus','Platypus','none','','','#8a5a3a','#c89a6a','#3a3a44','#5a3a20'],['hippo','Hippo','round','','','#9a8aaa','#d8c8e0','#c8b0d8','#ff9ab0'],['elephant','Elephant','floppy','trunk','','#9aa4b0','#c8d0d8','#9aa4b0','#7a8490'],['clockpanda','Clockwork Panda','round','','mask','#f4f4f4','#ffffff','#ffffff','#2a2a34','#ffffff']],
+ tailoring:[['sheep','Sheep','floppy','','','#f4f0e8','#ffffff','#e8d8c8','#c8c0b0'],['poodle','Poodle','floppy','','','#f8d0dc','#fff0f4','#fff0f4','#e8a0b8'],['chick','Chick','none','','','#fff060','#fff8b0','#ff9a2e','#e8c020'],
+  ['alpaca','Alpaca','pointy','','','#f0e0c8','#fff8ec','#fff8ec','#c8b090'],['tabby','Tabby Cat','pointy','','stripe','#a8a8b0','#ffffff','#ffffff','#6a6a78'],['guineapig','Guinea Pig','round','','spots','#e8c8a0','#fff4e4','#fff4e4','#8a5a3a'],
+  ['flamingo','Flamingo','none','','','#ff8ab8','#ffc8dc','#2a2a34','#e05a90'],['swan','Swan','none','','','#f8f8fc','#ffffff','#ff8a3a','#d0d4e0'],['peacock','Peacock','tuft','','spots','#2a8ad0','#5fd0c0','#ffcd3c','#1a5a8a','#ffffff'],['snowleopard','Snow Leopard','round','','spots','#e8e8f0','#ffffff','#ffffff','#6a6a7a']],
+ enchanting:[['fennec','Fennec','pointy','','','#f0d0a0','#fff4e0','#fff4e0','#d8a870'],['hare','Hare','long','','','#b89070','#f0e0d0','#f0e0d0','#8a6040'],['ferret','Ferret','round','','mask','#e8dcc8','#ffffff','#ffffff','#6a5040','#ffffff'],
+  ['wolfpup','Wolf Pup','pointy','','','#8a94a8','#e0e4ec','#e0e4ec','#5a6478'],['fawn','Fawn','pointy','','spots','#c88a50','#fff0dc','#fff0dc','#f8e8d0'],['lemur','Lemur','round','','mask','#a8a8b0','#ffffff','#2a2a34','#2a2a34','#ffcd3c'],
+  ['snowowl','Snowy Owl','tuft','','spots','#f4f4f8','#ffffff','#3a3a44','#9aa0b0'],['arcticfox','Arctic Fox','pointy','','','#f0f4fa','#ffffff','#ffffff','#c8d4e8'],['kitsune','Kitsune','pointy','','stripe','#ffffff','#ffffff','#ffffff','#ff4a6a'],['lynx','Celestial Lynx','pointy','','spots','#5a4ad0','#c8b8ff','#c8b8ff','#ffcd3c','#ffffff']]};
+const CPET={},CP_TIER=[0,0,0,1,1,1,2,2,3,4],CP_W=[20,20,20,9,9,9,5,5,2.4,.6];
+SK_ORDER.forEach(k=>{const col=SKILLS[k].col;
+  EGGS.push({id:k,n:SKILLS[k].n+' Egg',p:1500,lvl:1,pal:{b:col,l:mix(col,'#ffffff',.55),d:mix(col,'#05060c',.35)},mult:3,skill:k,
+    pets:CPET_LIST[k].map((a,i)=>{const id=k+'_'+a[0];CPET[id]={skill:k,ears:a[2],snout:a[3],mark:a[4],pal:{b:a[5],l:a[6],m:a[7],d:a[8],e:a[9]||'#0e0f17',p:'#ff9aa8',n:'#2a1a20',w:'#ffffff'}};return[id,a[1],CP_TIER[i],'craft',CP_TIER[i],CP_W[i]]})})});
+const PETS={};EGGS.forEach((e,ei)=>e.pets.forEach(p=>PETS[p[0]]={id:p[0],n:p[1],tier:p[2],type:p[3],val:p[4],w:p[5],egg:ei,skill:e.skill||null}));
 const DPSBASE=[2,5,12,30,80];
 const BTYPE={coin:'coins',speed:'catch speed',xp:'XP',luck:'luck',all:'coins, XP & luck'};
 
@@ -335,12 +385,51 @@ function mk(map,pal,mono){
 function fishPal(f){const [b,l,d]=f[5];return{b,l,d,e:lum(b)<.35?'#f4f4f4':'#0e0f17'}}
 function fishSpr(f,mono){return mk(MAPS[f[4]],fishPal(f),mono)}
 function bossSpr(z,mono){const b=z.boss,[bb,l,d]=b.pal;return mk(MAPS[b.spr],{b:bb,l,d,e:b.eye||'#ffcd3c',g:'#bff7ff'},mono)}
-function petSpr(id,mono){const [m,p]=PSPR[id];return mk(MAPS[m],p,mono)}
+function petSpr(id,mono){if(CPET[id])return craftPetCanvas(id,mono);const [m,p]=PSPR[id];return mk(MAPS[m],p,mono)}
+/* craft pets: chibi front-facing body + ears + markings + craft hat, 14×18 */
+const PB=["....kkkkkk....","..kkbbbbbbkk..",".kbbbbbbbbbbk.",".kbbebbbbebbk.","kbbbbbbbbbbbbk","kbbppbmmbppbbk",".kbbbbmmbbbbk.","..kkbbbbbbkk..","..kbllllllbk..","..kbllllllbk..","..kkk.kk.kkk.."];
+const EARS2={pointy:{b:[[1,".k..........k."],[2,"kbk........kbk"],[3,"kdbk......kbdk"],[4,".kbk......kbk."]]},
+ round:{b:[[2,".kkk......kkk."],[3,"kbdbk....kbdbk"],[4,"kbbk......kbbk"]]},
+ long:{b:[[0,"..kk......kk.."],[1,".kdbk....kbdk."],[2,".kdbk....kbdk."],[3,".kdbk....kbdk."],[4,".kbk......kbk."]]},
+ floppy:{f:[[4,"kkk........kkk"],[5,"kddk......kddk"],[6,"kddk......kddk"],[7,"kddk......kddk"],[8,".kk........kk."]]},
+ bumps:{b:[[2,"..kkk....kkk.."],[3,".kbebk..kbebk."]],noEyes:1},
+ horns:{b:[[1,"..k........k.."],[2,".kdk......kdk."],[3,".kdk......kdk."],[4,"..kdk....kdk.."]]},
+ tuft:{b:[[2,".k..........k."],[3,".kbk......kbk."],[4,"..kbk....kbk.."]]},none:{}};
+const HAT2={chef:{x:2,y:2,map:["..kkkkkk..",".kwwwwwwk.","kwwwwwwwwk","kwwwwwwwwk",".kwwwwwwk.",".kkkkkkkk."],pal:{w:'#ffffff'}},
+ can:{x:0,y:4,map:["kkk........kkk","krk........krk","kwk........kwk","krkkkkkkkkkkrk","kkkw......wkkk","....w....w....",".....w..w.....","......ww......"],pal:{r:'#d6334a',w:'#f4f4f4'}},
+ wizard:{x:2,y:1,map:["......kk..",".....kpk..","....kppk..","...kpypk..","..kppppk..",".kppppppk.","kkkkkkkkkk"],pal:{p:'#6a3ab0',y:'#ffcd3c'}},
+ goggles:{x:0,y:9,map:["..kkkk..kkkk..","kdkgwkkkkgwkdk","..kkkk..kkkk.."],pal:{d:'#5a3a20',g:'#9fe0ff',w:'#ffffff'}},
+ hard:{x:1,y:4,map:["...kkkkkk...","..kyyyyyyk..",".kyywyyyyyk.","kkkkkkkkkkkk"],pal:{y:'#ffcd3c',w:'#fff6c8'}},
+ bow:{x:7,y:4,map:[".kk...kk.","kppk.kppk","kpppkpppk","kppkkkppk",".kk...kk."],pal:{p:'#ff5a9a'}},
+ hood:{x:0,y:6,map:[".....kkkk.....","...kkhhhhkk...","..khhhhhhhhk..",".khhkkkkkkhhk.","khhk......khhk","khk........khk","khk........khk","khk........khk","khk........khk","khk........khk","khhk......khhk",".khhhhhhhhhhk."],pal:{h:'#3a2a6a'}}};
+const cpCache={};
+function overlay(rows){const m=Array.from({length:14},()=>'..............');rows.forEach(([r,str])=>m[r]=str);return m}
+function craftPetCanvas(id,mono){const key=id+(mono||'');if(cpCache[key])return cpCache[key];const P=CPET[id],E=EARS2[P.ears]||{};
+  const base=PB.slice();base.unshift('..............','..............','..............');
+  /* PB starts at body row 3 of the 14-row layout */
+  if(E.noEyes)base[6]=".kbbbbbbbbbbk.";
+  if(P.snout==='pig')base[8]="kbbppbnnbppbbk";
+  if(P.snout==='tusk')base[10]="..kkbwbbwbkk..";
+  if(P.snout==='trunk'){base[10]="..kkbbmmbbkk..";base[11]="..kbllmmllbk..";base[12]="..kbllmmllbk.."}
+  if(P.mark==='stripe'){base[4]="..kkbdbbdbkk..";base[5]=".kbbdbbbbdbbk."}
+  if(P.mark==='mask')base[6]=".kbdedbbdedbk.";
+  if(P.mark==='spots'){base[7]="kbdbbbbbbbbdbk";base[11]="..kbldlldlbk.."}
+  if(P.mark==='shell'){base[11]="..kbdbdbdbbk..";base[12]="..kbdbdbdbbk.."}
+  const c=document.createElement('canvas');c.width=14;c.height=18;const g=c.getContext('2d');
+  if(E.b)g.drawImage(mk(overlay(E.b),P.pal),0,4);
+  g.drawImage(mk(base,P.pal),0,4);
+  if(E.f)g.drawImage(mk(overlay(E.f),P.pal),0,4);
+  const H=HAT2[SKILLS[P.skill].hat];g.drawImage(mk(H.map,H.pal),H.x,H.y);
+  if(mono){g.globalCompositeOperation='source-in';g.fillStyle=mono;g.fillRect(0,0,14,18)}
+  return cpCache[key]=c}
+MAPS.DINGHY=["..kkkkkkkkkkkkkk..",".kddddddddddddddk.","kbbbbbbbbbbbbbbbbk","kblbbbbdbbbbdbbbbk",".kbbbbbbbbbbbbbbk.","..kkkkkkkkkkkkkk.."];
+MAPS.DINGHYF=MAPS.DINGHY.map((r,i)=>i<2?'..................':r);
+MAPS.BP=["kkkkkkkkkkkk","kbbbbbbbbbbk","kbbbbwbbbbbk","kbbbwbwbbbbk","kbbwbbbwbbbk","kbbwbwbwbbbk","kbbwwwwwbbbk","kbbbbbbbbbbk","kkkkkkkkkkkk"];
 function url(c,scale){const k=c.toDataURL();return k}
 function imgTag(c,scale,alt){const key=(c._u||(c._u=c.toDataURL()));return`<img src="${key}" width="${c.width*scale}" height="${c.height*scale}" alt="${alt||''}">`}
 
 function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},
- buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null}}
+ buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
 let PROF={}; /* every fisher is a separate save: PROF[cls] holds their whole state; S is the active one */
 let S=fresh(), B=null, tab='shop', castLeft=4, castMax=4, logItems=[];
 
@@ -352,17 +441,18 @@ function xpNeed(l){return Math.floor(15*Math.pow(1.2,l-1))}
 function now(){return Date.now()}
 function buffOn(k){return S.buffs[k]>now()}
 function petStarMult(id){return 1+0.5*((S.pets[id]||1)-1)}
-function petBonus(type){let s=0;S.eq.forEach(id=>{const p=PETS[id];if(!p)return;if(p.type===type||(p.type==='all'&&type!=='speed'))s+=p.val*petStarMult(id)});return s}
+function petBonus(type){return petBonus0(type)*(1+.01*(skL('tailoring')-1))}
+function petBonus0(type){let s=0;S.eq.forEach(id=>{const p=PETS[id];if(!p)return;if(p.type===type||(p.type==='all'&&type!=='speed'))s+=p.val*petStarMult(id)});return s}
 function petDps(){let s=0;S.eq.forEach(id=>{const p=PETS[id];if(p)s+=DPSBASE[p.tier]*EGGS[p.egg].mult*petStarMult(id)});return s}
 function zonesComplete(){return ZONES.filter((z,zi)=>z.fish.every((f,fi)=>S.idx[zi+'-'+fi])).length}
-function castTime(){return RODS[S.rod].cast/(1+petBonus('speed')+envMods().speed+(S.cls==='air'?.2:0))/(buffOn('speed')?2:1)}
-function luck(){return BAITS[S.bait].luck+petBonus('luck')+envMods().luck+(S.cls==='ice'?.1:0)+(buffOn('luck')?1:0)}
-function coinMult(){return(1+petBonus('coin'))*(buffOn('coin')?2:1)*(1+0.1*zonesComplete())*(1+0.05*S.beaten.filter(Boolean).length)*(1+envMods().coin)*(S.cls==='std'?1.15:1)}
-function xpMult(){return(1+petBonus('xp')+envMods().xp)*(buffOn('xp')?2:1)}
+function castTime(){return RODS[S.rod].cast/(1+petBonus('speed')+envMods().speed+(S.cls==='air'?.2:0)+.005*(skL('engineering')-1))/(buffOn('speed')?2:1)}
+function luck(){return BAITS[S.bait].luck+petBonus('luck')+envMods().luck+(S.cls==='ice'?.1:0)+.01*(skL('alchemy')-1)+(buffOn('luck')?1:0)}
+function coinMult(){return(1+petBonus('coin'))*(buffOn('coin')?2:1)*(1+0.1*zonesComplete())*(1+0.05*S.beaten.filter(Boolean).length)*(1+envMods().coin)*(S.cls==='std'?1.15:1)*(1+.01*(skL('cooking')-1))}
+function xpMult(){return(1+petBonus('xp')+envMods().xp)*(buffOn('xp')?2:1)*(1+.01*(skL('brewing')-1))}
 function unlocked(i){return S.lvl>=ZONES[i].lvl&&(i===0||S.beaten[i-1]>0)}
 function maxZone(){let m=0;ZONES.forEach((z,i)=>{if(unlocked(i))m=i});return m}
 function itemPrice(k){return ITEMS[k].base*ZMULT[maxZone()]}
-function strikeDmg(){return RODS[S.rod].pow*(1+S.lvl*0.05)*(B&&B.harpoon?1.5:1)*(S.cls==='fire'?1.4:1)}
+function strikeDmg(){return RODS[S.rod].pow*(1+S.lvl*0.05)*(B&&B.harpoon?1.5:1)*(S.cls==='fire'?1.4:1)*(1+.02*(skL('smithing')-1))}
 function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;$('toasts').appendChild(t);setTimeout(()=>t.remove(),2600);while($('toasts').children.length>3)$('toasts').firstChild.remove()}
 
 /* ---------- fishing ---------- */
@@ -399,6 +489,30 @@ function gainXp(x){
   if(up){toast(`Level up! ${curC().animal} is now level ${S.lvl}`);renderCrew();renderZones();if(tab!=='index')renderPanel();}
 }
 
+/* ---------- crafting ---------- */
+function skJ(k){if(!S.sk)S.sk={};if(!S.sk[k])S.sk[k]={lvl:1,xp:0,rec:0,on:false,p:0,paid:false};return S.sk[k]}
+function skL(k){return S.sk&&S.sk[k]?S.sk[k].lvl:1}
+function skNeed(l){return Math.floor(20*Math.pow(1.18,l-1))}
+function cpStar(id){return 1+.1*((S.pets[id]||1)-1)}
+function craftPetFor(k){let best=null;S.eq.forEach(id=>{const p=PETS[id];if(p&&p.skill===k&&(!best||p.tier>PETS[best].tier))best=id});return best}
+function petSpeedOf(id){return PET_SPEED[PETS[id].tier]*cpStar(id)}
+function petValOf(id){return PET_VAL[PETS[id].tier]*cpStar(id)}
+function avatarJob(){const k=S.craft;if(!k||!S.sk||!S.sk[k]||!S.sk[k].on||craftPetFor(k))return null;return k}
+function recValue(k,i,pet){return REC_COST[i]*1.7*(1+.01*(skL('enchanting')-1))*(1+(pet?petValOf(pet):0))}
+function skGain(k,x){const j=skJ(k);if(j.lvl>=SK_MAX)return;j.xp+=x;let up=false;while(j.lvl<SK_MAX&&j.xp>=skNeed(j.lvl)){j.xp-=skNeed(j.lvl);j.lvl++;up=true;
+  const ni=REC_LVL.indexOf(j.lvl);toast(`${SKILLS[k].n} level ${j.lvl}!`+(ni>=0?` New recipe: ${SKILLS[k].recipes[ni]}`:''))}
+  if(up&&tab==='craft')renderPanel()}
+function craftTick(dt){
+  if(S.craft&&craftPetFor(S.craft))S.craft=null;
+  SK_ORDER.forEach(k=>{const j=skJ(k);if(!j.on)return;const pet=craftPetFor(k);if(!pet&&(S.craft!==k||B))return;
+    if(!j.paid){const cost=REC_COST[j.rec];if(S.coins<cost){j.on=false;if(S.craft===k)S.craft=null;toast(`Not enough coins for ${SKILLS[k].recipes[j.rec]}. ${SKILLS[k].n} stopped`);if(tab==='craft')renderPanel();return}S.coins-=cost;j.paid=true}
+    j.p+=dt*(pet?petSpeedOf(pet):1);
+    if(j.p>=REC_TIME[j.rec]){j.p=0;j.paid=false;const v=recValue(k,j.rec,pet);S.coins+=v;
+      const pos=pet&&window.__petPos&&window.__petPos[pet]?window.__petPos[pet]:{x:76,y:HZ-2};floats.push({x:pos.x,y:pos.y-4,t:0,txt:'+'+fmt(v),col:SKILLS[k].col});
+      skGain(k,REC_XP[j.rec])}})}
+function craftOffline(away){let total=0;SK_ORDER.forEach(k=>{const j=skJ(k);if(!j.on)return;const pet=craftPetFor(k);if(!pet&&S.craft!==k)return;
+  const cyc=Math.min(2000,Math.floor(away*.5*(pet?petSpeedOf(pet):1)/REC_TIME[j.rec]));if(cyc<1||S.coins<REC_COST[j.rec])return;
+  const net=(recValue(k,j.rec,pet)-REC_COST[j.rec])*cyc;S.coins+=net;total+=net;for(let i=0;i<cyc&&skL(k)<SK_MAX;i++)skGain(k,REC_XP[j.rec])});return total}
 /* ---------- bosses ---------- */
 function bossReady(i){return unlocked(i)&&(S.beaten[i]>0||S.zc[i]>=15)}
 function startBoss(i){
@@ -436,7 +550,15 @@ function charLv(k){const o=k===S.cls?S:PROF[k];return o?{lvl:o.lvl,xp:o.xp,coins
 function renderCrew(){$('crew').innerHTML=CLS_ORDER.map(k=>{const C=CLS[k],c=charLv(k),on=S.cls===k;
   return`<button class="mate px" data-act="choose" data-arg="${k}" aria-pressed="${on}"><span class="pic">${imgTag(sitCanvas(k),2,C.animal)}</span><span class="info"><span class="nm">${C.animal}</span><span class="lv">${c.on?`Lv <span class="num" id="crewlv-${k}">${c.lvl}</span> · ${fmt(c.coins)} coins`:'New · Lv 1'}</span><span class="bar"><b id="crewxp-${k}" style="width:${c.xp/xpNeed(c.lvl)*100}%"></b></span></span></button>`}).join('')}
 function setLogo(){$('logo').src=avatarCanvas(S.cls||'std').toDataURL();$('hint').textContent=`Your ${curC().animal.toLowerCase()} fishes on its own. Tap the water to ${curC().verb} and land fish faster.`}
+let crSel='cooking';
+function craftArgs(a){const [k,i]=String(a).split(':');return[k,+i]}
 const act={
+  crsel(k){if(SKILLS[k]){crSel=k;renderPanel()}},
+  recipe(a){const [k,i]=craftArgs(a);const j=skJ(k);if(j.lvl<REC_LVL[i])return;if(j.paid){S.coins+=REC_COST[j.rec];j.paid=false}j.rec=i;j.p=0;renderPanel()},
+  craftgo(k){const j=skJ(k);if(B&&!craftPetFor(k)){toast('Finish the boss fight first');return}
+    if(!craftPetFor(k)){if(S.craft&&S.craft!==k&&skJ(S.craft).on){const o=skJ(S.craft);o.on=false;if(o.paid){S.coins+=REC_COST[o.rec];o.paid=false}o.p=0;toast(`Stopped ${SKILLS[S.craft].n} to start ${SKILLS[k].n}`)}S.craft=k;cT=0}
+    j.on=true;renderPanel()},
+  craftstop(k){const j=skJ(k);j.on=false;if(j.paid){S.coins+=REC_COST[j.rec];j.paid=false}j.p=0;if(S.craft===k)S.craft=null;castMax=castLeft=castTime();renderPanel()},
   pick(){if(!B)openPicker()},
   choose(k){if(!CLS[k])return;if(B){toast('Finish the boss fight before switching fishers');return}if(S.cls===k){$('picker').hidden=true;return}
     const first=!S.cls;
@@ -516,13 +638,32 @@ function renderPanel(){
   }
   else if(tab==='pets'){
     const tot=['coin','speed','xp','luck'].map(t=>`<span>${BTYPE[t][0].toUpperCase()+BTYPE[t].slice(1)}</span><span class="num">+${Math.round(petBonus(t)*100)}%</span>`).join('');
-    h+=`<div class="sect"><h3>Hatchery</h3><p>Pets ride along in the boat, give lasting bonuses and bite bosses every second. Duplicates add a star, up to 5★.</p><div class="eggs">`+EGGS.map((e,i)=>{
-      const lock=S.lvl<e.lvl;return`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">${e.pets.map(p=>p[1]).join(', ')}</div>${lock?`<button class="btn" disabled>Level ${e.lvl}</button>`:`<button class="btn" data-act="hatch" data-arg="${i}" data-cost="${e.p}">${money(e.p)}</button>`}</div>`}).join('')+`</div></div>`;
-    h+=`<div class="sect"><h3>Equipped ${S.eq.length}/3</h3><div class="kv">${tot}<span>Boss bite</span><span class="num">${fmt(petDps())}/s</span></div></div>`;
+    const eggCard=(e,i)=>{const lock=S.lvl<e.lvl;return`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">${e.skill?`10 pets in ${SKILLS[e.skill].hats}. They do ${SKILLS[e.skill].n.toLowerCase()} while you fish.`:e.pets.map(p=>p[1]).join(', ')}</div>${lock?`<button class="btn" disabled>Level ${e.lvl}</button>`:`<button class="btn" data-act="hatch" data-arg="${i}" data-cost="${e.p}">${money(e.p)}</button>`}</div>`};
+    h+=`<div class="sect"><h3>Hatchery</h3><p>Pets ride behind your boat in rubber dinghies the colour of their egg. Fishing pets give lasting bonuses; craft pets do a craft for you so you can fish at the same time. Rarer pets are better. Duplicates add a star, up to 5★.</p>
+      <div class="egghead">Fishing eggs</div><div class="eggs">${EGGS.map((e,i)=>e.skill?'':eggCard(e,i)).join('')}</div>
+      <div class="egghead">Craft eggs</div><div class="eggs">${EGGS.map((e,i)=>e.skill?eggCard(e,i):'').join('')}</div></div>`;
+    h+=`<div class="sect"><h3>Equipped ${S.eq.length}/3</h3><p class="hint" style="margin:0">${SK_ORDER.filter(k=>craftPetFor(k)).map(k=>SKILLS[k].n).join(', ')?'Crafting while you fish: '+SK_ORDER.filter(k=>craftPetFor(k)).map(k=>SKILLS[k].n).join(', '):'No craft pets equipped.'}</p><div class="kv">${tot}<span>Boss bite</span><span class="num">${fmt(petDps())}/s</span></div></div>`;
     const owned=Object.keys(S.pets);
-    h+=`<div class="sect"><h3>Collection</h3>`+(owned.length?`<div class="grid">`+Object.values(PETS).map(p=>{
+    const petCard=p=>{
       const st=S.pets[p.id];if(!st)return`<div class="card px locked"><div class="pic">${imgTag(petSpr(p.id,'#3a4a72'),3)}</div><span class="rar" style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span><div class="nm">???</div><div class="ds">${EGGS[p.egg].n}</div></div>`;
-      const eq=S.eq.includes(p.id);return`<div class="card px ${eq?'eq':''}"><div class="pic">${imgTag(petSpr(p.id),3)}</div><span class="rar" style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span><div class="nm">${p.n}</div><div class="stars">${'★'.repeat(st)}<span style="opacity:.25">${'★'.repeat(5-st)}</span></div><div class="ds">+${Math.round(p.val*petStarMult(p.id)*100)}% ${BTYPE[p.type]}</div><button class="btn ${eq?'ghost':''}" data-act="equip" data-arg="${p.id}">${eq?'Unequip':'Equip'}</button></div>`}).join('')+`</div>`:`<p>No pets yet. A Pond Egg costs 400 coins.</p>`)+`</div>`;
+      const desc=p.skill?`${SKILLS[p.skill].n}: ${petSpeedOf(p.id).toFixed(2)}× speed, +${Math.round(petValOf(p.id)*100)}% value`:`+${Math.round(p.val*petStarMult(p.id)*100)}% ${BTYPE[p.type]}`;
+      const eq=S.eq.includes(p.id);return`<div class="card px ${eq?'eq':''}"><div class="pic">${imgTag(petSpr(p.id),3)}</div><span class="rar" style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span><div class="nm">${p.n}</div><div class="stars">${'★'.repeat(st)}<span style="opacity:.25">${'★'.repeat(5-st)}</span></div><div class="ds">${desc}</div><button class="btn ${eq?'ghost':''}" data-act="equip" data-arg="${p.id}">${eq?'Unequip':'Equip'}</button></div>`};
+    h+=`<div class="sect"><h3>Collection</h3>`+(owned.length?EGGS.map(e=>{const list=Object.values(PETS).filter(p=>EGGS[p.egg]===e);const got=list.filter(p=>S.pets[p.id]).length;
+      return`<div class="egghead" style="color:${e.pal.b}">${e.n} · ${got}/${list.length}</div><div class="grid">${list.map(petCard).join('')}</div>`}).join(''):`<p>No pets yet. A Pond Egg costs 400 coins and a craft egg costs 1,500.</p>`)+`</div>`;
+  }
+  else if(tab==='craft'){
+    const k=crSel,SK=SKILLS[k],j=skJ(k),pet=craftPetFor(k),aj=avatarJob();
+    h+=`<div class="sect"><h3>Crafts</h3><p>Craft goods to sell and level up each craft for a lasting bonus. Your fisher can work one craft at a time and stops fishing while they do. Equip a pet from that craft's egg and the pet does the work, so you keep fishing.</p>
+      <div class="sk-row">${SK_ORDER.map(q=>`<button class="skc px" data-act="crsel" data-arg="${q}" aria-pressed="${q===k}"><i style="background:${SKILLS[q].col}"></i>${SKILLS[q].n} <span class="num">${skL(q)}</span>${skJ(q).on&&(craftPetFor(q)||S.craft===q)?'<span class="run">ON</span>':''}</button>`).join('')}</div></div>`;
+    const lvPct=j.lvl>=SK_MAX?100:j.xp/skNeed(j.lvl)*100;
+    const bonusNow={cooking:`+${j.lvl-1}% coins`,brewing:`+${j.lvl-1}% XP`,smithing:`+${(j.lvl-1)*2}% boss strike`,alchemy:`+${j.lvl-1}% luck`,engineering:`+${((j.lvl-1)*.5).toFixed(1)}% catch speed`,tailoring:`+${j.lvl-1}% pet bonuses`,enchanting:`+${j.lvl-1}% crafted goods value`}[k];
+    h+=`<div class="sect"><h3 style="color:${SK.col}">${SK.n} · Lv ${j.lvl}${j.lvl>=SK_MAX?' (max)':''}</h3><div class="prog"><div class="bar"><b style="width:${lvPct}%"></b></div><span class="num">${j.lvl>=SK_MAX?'MAX':fmt(j.xp)+'/'+fmt(skNeed(j.lvl))}</span></div><p>${SK.perk}. Now: ${bonusNow}.</p>`;
+    const worker=pet?`<div class="worker">${imgTag(petSpr(pet),2)}<span><b style="color:var(--foam)">${PETS[pet].n}</b> works this for you at ${petSpeedOf(pet).toFixed(2)}× speed and +${Math.round(petValOf(pet)*100)}% value. You keep fishing.</span></div>`
+      :`<div class="worker"><span>No ${SK.n} pet equipped, so your ${curC().animal.toLowerCase()} does this and stops fishing. Hatch a ${SK.n} Egg in Pets to do both.</span></div>`;
+    const running=j.on&&(pet||S.craft===k);
+    h+=`<div class="job px"><div class="top"><div><div style="font-weight:600">${SK.recipes[j.rec]}</div><div class="hint" id="cps-${k}">${running?'Crafting…':j.on?'Waiting':'Not started'}</div></div>${j.on?`<button class="btn ghost" data-act="craftstop" data-arg="${k}">Stop</button>`:`<button class="btn" data-act="craftgo" data-arg="${k}" ${S.coins<REC_COST[j.rec]?'disabled':''}>Start</button>`}</div><div class="bar"><b id="cpb-${k}" style="width:${j.p/REC_TIME[j.rec]*100}%"></b></div>${worker}${aj&&aj!==k&&!pet?`<div class="hint">Starting this stops ${SKILLS[aj].n}.</div>`:''}</div>`;
+    h+=SK.recipes.map((rn,i)=>{const lock=j.lvl<REC_LVL[i],sel=j.rec===i;const v=recValue(k,i,pet);
+      return`<div class="row px"><div class="info"><div class="nm">${rn}</div><div class="ds">${REC_TIME[i]}s · costs ${fmt(REC_COST[i])} · sells for ${fmt(v)} · +${REC_XP[i]} XP</div></div>${lock?`<button class="btn" disabled>Lv ${REC_LVL[i]}</button>`:sel?'<button class="btn ok" disabled>Selected</button>':`<button class="btn ghost" data-act="recipe" data-arg="${k}:${i}">Select</button>`}</div>`}).join('')+`</div>`;
   }
   else if(tab==='boss'){
     if(B){const b=ZONES[B.zi].boss;
@@ -562,10 +703,12 @@ function refreshPanel(){
   document.querySelectorAll('#panel [data-cost]').forEach(b=>{b.disabled=S.coins<+b.dataset.cost});
   if(B&&$('bhp')){$('bhp').style.width=Math.max(0,B.hp/B.max*100)+'%';$('btext').textContent=`${fmt(Math.max(0,B.hp))} / ${fmt(B.max)} HP`;$('btime').textContent=Math.max(0,(B.ends-now())/1000).toFixed(1)+'s'}
   if(B)$('bosshp').style.width=Math.max(0,B.hp/B.max*100)+'%';
+  if(tab==='craft')SK_ORDER.forEach(k=>{const b=$('cpb-'+k);if(b&&document.body.contains?true:true){const j=skJ(k);if(b)b.style.width=Math.min(100,j.p/REC_TIME[j.rec]*100)+'%'}});
 }
 function renderHeader(){if(S.cls){const b=$('crewxp-'+S.cls);if(b)b.style.width=(S.xp/xpNeed(S.lvl)*100)+'%'}
   $('coins').textContent=fmt(S.coins);$('lvl').textContent=S.lvl;$('xpbar').style.width=(S.xp/xpNeed(S.lvl)*100)+'%';
   if(B){$('castlabel').textContent='Boss fight';$('castbar').style.width=Math.max(0,(B.ends-now())/B.dur*100)+'%';$('castsec').textContent=Math.max(0,(B.ends-now())/1000).toFixed(1)+'s'}
+  else if(avatarJob()){const k=avatarJob(),j=skJ(k);$('castlabel').textContent=SKILLS[k].recipes[j.rec];$('castbar').style.width=Math.min(100,j.p/REC_TIME[j.rec]*100)+'%';$('castsec').textContent=Math.max(0,REC_TIME[j.rec]-j.p).toFixed(1)+'s'}
   else{$('castlabel').textContent='Next bite';$('castbar').style.width=(1-castLeft/castMax)*100+'%';$('castsec').textContent=Math.max(0,castLeft).toFixed(1)+'s'}
 }
 function renderAll(){renderCrew();renderZones();renderTabs();renderPanel();renderLog();renderBuffs();renderHeader();renderBossBar()}
@@ -664,18 +807,87 @@ const shimmer=Array.from({length:46},()=>({x:Math.random()*W,y:HZ+3+Math.floor(M
 const glow=Array.from({length:18},()=>({x:Math.random()*W,y:HZ+10+Math.random()*(H-HZ-12),p:Math.random()*6}));
 const flies=Array.from({length:14},()=>({x:Math.random()*W,y:HZ-16+Math.random()*24,p:Math.random()*6}));
 const drops=[],flakes=[],meteors=[],wisps=Array.from({length:7},()=>({x:Math.random()*W,y:HZ-24+Math.random()*60,w:40+Math.random()*50,s:2+Math.random()*4}));
-let bolt=null,flash=0,boltWait=4;const fxs=[],projs=[];
+let bolt=null,flash=0,boltWait=4;const fxs=[],projs=[],motes=[];let cT=0,lastStep=-1;
+function mote(x,y,col,vx,vy,life){if(motes.length<500)motes.push({x,y,col,vx,vy,t:0,life})}
 function spawnAmbient(){const z=ZONES[S.zone];ambient=Array.from({length:3},()=>{const f=z.fish[Math.floor(Math.random()*4)];return{f,x:Math.random()*W,y:HZ+44+Math.floor(Math.random()*(H-HZ-56)),d:Math.random()<.5?-1:1,s:5+Math.random()*8}})}
 function blit(c,x,y,s,flip){s=s||1;x=Math.round(x);y=Math.round(y);if(flip){cx.save();cx.translate(x+c.width*s,y);cx.scale(-1,1);cx.drawImage(c,0,0,c.width*s,c.height*s);cx.restore()}else cx.drawImage(c,x,y,c.width*s,c.height*s)}
 function line(x0,y0,x1,y1,col,ctx){ctx=ctx||cx;x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;let e=dx+dy;ctx.fillStyle=col;for(let n=0;n<600;n++){ctx.fillRect(x0,y0,1,1);if(x0===x1&&y0===y1)break;const e2=2*e;if(e2>=dy){e+=dy;x0+=sx}if(e2<=dx){e+=dx;y0+=sy}}}
 function splash(x,y,n,col){for(let k=0;k<n;k++)parts.push({x,y,vx:(Math.random()-.5)*60,vy:-20-Math.random()*50,t:0,col})}
 function glowAt(x,y,r,col,a){cx.globalCompositeOperation='lighter';for(let k=3;k>=1;k--){cx.globalAlpha=a*(.5/k);disc(cx,Math.round(x),Math.round(y),Math.round(r*k/3),col)}cx.globalAlpha=1;cx.globalCompositeOperation='source-over'}
 /* 3×5 bitmap font */
-const FONT={'0':'111101101101111','1':'010110010010111','2':'111001111100111','3':'111001111001111','4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001010010010','8':'111101111101111','9':'111101111001111','+':'000010111010000','-':'000000111000000','.':'000000000000010','K':'101101110101101','M':'101111111101101','B':'110101110101110','T':'111010010010010','C':'111100100100111','R':'110101110101101','I':'111010010010111','Q':'111101101111001','a':'010101111101101','!':'010010010000010',' ':'000000000000000'};
+const FONT={'0':'111101101101111','1':'010110010010111','2':'111001111100111','3':'111001111001111','4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001010010010','8':'111101111101111','9':'111101111001111','+':'000010111010000','-':'000000111000000','.':'000000000000010','K':'101101110101101','M':'101111111101101','B':'110101110101110','T':'111010010010010','C':'111100100100111','R':'110101110101101','I':'111010010010111','Q':'111101101111001','a':'010101111101101','!':'010010010000010','?':'111001011000010',' ':'000000000000000'};
 function ptext(s,x,y,col){const w=s.length*4-1;x=Math.round(x-w/2);y=Math.round(y);
   const draw=(ox,oy,c)=>{cx.fillStyle=c;for(let i=0;i<s.length;i++){const g=FONT[s[i]]||FONT[' '];for(let p=0;p<15;p++)if(g[p]==='1')cx.fillRect(x+i*4+(p%3)+ox,y+Math.floor(p/3)+oy,1,1)}};
   draw(1,0,'#0e0f17');draw(-1,0,'#0e0f17');draw(0,1,'#0e0f17');draw(0,-1,'#0e0f17');draw(1,1,'#0e0f17');draw(0,0,col)}
 
+/* ---- crafting animations (5s loops) ---- */
+function craftPose(k,t){const r={dx:0,dy:0,flip:0,fx:0,face:null,soot:0};
+  if(k==='cooking'){const fl=t>=2.4&&t<3.4;r.flip=fl?2:0;r.dy=fl&&t<2.6?-1:0;r.face=fl?'shock':null}
+  else if(k==='brewing'){const dr=t>=1.5&&t<4.5;r.dx=dr?Math.round(Math.sin(T*2.5)):0;r.face=dr?'drunk':'happy';r.flip=t<1.5?1:0}
+  else if(k==='smithing'){if(t<3){r.flip=Math.floor(t*4)%2?1:0;r.face='focus'}else if(t<4.4){r.flip=2;r.fx=Math.round((t-3)/1.4*3);r.face='happy'}}
+  else if(k==='alchemy'){r.soot=t<2?0:t<3.4?1:t<4.4?1-(t-3.4):0;if(t>=3.4&&t<4.4)r.dx=Math.floor(T*20)%2?1:-1;r.face=t>=1.6&&t<4.4?'soot':null;r.flip=t>=1.6&&t<2?2:0}
+  else if(k==='engineering'){r.flip=t<4.4?1:0;r.face=t>=.8&&t<2.7?'confused':t>=2.7&&t<4.4?'idea':null}
+  else if(k==='tailoring'){r.flip=1;r.face=t>=2.2&&t<3.8?'worried':null}
+  else if(k==='enchanting'){const bu=t>=1.5&&t<3.5;r.face=bu?'surprised':null;r.flip=bu?2:1;r.dy=bu&&t<1.7?-1:0}
+  return r}
+let SOOT=null;
+function sootPts(){if(SOOT)return SOOT;const r=rng(77);SOOT=[];MAPS.PENG.forEach((row,y)=>{if(y>9)return;for(let x=0;x<row.length;x++)if(row[x]!=='.'&&row[x]!=='k'&&r()<.45)SOOT.push([x,y,r()])});return SOOT}
+function drawStation(F,boatX,deckY,pX,pY,dt,C){
+  const k=F.job,t=F.t,r=F.r,sx=boatX+20,K='#0e0f17',ex=pX+8,ey=pY+4;
+  if(k==='cooking'){
+    R(cx,sx-1,deckY-2,10,3,K);R(cx,sx,deckY-1,8,1,'#5a5a68');R(cx,sx+9,deckY-2,4,1,'#6a4a2a');R(cx,sx+2,deckY-3,4,1,'#ff9a5a');R(cx,sx+6,deckY-4,1,1,'#ff9a5a');
+    for(let i=0;i<4;i++)if((Math.floor(T*12)+i)%2)R(cx,sx+1+i*2,deckY-4-(i%2),1,1,'#ffb050');
+    if(Math.random()<dt*4)mote(sx+2+Math.random()*5,deckY-4,'#e8e8f0',0,-8,.8);
+    if(t>=2.4&&t<3.4){const q=t-2.4,h=Math.round((q<.3?q/.3:1-(q-.3)/.7*.8)*16)+2;
+      for(let y=0;y<h;y++){const w=Math.max(1,Math.round((1-y/h)*6+Math.random()*1.5));R(cx,sx+4-Math.floor(w/2)+Math.round((Math.random()-.5)*1.5),deckY-4-y,w,1,y<h*.3?'#fff0a0':y<h*.65?'#ffb030':'#ff5a1e')}
+      glowAt(sx+4,deckY-8,10,'#ff8a2e',.5);if(Math.random()<dt*20)parts.push({x:sx+4,y:deckY-6-Math.random()*h,vx:(Math.random()-.5)*30,vy:-20-Math.random()*20,t:.3,col:'#ffcd3c'})}}
+  else if(k==='brewing'){
+    R(cx,sx,deckY-7,7,8,K);R(cx,sx+1,deckY-6,5,6,'#d89a2a');R(cx,sx+1,deckY-6,1,6,'#f0c060');R(cx,sx,deckY-9,7,3,'#fff8e0');R(cx,sx+1,deckY-10,4,1,'#fff8e0');R(cx,sx-1,deckY-9,1,2,K);
+    R(cx,sx+7,deckY-5,2,1,K);R(cx,sx+8,deckY-5,1,3,K);R(cx,sx+7,deckY-3,2,1,K);
+    if(Math.random()<dt*3)mote(sx+2+Math.random()*3,deckY-4,'#fff3b0',0,-4,.6);
+    const bx=pX+11,by=pY+5;for(let st=0;st<3;st++)for(let n=0;n<12;n++){const u=(n/12+T*.45+st*.33)%1;const x=sx+3+(bx-sx-3)*u,y=deckY-10+(by-deckY+10)*u+Math.sin(u*8+T*4+st)*1.6;cx.globalAlpha=Math.sin(u*Math.PI)*.8;R(cx,x,y,1,1,'#f8e0a8');cx.globalAlpha=1}
+    if(t>=1.5&&t<4.5&&Math.random()<dt*2)mote(pX+11,pY+6,Math.random()<.5?'#ffc8d8':'#ffffff',4,-10,1)}
+  else if(k==='smithing'){
+    R(cx,sx-2,deckY-5,11,3,K);R(cx,sx-1,deckY-4,9,1,'#6a6a7a');R(cx,sx+2,deckY-2,5,3,K);R(cx,sx+3,deckY-2,3,2,'#4a4a58');R(cx,sx+2,deckY-6,5,1,'#ff9a3a');glowAt(sx+4,deckY-6,5,'#ff7a2e',.3);
+    if(t<3){const up=r.flip===1,hx=sx+4,hy=up?deckY-13:deckY-8;line(pX+13,pY+7,hx,hy+1,'#8a5a2a');R(cx,hx-2,hy-1,5,3,K);R(cx,hx-1,hy,3,1,'#9aa0b0');
+      const step=Math.floor(t*4);if(step!==lastStep){lastStep=step;if(step%2===0)for(let n=0;n<9;n++)parts.push({x:sx+4,y:deckY-7,vx:(Math.random()-.5)*80,vy:-30-Math.random()*40,t:.2,col:Math.random()<.5?'#ffcd3c':'#ff8a2e'})}}
+    else{lastStep=-1;R(cx,sx+5,deckY-8,4,2,K);R(cx,sx+6,deckY-8,2,1,'#9aa0b0');if(t>3.1&&t<3.3&&Math.random()<dt*15)mote(pX+11,pY+2,'#9fe0ff',14,-8,.7)}}
+  else if(k==='alchemy'){const j=t>1&&t<1.6?Math.round((Math.random()-.5)*2):0,fx0=sx+4+j;
+    disc(cx,fx0,deckY-3,4,K);disc(cx,fx0,deckY-3,3,'#3ad06a');R(cx,fx0-1,deckY-11,3,5,K);R(cx,fx0,deckY-10,1,4,'#d8f0ff');R(cx,fx0-2,deckY-5,1,1,'#c8ffd8');
+    if(Math.random()<dt*5)mote(fx0+(Math.random()-.5)*3,deckY-11,'#8af0a8',0,-8,.7);
+    if(t>=1.6&&t<2.4){const q=(t-1.6)/.8,pts=[[fx0,deckY-10],[fx0-6,deckY-12],[pX+12,pY+2],[pX+8,pY+4],[pX+14,pY+8],[fx0+4,deckY-14]];
+      cx.globalAlpha=1-q*.6;pts.forEach(([x,y],i)=>disc(cx,Math.round(x),Math.round(y-q*4),Math.round(3+q*4+(i%2)),i%2?'#6a6a78':'#9a9aa8'));cx.globalAlpha=1;
+      if(Math.random()<dt*30)mote(fx0+(Math.random()-.5)*20,deckY-12,'#8a8a98',(Math.random()-.5)*16,-10,1.2)}
+    if(r.soot>0){sootPts().forEach(([x,y,v])=>{if(v<r.soot)R(cx,pX+x,pY+y,1,1,'#1a1a20')});R(cx,ex,ey,1,1,Math.floor(T*3)%5?'#ffffff':'#1a1a20');
+      if(t>=3.4&&t<4.4&&Math.random()<dt*25)parts.push({x:pX+4+Math.random()*12,y:pY+2+Math.random()*6,vx:(Math.random()-.5)*60,vy:-10-Math.random()*20,t:.3,col:'#1a1a20'})}}
+  else if(k==='engineering'){
+    R(cx,sx,deckY-3,9,4,K);R(cx,sx+1,deckY-2,7,2,'#d6334a');R(cx,sx+3,deckY-5,3,1,K);R(cx,sx+3,deckY-4,1,1,K);R(cx,sx+5,deckY-4,1,1,K);
+    if(t<5){const bp=mk(MAPS.BP,{b:'#2f6fe0',w:'#e0f0ff'}),tx0=pX+11,ty0=pY-8;let x,y;
+      if(t<.8){const q=t/.8;x=sx+(tx0-sx)*q;y=deckY-4+(ty0-deckY+4)*q}else if(t<4.4){x=tx0;y=ty0}else{const q=(t-4.4)/.6;x=tx0+(sx-tx0)*q;y=ty0+(deckY-4-ty0)*q}
+      let sc=1,up=t>=2.7;if(t>=2.4&&t<3)sc=Math.max(.12,Math.abs(Math.cos(Math.PI*(t-2.4)/.6)));
+      cx.save();cx.translate(Math.round(x),Math.round(y)+4.5);cx.scale(1,(up?1:-1)*sc);cx.drawImage(bp,0,-4.5);cx.restore()}}
+  else if(k==='tailoring'){const bx=sx+4,by=deckY-3,rr=t<2.2?3-t/2.2:t<3.8?2:2+(t-3.8)/1.2;
+    disc(cx,bx,by,Math.round(rr)+1,K);disc(cx,bx,by,Math.round(rr),'#ff6ab0');R(cx,bx-1,by-1,Math.max(1,Math.round(rr)),1,'#ffa0d0');
+    const amp=t<2.2?t/2.2*4:t<3.8?3:3*(1-(t-3.8)/1.2),tx1=pX+13,ty1=pY+8;
+    for(let n=0;n<=24;n++){const u=n/24;R(cx,bx+(tx1-bx)*u,by-2+(ty1-by+2)*u+Math.sin(n*1.3+T*6)*amp*Math.sin(u*Math.PI),1,1,'#ff6ab0')}
+    const kq=t<2.2?0:t<2.6?(t-2.2)/.4:t<3.8?1:1-(t-3.8)/1.2;
+    if(kq>0)for(let a2=0;a2<48;a2++){const ang=a2*.9+T*.5,rad=(2+((a2*37)%5)*.6)*kq;R(cx,pX+14+Math.cos(ang)*rad*1.3,pY+5+Math.sin(ang*1.3)*rad,1,1,a2%3?'#ff6ab0':'#ffa0d0')}}
+  else if(k==='enchanting'){
+    R(cx,sx,deckY-2,9,3,K);R(cx,sx+1,deckY-2,3,1,'#fff8e0');R(cx,sx+5,deckY-2,3,1,'#fff8e0');R(cx,sx+4,deckY-2,1,2,'#7a4ab0');
+    const ox=sx+4,oy=deckY-8+Math.round(Math.sin(T*2)),hue=(T*80)%360;glowAt(ox,oy,8,`hsl(${hue},90%,65%)`,.5);disc(cx,ox,oy,2,`hsl(${hue},90%,75%)`);R(cx,ox-1,oy-1,1,1,'#ffffff');
+    if(Math.random()<dt*8)mote(ox+(Math.random()-.5)*6,oy,`hsl(${Math.random()*360},90%,70%)`,(Math.random()-.5)*10,-12-Math.random()*10,1.2);
+    if(t>=1.5&&t<3.5){const q=(t-1.5)/2;if(Math.random()<dt*40)mote(ox,oy,`hsl(${Math.random()*360},95%,70%)`,(Math.random()-.5)*50,(Math.random()-.5)*40,.9);
+      for(let n=0;n<7;n++){const an=T*3+n*.9,rd=6+q*14,x=Math.round(ox+Math.cos(an)*rd),y=Math.round(oy+Math.sin(an)*rd*.6),c=`hsl(${(n*50+T*200)%360},95%,70%)`;R(cx,x-1,y,3,1,c);R(cx,x,y-1,1,3,c)}}}
+  // faces
+  const f=r.face;
+  if(f==='shock'||f==='surprised'){R(cx,ex-1,ey-1,3,3,'#ffffff');R(cx,ex,ey,1,1,K);R(cx,ex-1,ey-2,3,1,K);R(cx,pX+9,pY+6,1,1,K);if(f==='surprised')R(cx,ex-1,ey-1,1,1,'#ffcd3c');else ptext('!',pX+7,pY-12,'#ffffff')}
+  else if(f==='drunk'){R(cx,ex-1,ey,3,1,K);R(cx,ex-1,ey-1,3,1,C.pal.w);R(cx,ex-2,ey+1,2,1,'#ff7a90');}
+  else if(f==='happy'){R(cx,ex,ey,1,1,C.pal.w);R(cx,ex-1,ey,1,1,K);R(cx,ex,ey-1,1,1,K);R(cx,ex+1,ey,1,1,K)}
+  else if(f==='focus'){R(cx,ex-1,ey-1,3,1,K)}
+  else if(f==='confused'){R(cx,ex-1,ey-2,1,1,K);R(cx,ex,ey-1,2,1,K);ptext('?',pX+7,pY-12,'#ffffff')}
+  else if(f==='idea'){ptext('!',pX+7,pY-12,'#ffcd3c');glowAt(pX+7,pY-10,5,'#ffcd3c',.3)}
+  else if(f==='worried'){R(cx,ex-1,ey-2,1,1,K);R(cx,ex+1,ey-3,1,1,K);R(cx,pX+4,pY+3,1,2,'#9fe0ff')}
+}
 function draw(dt){
   const zi=S.zone,z=ZONES[zi],[s1,s2,w1,w2]=z.sky;
   const t=dayT(),ts=timeState(t);TS=ts;
@@ -719,17 +931,39 @@ function draw(dt){
   }
   // pets
   const bob=Math.round(Math.sin(T*1.6));
-  const deckY=HZ+12+bob,boatX=40;
-  S.eq.forEach((id,i)=>{if(!PSPR[id])return;const sp=petSpr(id),fly=FLYERS[id];
-    const px=boatX-12-i*16-(sp.width>12?8:0),py=fly?HZ-24+Math.round(Math.sin(T*3+i)*2):deckY+6-sp.height+Math.round(Math.sin(T*2+i*2));
-    blit(sp,px,py,1,true);if(!fly){R(cx,px-1,deckY+6,sp.width+2,1,hl)}});
+  const deckY=HZ+12+bob,boatX=64;
+  window.__petPos={};let ropeX=boatX+1,ropeY=deckY+3;
+  S.eq.forEach((id,i)=>{const P=PETS[id];if(!P||(!CPET[id]&&!PSPR[id]))return;const sp=petSpr(id),egg=EGGS[P.egg],col=egg.pal.b;
+    const dx=boatX-22-i*21,dy=deckY+3+Math.round(Math.sin(T*1.9+i*1.3));
+    line(ropeX,ropeY,dx+17,dy+2,'#c8b080');ropeX=dx;ropeY=dy+2;
+    const dp={b:col,d:mix(col,'#05060c',.3),l:mix(col,'#ffffff',.45)};
+    blit(mk(MAPS.DINGHY,dp),dx,dy);
+    const px=dx+Math.round((18-sp.width)/2),py=dy+(CPET[id]?7:5)-sp.height;
+    blit(sp,px,py,1,!CPET[id]);
+    blit(mk(MAPS.DINGHYF,dp),dx,dy);R(cx,dx+1,dy+6,16,1,hl);
+    window.__petPos[id]={x:dx+9,y:py+(CPET[id]?4:0)};
+    if(P.skill&&skJ(P.skill).on&&craftPetFor(P.skill)===id){const hx=dx+9,hy=py+4,k=P.skill;
+      if(k==='cooking'&&Math.random()<dt*6)mote(hx+(Math.random()-.5)*8,hy+8,Math.random()<.5?'#ffb050':'#ff5a1e',0,-14,.5);
+      if(k==='brewing'&&Math.random()<dt*4)mote(hx+(Math.random()-.5)*8,hy+6,'#fff3b0',(Math.random()-.5)*4,-9,1);
+      if(k==='smithing'&&Math.random()<dt*2)for(let n=0;n<5;n++)parts.push({x:hx+4,y:hy+8,vx:(Math.random()-.5)*50,vy:-20-Math.random()*30,t:.2,col:Math.random()<.5?'#ffcd3c':'#ff8a2e'});
+      if(k==='alchemy'&&Math.random()<dt*5)mote(hx+(Math.random()-.5)*8,hy,'#9aa0b0',(Math.random()-.5)*6,-8,1.2);
+      if(k==='engineering'&&Math.random()<dt*3)mote(hx+(Math.random()-.5)*10,hy,'#ffcd3c',0,-10,.8);
+      if(k==='tailoring'&&Math.random()<dt*4)mote(hx+(Math.random()-.5)*10,hy+2,'#ff6ab0',(Math.random()-.5)*8,-6,.9);
+      if(k==='enchanting'&&Math.random()<dt*8)mote(hx+(Math.random()-.5)*12,hy,`hsl(${Math.random()*360},90%,70%)`,(Math.random()-.5)*8,-12,1)}});
   // boat reflection
   const bsp=mk(MAPS.BOAT,BOAT_PAL);cx.globalAlpha=.22;cx.save();cx.translate(boatX,deckY+14);cx.scale(1,-1);cx.drawImage(mk(MAPS.BOAT,BOAT_PAL,'#05060c'),0,0);cx.restore();cx.globalAlpha=1;
-  R(cx,40+1,HZ+12+Math.round(Math.sin(T*1.6))-14,1,15,'#3a2a1a');R(cx,40-1,HZ+12+Math.round(Math.sin(T*1.6))-14,3,1,'#3a2a1a');blit(mk(LANT,{y:lightOn?'#ffe08a':'#6a5a3a'}),40-2,HZ+12+Math.round(Math.sin(T*1.6))-13);
+  R(cx,boatX+1,deckY-14,1,15,'#3a2a1a');R(cx,boatX-1,deckY-14,3,1,'#3a2a1a');blit(mk(LANT,{y:lightOn?'#ffe08a':'#6a5a3a'}),boatX-2,deckY-13);
   // avatar: lounging, pushes hat up to peek, hat slides back down (5s loop)
   const cls=S.cls||'std',C=CLS[cls],hat=HATS[cls],mage=cls!=='std';
+  const job=!B?avatarJob():null;let craftFX=null;
+  let pengX=boatX+3,pengY=deckY-9+(Math.sin(T*1.7)>.55?-1:0);
+  if(job){cT=(cT+dt)%5;const r=craftPose(job,cT);pengX+=r.dx;pengY+=r.dy;
+    if(C.tail)blit(mk(MAPS.TAIL,C.tail),pengX-5,pengY+4+(Math.sin(T*2)>.3?1:0));
+    blit(mk(bodyMap(cls,false),C.pal),pengX,pengY);
+    if(r.flip===0)blit(mk(MAPS.FLIP0,C.pal),pengX+6,pengY+6);else if(r.flip===1)blit(mk(MAPS.FLIP1,C.pal),pengX+6,pengY+4);else blit(mk(MAPS.FLIP2,C.pal),pengX+5+r.fx,pengY+2);
+    blit(mk(hat.up,hat.pal),pengX-1,pengY-hat.brim);window.__lamp=cls==='earth'?{x:pengX+9,y:pengY-hat.brim+3}:null;craftFX={job,t:cT,r};
+  } else {
   pT=(pT+dt)%6.5;const p=pT;
-  const pengX=boatX+3,pengY=deckY-9+(Math.sin(T*1.7)>.55?-1:0);
   const hatSt=p<2.8?0:p<2.95?1:p<5.5?2:p<5.7?1:0;
   const flipSt=p<2.6?0:p<2.75?1:p<3.25?2:p<3.4?1:0;
   const closed=hatSt===2&&((p>3.6&&p<3.72)||(p>4.8&&p<4.92));
@@ -740,9 +974,11 @@ function draw(dt){
   else blit(mk(MAPS.FLIP2,C.pal),pengX+5,pengY+2);
   let hx0,hy0;if(hatSt===2){hx0=pengX-1;hy0=pengY-hat.brim}else{hx0=pengX;hy0=pengY+3-hat.brim-(hatSt===1?1:0)}
   blit(mk(hatSt===2?hat.up:hat.map,hat.pal),hx0,hy0);window.__lamp=cls==='earth'?{x:hx0+10,y:hy0+3}:null;
+  }
   blit(bsp,boatX,deckY);
   for(let k=0;k<5;k++)R(cx,boatX+6+k*6,deckY+3,1,2,mix(BOAT_PAL.m,'#05060c',.3));
   R(cx,boatX+2,deckY+7,30,1,hl);R(cx,boatX-3,deckY+8,4,1,hl);R(cx,boatX+32,deckY+8,5,1,hl);
+  if(craftFX)drawStation(craftFX,boatX,deckY,pengX,pengY,dt,C);
   // gear propped in a holder at the bow: a rod for the angler, a staff for mages
   const hx=boatX+31,hy=deckY+1,bite=castLeft<.5&&!B;
   R(cx,hx-1,hy-2,3,4,'#0e0f17');R(cx,hx,hy-1,1,2,'#5a5a6a');
@@ -751,7 +987,8 @@ function draw(dt){
   else{tx=boatX+47;ty=deckY-21+Math.round(Math.sin(T*2));line(hx+1,hy,tx+1,ty,'#0e0f17');line(hx,hy-1,tx,ty,'#7a5230');
     R(cx,tx-2,ty-3,5,5,'#0e0f17');R(cx,tx-1,ty-2,3,3,mix(C.gem,'#ffffff',S.rod*.06));R(cx,tx-1,ty-2,1,1,'#ffffff');window.__gem={x:tx,y:ty-1}}
   const lx=B&&bossHead?bossHead.x:BOBX,ly=B&&bossHead?bossHead.y:BOBY+(bite?2:0)+Math.round(Math.sin(T*3));
-  if(!mage){
+  if(job){}
+  else if(!mage){
     cx.fillStyle='rgba(255,255,255,.8)';for(let k=0;k<=40;k++){const t=k/40;const x=tx+(lx-tx)*t,y=ty+(ly-ty)*t+Math.sin(t*Math.PI)*(B?4:14);cx.fillRect(Math.round(x),Math.round(y),1,1)}
     if(!B){blit(mk(MAPS.BOB,{r:'#d6334a',w:'#f4f4f4'}),BOBX-1,ly-3);
       const prog=1-castLeft/castMax;if(prog>.8){const rr=Math.floor((T*8)%6)+3;for(let x=-rr;x<=rr;x++){const y=Math.round(Math.sqrt(Math.max(0,1-x*x/(rr*rr)))*rr/3);R(cx,BOBX+x,ly+2+y,1,1,hl);R(cx,BOBX+x,ly+2-y,1,1,hl)}}}}
@@ -799,8 +1036,8 @@ function draw(dt){
   }
   // ---- lights
   const bobL=Math.round(Math.sin(T*1.6));
-  if(lightOn){glowAt(39,HZ+12+bobL-11,14,'#ffb050',.5);R(cx,39,HZ+12+bobL-11,1,2,'#fff6c8');
-    for(let y=HZ+1;y<HZ+16;y+=2)if(((y+Math.floor(T*5))%4)<2){cx.globalAlpha=.35;R(cx,36+Math.round(Math.sin(T*2+y)),y+bobL+2,5,1,'#ffd27a');cx.globalAlpha=1}}
+  if(lightOn){glowAt(63,HZ+12+bobL-11,14,'#ffb050',.5);R(cx,63,HZ+12+bobL-11,1,2,'#fff6c8');
+    for(let y=HZ+1;y<HZ+16;y+=2)if(((y+Math.floor(T*5))%4)<2){cx.globalAlpha=.35;R(cx,60+Math.round(Math.sin(T*2+y)),y+bobL+2,5,1,'#ffd27a');cx.globalAlpha=1}}
   if(zi===3){const a=(Math.sin(T*1.2)+1)/2,on=lightOn?1:.35;glowAt(228,HZ-46,8,'#fff0a0',on*.8);R(cx,226,HZ-47,4,2,lightOn?'#fffbe0':'#e8d890');
     cx.globalCompositeOperation='lighter';cx.fillStyle=`rgba(255,240,160,${(.06+.06*a)*on})`;cx.beginPath();cx.moveTo(228,HZ-46);cx.lineTo(228-70-a*50,HZ-60+a*12);cx.lineTo(228-70-a*50,HZ-36+a*12);cx.closePath();cx.fill();cx.globalCompositeOperation='source-over'}
   if((zi===0||zi===1)&&ts.n>.5&&!wet)flies.forEach(f=>{const v=Math.sin(T*2.2+f.p);if(v>.2){const x=f.x+Math.sin(T*.7+f.p)*8,y=f.y+Math.sin(T*1.1+f.p*2)*4;cx.globalCompositeOperation='lighter';cx.globalAlpha=v*.35;R(cx,x-1,y-1,3,3,'#c8ff6a');cx.globalAlpha=v;R(cx,x,y,1,1,'#f0ffb0');cx.globalAlpha=1;cx.globalCompositeOperation='source-over'}});
@@ -824,13 +1061,14 @@ function draw(dt){
         for(let k=0;k<3;k++)for(let st=0;st<9;st++){const an=T*sp2+k*2.1+st*.18;const r=3+k*3;R(cx,sx+Math.cos(an)*r,sy+1+Math.sin(an)*(1+k*.6),1,1,st>5?'#ffffff':'#c8e0f0')}
         const fy=sy-11+Math.round(Math.sin(T*1.5)*2),fx=sx+Math.round(Math.sin(T)*3);R(cx,fx,fy,1,5,'#f4f4f4');R(cx,fx-1,fy+1,1,3,'#d8e4ee');R(cx,fx+1,fy+1,1,2,'#ffffff')}
       if(bite)ptext('!',sx,sy-20,'#ffcd3c')}}
-  else if(!B&&castLeft<.5&&(S.cls||'std')==='std')ptext('!',BOBX,BOBY-12,'#ffcd3c');
+  else if(!B&&!avatarJob()&&castLeft<.5&&(S.cls||'std')==='std')ptext('!',BOBX,BOBY-12,'#ffcd3c');
   for(let i=fxs.length-1;i>=0;i--){const f=fxs[i];f.t+=dt;if(f.k==='tornado'){const h=Math.round(Math.min(1,f.t*4)*30);for(let y=0;y<h;y+=2){const r=2+y*.18,an=T*16+y*.5;R(cx,BOBX+Math.cos(an)*r,BOBY+2-y,2,1,'#f4f8ff');R(cx,BOBX-Math.cos(an)*r,BOBY+2-y,1,1,'#c8e0f0')}}if(f.t>.6)fxs.splice(i,1)}
   for(let i=projs.length-1;i>=0;i--){const pj=projs[i];pj.t+=dt;const q=Math.min(1,pj.t/.18);const x=pj.x0+(pj.x1-pj.x0)*q,y=pj.y0+(pj.y1-pj.y0)*q-Math.sin(q*Math.PI)*8;
     for(let k=1;k<5;k++){const q2=Math.max(0,q-k*.05);cx.globalAlpha=.6-k*.12;R(cx,pj.x0+(pj.x1-pj.x0)*q2,pj.y0+(pj.y1-pj.y0)*q2-Math.sin(q2*Math.PI)*8,2,2,pj.col)}cx.globalAlpha=1;
     R(cx,x-1,y-1,3,3,pj.col);R(cx,x,y,1,1,'#ffffff');if(q>=1)projs.splice(i,1)}
   if(window.__lamp&&lightOn){glowAt(window.__lamp.x+1,window.__lamp.y,10,'#fff0b0',.5);cx.globalCompositeOperation='lighter';cx.fillStyle='rgba(255,240,170,.08)';cx.beginPath();cx.moveTo(window.__lamp.x+1,window.__lamp.y);cx.lineTo(window.__lamp.x+40,window.__lamp.y+18);cx.lineTo(window.__lamp.x+40,window.__lamp.y-6);cx.closePath();cx.fill();cx.globalCompositeOperation='source-over'}
   if(window.__gem&&!(S.cls==='std'))glowAt(window.__gem.x,window.__gem.y,6,curC().gem,.35);
+  for(let i=motes.length-1;i>=0;i--){const m=motes[i];m.t+=dt;m.x+=m.vx*dt;m.y+=m.vy*dt;cx.globalAlpha=Math.max(0,1-m.t/m.life);R(cx,m.x,m.y,1,1,m.col);cx.globalAlpha=1;if(m.t>m.life)motes.splice(i,1)}
   // ---- weather particles
   if(wet){const target=Math.round(wi*(wk==='storm'?150:85));while(drops.length<target)drops.push({x:Math.random()*(W+40),y:Math.random()*H,v:150+Math.random()*80});if(drops.length>target)drops.length=target;
     const dc=lightOn?'rgba(170,190,230,.55)':'rgba(220,235,255,.6)';cx.fillStyle=dc;
@@ -851,7 +1089,8 @@ let lastT=performance.now(),uiAcc=0,saveAcc=0;
 function loop(t){
   let dt=Math.min((t-lastT)/1000,0.5);lastT=t;T+=dt;
   if(B){B.hp-=petDps()*dt;if(B.hp<=0)winBoss();else if(now()>B.ends)loseBoss()}
-  else if(S.cls){castLeft-=dt;if(castLeft<=0){catchFish();castMax=castLeft=castTime()}}
+  else if(S.cls&&!avatarJob()){castLeft-=dt;if(castLeft<=0){catchFish();castMax=castLeft=castTime()}}
+  if(S.cls)craftTick(dt);
   renderHeader();draw(dt);
   uiAcc+=dt;if(uiAcc>.25){uiAcc=0;wxTick();refreshPanel();renderBuffs();const tt=dayT();$('clock').innerHTML=`${phaseName(tt)} ${clockStr(tt)}<br>${S.wx?WX[S.wx.k].n:''}`}
   saveAcc+=dt;if(saveAcc>5){saveAcc=0;save()}
@@ -866,11 +1105,12 @@ function fromData(d){/* v2: separate profiles. v1 (older single save): becomes t
 function load(){try{const r=localStorage.getItem(SAVE_KEY);if(r)return fromData(JSON.parse(r))}catch(e){}return null}
 function offline(){
   const away=Math.min((now()-S.last)/1000,8*3600);if(away<30)return;
-  const n=Math.floor(away/castTime()*0.5);if(n<1)return;const sim=Math.min(n,400),scale=n/sim;let coins=0,xp=0,news=0;
+  const cc0=craftOffline(away);if(avatarJob()){S.last=now();if(cc0>0)toast(`While you were away: crafted goods worth +${fmt(cc0)} coins`);return}
+  const n=Math.floor(away/castTime()*0.5);if(n<1){if(cc0>0)toast(`While you were away: crafting earned +${fmt(cc0)} coins`);return}const sim=Math.min(n,400),scale=n/sim;let coins=0,xp=0,news=0;
   for(let i=0;i<sim;i++){const c=rollFish(S.zone,luck());const cc=c.value*coinMult()*scale,xx=RAR[c.tier].xp*(1+S.zone*1.5)*xpMult()*scale;
     const id=c.zi+'-'+c.fi;if(!S.idx[id]){S.idx[id]={n:0,best:0};news++}S.idx[id].n+=Math.round(scale);S.idx[id].best=Math.max(S.idx[id].best,c.weight);coins+=cc;xp+=xx}
   S.coins+=coins;S.total+=n;S.zc[S.zone]+=n;S.last=now();gainXp(xp);
-  toast(`While you were away: ${fmt(n)} fish, +${fmt(coins)} coins${news?`, ${news} new in the index`:''}`);
+  toast(`While you were away: ${fmt(n)} fish, +${fmt(coins+cc0)} coins${news?`, ${news} new in the index`:''}`);
 }
 
 /* ---------- input ---------- */
