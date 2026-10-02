@@ -166,6 +166,7 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
 .pmate .ds{font-size:12px;white-space:nowrap}
 .pmate .st{font-size:11px;color:var(--brass);letter-spacing:1px}
 .petbar .empty{align-self:center;font-size:14px;color:var(--muted)}
+.psel{align-self:center;flex:none;max-width:240px}
 #toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;align-items:center;z-index:10;pointer-events:none;width:min(92vw,440px)}
 .toast{background:var(--edge);color:var(--foam);font-weight:600;padding:9px 14px;text-align:center;animation:tin .2s steps(3);box-shadow:0 -3px 0 0 var(--brass),0 3px 0 0 var(--brass),-3px 0 0 0 var(--brass),3px 0 0 0 var(--brass)}
 @keyframes tin{from{transform:translateY(10px);opacity:0}}
@@ -635,6 +636,7 @@ function openDex(i){const e=EGGS[i];if(!e)return;const tw=e.pets.reduce((a,p)=>a
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('eggdex').hidden)$('eggdex').hidden=true});
 function craftArgs(a){const [k,i]=String(a).split(':');return[k,+i]}
 const act={
+  setpet(id){if(!id){if(S.eq.length){S.eq=[];toast('Pet put away')}}else if(PETS[id]&&S.pets[id]&&S.eq[0]!==id){S.eq=[id];toast(`${PETS[id].n} hops into the dinghy`)}renderPetBar();renderPanel()},
   eggdex(i){openDex(+i)},
   closedex(){$('eggdex').hidden=true},
   crsel(k){if(SKILLS[k]){crSel=k;renderPanel()}},
@@ -725,7 +727,7 @@ function renderPanel(){
     const tot=['coin','speed','xp','luck'].map(t=>`<span>${BTYPE[t][0].toUpperCase()+BTYPE[t].slice(1)}</span><span class="num">+${Math.round(petBonus(t)*100)}%</span>`).join('');
     const eggCard=(e,i)=>{const lock=S.lvl<e.lvl;return`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">${e.skill?`10 pets in ${SKILLS[e.skill].hats}. They do ${SKILLS[e.skill].n.toLowerCase()} while you fish.`:e.pets.map(p=>p[1]).join(', ')}</div><div class="eggbtns">${lock?`<button class="btn" disabled>Level ${e.lvl}</button>`:`<button class="btn" data-act="hatch" data-arg="${i}" data-cost="${e.p}">${money(e.p)}</button>`}<button class="btn ghost dexbtn" data-act="eggdex" data-arg="${i}" title="See the pets in the ${e.n}" aria-label="See the pets in the ${e.n}">${imgTag(DEX_IC(),2)}</button></div></div>`};
     const crew=S.eq.filter(id=>CPET[id]);
-    h+=`<div class="sect"><h3>Equipped pet</h3><p>You can have one pet out at a time. It rides in a dinghy behind your boat. Pick what it makes and press Start, and it keeps working while you fish. Swap pets from the pet bar at the top.</p>`+
+    h+=`<div class="sect"><h3>Equipped pet</h3><p>You can have one pet out at a time. It rides in a dinghy behind your boat. Pick what it makes and press Start, and it keeps working while you fish. Swap pets here or from the pet bar at the top.</p>${Object.keys(S.pets).length?`<label class="hint" for="petsel-tab">Equipped pet</label>${petSelect('petsel-tab')}`:''}`+
       (crew.length?crew.map(id=>{const P=PETS[id],k=P.skill,SK=SKILLS[k],j=skJ(k),boss=craftPetFor(k);
         if(boss!==id)return`<div class="job px"><div class="worker">${imgTag(petSpr(id),2)}<span><b style="color:var(--foam)">${P.n}</b> is resting. ${PETS[boss].n} is already doing ${SK.n.toLowerCase()}, and only one pet works each craft.</span></div></div>`;
         const run=j.on;return`<div class="job px"><div class="top"><div class="worker">${imgTag(petSpr(id),2)}<span><b style="color:var(--foam)">${P.n}</b><br><span style="color:${SK.col}">${SK.n} · Lv ${j.lvl}</span></span></div>${run?`<button class="btn ghost" data-act="craftstop" data-arg="${k}">Stop</button>`:`<button class="btn" data-act="craftgo" data-arg="${k}" ${S.coins<REC_COST[j.rec]?'disabled':''}>Start</button>`}</div>
@@ -803,8 +805,11 @@ function renderHeader(){if(S.cls){const b=$('crewxp-'+S.cls);if(b)b.style.width=
   else if(avatarJob()){const k=avatarJob(),j=skJ(k);$('castlabel').textContent=SKILLS[k].recipes[j.rec];$('castbar').style.width=Math.min(100,j.p/REC_TIME[j.rec]*100)+'%';$('castsec').textContent=Math.max(0,REC_TIME[j.rec]-j.p).toFixed(1)+'s'}
   else{$('castlabel').textContent='Next bite';$('castbar').style.width=(1-castLeft/castMax)*100+'%';$('castsec').textContent=Math.max(0,castLeft).toFixed(1)+'s'}
 }
+function petSelect(idAttr){const own=Object.values(PETS).filter(p=>S.pets[p.id]);
+  return`<select id="${idAttr}" class="rsel psel" data-chg="pet" aria-label="Equipped pet"><option value="" ${S.eq.length?'':'selected'}>No pet</option>${SK_ORDER.map(k=>{const list=own.filter(p=>p.skill===k).sort((a,b)=>b.tier-a.tier);
+    return list.length?`<optgroup label="${SKILLS[k].n}">${list.map(p=>`<option value="${p.id}" ${S.eq[0]===p.id?'selected':''}>${p.n} · ${RAR[p.tier].n} ${'★'.repeat(S.pets[p.id])}</option>`).join('')}</optgroup>`:''}).join('')}</select>`}
 function renderPetBar(){const own=Object.values(PETS).filter(p=>S.pets[p.id]).sort((a,b)=>b.tier-a.tier||SK_ORDER.indexOf(a.skill)-SK_ORDER.indexOf(b.skill));
-  $('petbar').innerHTML='<span class="lbl">PETS</span>'+(own.length?own.map(p=>{const on=S.eq[0]===p.id,SK=SKILLS[p.skill],work=on&&skJ(p.skill).on;
+  $('petbar').innerHTML='<span class="lbl">PETS</span>'+(own.length?petSelect('petsel-bar')+own.map(p=>{const on=S.eq[0]===p.id,SK=SKILLS[p.skill],work=on&&skJ(p.skill).on;
     return`<button class="pmate px" data-act="equip" data-arg="${p.id}" aria-pressed="${on}" title="${on?'Tap to put '+p.n+' away':'Tap to take '+p.n+' out'}"><span class="pic">${imgTag(petSpr(p.id),2,p.n)}</span><span class="info"><span class="nm">${p.n}</span><span class="ds" style="color:${SK.col}">${SK.n}${on?(work?' · working':' · out'):''}</span><span class="st">${'★'.repeat(S.pets[p.id])}</span></span></button>`}).join('')
     :'<span class="empty">No pets yet. Hatch one in the Pets tab.</span>')}
 function renderAll(){renderPetBar();renderCrew();renderZones();renderTabs();renderPanel();renderLog();renderBuffs();renderHeader();renderBossBar()}
@@ -1209,7 +1214,7 @@ function offline(){
 }
 
 /* ---------- input ---------- */
-document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.chg==='recipe')act.recipe(t.dataset.skill+':'+t.value)});
+document.addEventListener('change',e=>{const t=e.target;if(!t||!t.dataset)return;if(t.dataset.chg==='recipe')act.recipe(t.dataset.skill+':'+t.value);if(t.dataset.chg==='pet')act.setpet(t.value)});
 document.addEventListener('click',e=>{if(e.target&&e.target.id==='eggdex'){$('eggdex').hidden=true;return}const b=e.target.closest('[data-act]');if(b&&!b.disabled&&act[b.dataset.act])act[b.dataset.act](b.dataset.arg)});
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;tab=b.dataset.tab;renderTabs();renderPanel()});
 cv.addEventListener('pointerdown',e=>{
