@@ -190,6 +190,7 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
 .slot.empty{opacity:.45}
 .slot img{image-rendering:pixelated;max-width:72%;max-height:72%;width:auto;height:auto}
 .slot[aria-pressed="true"]{background:var(--panel2);box-shadow:inset 0 -4px 0 var(--rc,transparent),0 -3px 0 0 var(--brass),0 3px 0 0 var(--brass),-3px 0 0 0 var(--brass),3px 0 0 0 var(--brass)}
+.slot .slv{position:absolute;left:4px;top:4px;font-family:var(--display);font-size:7px;line-height:1;color:var(--brass);background:#0b0f1ccc;padding:2px 3px}
 .slot .cnt{position:absolute;right:4px;bottom:3px;font-family:var(--mono);font-size:20px;line-height:1;color:#fff;text-shadow:2px 0 0 #0b0f1c,-2px 0 0 #0b0f1c,0 2px 0 #0b0f1c,0 -2px 0 #0b0f1c}
 .lvtag{font-family:var(--display);font-size:8px;background:var(--edge);color:var(--brass);padding:3px 5px;vertical-align:2px}
 .odds{background:var(--panel2);padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin:3px}
@@ -604,7 +605,7 @@ function url(c,scale){const k=c.toDataURL();return k}
 function imgTag(c,scale,alt){const key=(c._u||(c._u=c.toDataURL()));return`<img src="${key}" width="${c.width*scale}" height="${c.height*scale}" alt="${alt||''}">`}
 
 function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},eggs:{[SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)]]:1},
- buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,net:{},tank:{},aqPend:0,visitors:0,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
+ buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,net:{},netLv:{},tank:{},aqPend:0,visitors:0,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
 let PROF={}; /* every fisher is a separate save: PROF[cls] holds their whole state; S is the active one */
 let S=fresh(), B=null, tab='shop', castLeft=4, castMax=4, logItems=[];
 
@@ -802,8 +803,13 @@ function openDex(i){const e=EGGS[i];if(!e)return;const tw=e.pets.reduce((a,p)=>a
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('eggdex').hidden)$('eggdex').hidden=true});
 function craftArgs(a){const [k,i]=String(a).split(':');return[k,+i]}
 const act={
-  tankput(a){const [id,all]=String(a).split('|');const e=FISHBY[id];if(!e||e.f[1]===0||!(S.net[id]>0))return;const n=all?S.net[id]:1;
-    S.net[id]-=n;if(!S.tank[id])S.tank[id]={};S.tank[id][0]=(S.tank[id][0]||0)+n;aqVer++;toast(n>1?`${n} ${e.f[0]} moved into the aquarium`:`${e.f[0]} moved into the aquarium`);renderPanel()},
+  tankput(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id],have=netN(id,L);if(!e||e.f[1]===0||!(have>0))return;const n=all?have:1;
+    netAdd(id,L,-n);if(!S.tank[id])S.tank[id]={};S.tank[id][L]=(S.tank[id][L]||0)+n;aqVer++;
+    toast(`${n>1?n+' ':''}${L?'level '+L+' ':''}${e.f[0]} moved into the aquarium`);renderPanel()},
+  netbreed(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id];if(!e||e.f[1]===0||L>=MAX_FLVL||netN(id,L)<2)return;
+    let k=0;do{netAdd(id,L,-2);netAdd(id,L+1,1);k++}while(all&&netN(id,L)>=2);
+    if(netN(id,L)<1)netSel=id+'|'+(L+1);
+    toast(k>1?`Bred ${k} pairs of ${e.f[0]} into level ${L+1}`:`Two ${e.f[0]} bred into a level ${L+1} ${e.f[0]}`);renderPanel()},
   breed(a){const [id,L0]=String(a).split('|'),L=+L0,t=S.tank[id];if(!t||!(t[L]>=2)||L>=MAX_FLVL)return;breedOnce(id,L);const e=FISHBY[id];toast(`Two ${e.f[0]} bred into a level ${L+1} ${e.f[0]}`);renderPanel()},
   breedall(){let n=0;for(let pass=0;pass<MAX_FLVL;pass++){let any=false;tankGroups().forEach(g=>{while(S.tank[g.id][g.lvl]>=2&&g.lvl<MAX_FLVL){breedOnce(g.id,g.lvl);n++;any=true}});if(!any)break}
     toast(n?`Bred ${n} pair${n>1?'s':''}`:'No pairs to breed. You need two of the same fish at the same level');renderPanel()},
@@ -975,15 +981,18 @@ function renderPanel(){
     h+=sel?`<div class="row px"><div class="ic">${imgTag(sel.ic,3)}</div><div class="info"><div class="nm" style="color:${sel.col}">${sel.name} <span class="num ds">×${sel.n}</span></div><div class="ds">${sel.desc}</div></div><button class="btn" data-act="${sel.act}" data-arg="${sel.arg}">${sel.btn}</button></div>`
       :`<p class="hint">Your bag is empty. Eggs turn up while you fish, and supplies are in the Shop.</p>`;
     h+=`</div>`;
-    const netIds=Object.keys(S.net||{}).filter(id=>FISHBY[id]&&S.net[id]>0),netTot=netIds.reduce((a,id)=>a+S.net[id],0);
-    const shown=netIds.filter(id=>netT<0||FISHBY[id].f[1]===netT).sort((a,b)=>FISHBY[b].f[1]-FISHBY[a].f[1]||FISHBY[b].zi-FISHBY[a].zi||FISHBY[a].f[0].localeCompare(FISHBY[b].f[0]));
-    if(!shown.includes(netSel))netSel=shown[0]||null;
-    h+=`<div class="sect"><h3>Net</h3><div class="invsum"><span>Catches <b class="num">${fmt(netTot)}</b></span><span>Kinds <b class="num">${netIds.length}</b></span></div>
-      <div class="sk-row"><button class="skc px" data-act="nett" data-arg="-1" aria-pressed="${netT<0}">All</button>${FRAR.map((r,t)=>`<button class="skc px" data-act="nett" data-arg="${t}" aria-pressed="${netT===t}"><i style="background:${r.c}"></i>${r.n} <span class="num">${netIds.filter(id=>FISHBY[id].f[1]===t).length}</span></button>`).join('')}</div>
-      <div class="inv">${shown.map(id=>{const e=FISHBY[id],n=S.net[id];return`<button class="slot px" data-act="netsel" data-arg="${id}" aria-pressed="${id===netSel}" title="${e.f[0]}" aria-label="${e.f[0]}, ${n}" style="--rc:${FRAR[e.f[1]].c}">${imgTag(fishSpr(e.f),3)}<span class="cnt">${fmt(n)}</span></button>`}).join('')}${Array.from({length:Math.max(0,10-shown.length)},()=>'<div class="slot empty px"></div>').join('')}</div>`;
-    const ns=netSel&&FISHBY[netSel];
-    h+=ns?`<div class="row px"><div class="ic">${imgTag(fishSpr(ns.f),2)}</div><div class="info"><div class="nm" style="color:${FRAR[ns.f[1]].c}">${ns.f[0]} <span class="num ds">×${fmt(S.net[netSel])}</span></div><div class="ds">${FRAR[ns.f[1]].n} · ${ZONES[ns.zi].name} · best ${kg((S.idx[netSel]||{}).best||0)}${ns.f[1]>0?` · a level 0 fish earns ${fmtR(fishEarnL(netSel,0))}/s in the aquarium`:' · junk can\'t go in the aquarium'}</div>${ns.f[1]>0?`<div class="eggbtns" style="justify-content:flex-start;margin-top:6px"><button class="btn" data-act="tankput" data-arg="${netSel}">Put in aquarium</button>${S.net[netSel]>1?`<button class="btn ghost" data-act="tankput" data-arg="${netSel}|all">Put all ${fmt(S.net[netSel])} in</button>`:''}</div>`:''}</div></div>`
-      :`<p class="hint">Your net is empty. Everything you catch is kept here. Pick a fish and press Put in aquarium to put it on show.</p>`;
+    const items=netItems(),netTot=items.reduce((a,it)=>a+it.n,0),kinds=new Set(items.map(it=>it.id)).size;
+    const shown=items.filter(it=>netT<0||FISHBY[it.id].f[1]===netT).sort((a,b)=>FISHBY[b.id].f[1]-FISHBY[a.id].f[1]||b.L-a.L||FISHBY[b.id].zi-FISHBY[a.id].zi||FISHBY[a.id].f[0].localeCompare(FISHBY[b.id].f[0]));
+    const nkey=it=>it.id+'|'+it.L;if(!shown.find(it=>nkey(it)===netSel))netSel=shown[0]?nkey(shown[0]):null;
+    h+=`<div class="sect"><h3>Net</h3><div class="invsum"><span>Catches <b class="num">${fmt(netTot)}</b></span><span>Kinds <b class="num">${kinds}</b></span></div>
+      <div class="sk-row"><button class="skc px" data-act="nett" data-arg="-1" aria-pressed="${netT<0}">All</button>${FRAR.map((r,t)=>`<button class="skc px" data-act="nett" data-arg="${t}" aria-pressed="${netT===t}"><i style="background:${r.c}"></i>${r.n} <span class="num">${new Set(items.filter(it=>FISHBY[it.id].f[1]===t).map(it=>it.id)).size}</span></button>`).join('')}</div>
+      <div class="inv">${shown.map(it=>{const e=FISHBY[it.id];return`<button class="slot px" data-act="netsel" data-arg="${nkey(it)}" aria-pressed="${nkey(it)===netSel}" title="${e.f[0]}${it.L?' level '+it.L:''}" aria-label="${e.f[0]}${it.L?' level '+it.L:''}, ${it.n}" style="--rc:${FRAR[e.f[1]].c}">${imgTag(fishSpr(e.f),3)}${it.L?`<span class="slv">Lv${it.L}</span>`:''}<span class="cnt">${fmt(it.n)}</span></button>`}).join('')}${Array.from({length:Math.max(0,10-shown.length)},()=>'<div class="slot empty px"></div>').join('')}</div>`;
+    const nsel=shown.find(it=>nkey(it)===netSel);
+    if(nsel){const sel=nsel;const e=FISHBY[sel.id],fishy=e.f[1]>0,canBreed=fishy&&sel.n>=2&&sel.L<MAX_FLVL,arg=nkey(sel);
+      h+=`<div class="row px"><div class="ic">${imgTag(fishSpr(e.f),2)}</div><div class="info"><div class="nm" style="color:${FRAR[e.f[1]].c}">${e.f[0]} ${sel.L?`<span class="lvtag">Lv ${sel.L}</span> `:''}<span class="num ds">×${fmt(sel.n)}</span></div>
+        <div class="ds">${FRAR[e.f[1]].n} · ${ZONES[e.zi].name} · best ${kg((S.idx[sel.id]||{}).best||0)}${fishy?` · in the aquarium each earns ${fmtR(fishEarnL(sel.id,sel.L))}/s`:' · junk can\'t go in the aquarium or be bred'}</div>
+        ${fishy?`<div class="eggbtns" style="justify-content:flex-start;margin-top:6px"><button class="btn" data-act="tankput" data-arg="${arg}">Put in aquarium</button>${sel.n>1?`<button class="btn ghost" data-act="tankput" data-arg="${arg}|all">Put all ${fmt(sel.n)} in</button>`:''}${canBreed?`<button class="btn" data-act="netbreed" data-arg="${arg}">Breed 2 → Lv ${sel.L+1}</button>`:''}${canBreed&&sel.n>=4?`<button class="btn ghost" data-act="netbreed" data-arg="${arg}|all">Breed all pairs</button>`:''}</div>`:''}</div></div>`}
+    else h+=`<p class="hint">Your net is empty. Everything you catch is kept here. Pick a fish and press Put in aquarium to put it on show.</p>`;
     h+=`</div>`;
     h+=`<div class="sect"><h3>Fisher</h3><div class="row px"><div class="ic" style="width:84px">${imgTag(avatarCanvas(S.cls||'std'),1.5)}</div><div class="info"><div class="nm">${curC().animal} · ${curC().title}</div><div class="ds">${curC().perk}</div></div><button class="btn ghost" data-act="pick">Change</button></div></div>`;
     h+=`<div class="sect"><h3>Stats</h3><div class="kv">
@@ -1284,6 +1293,10 @@ function aqRate(){if(_aqFor!==S||_aqV!==aqVer){let a=0;tankGroups().forEach(g=>a
 function aqLabel(){const n=tankCount();return n?`Aquarium · ${n} fish`:'Aquarium · empty tank'}
 function aqTick(dt){if(!S.cls)return;S.aqPend=(S.aqPend||0)+aqRate()*dt;const vis=tab==='aqua'&&!document.hidden;aqPayT+=dt;
   if((!vis&&aqPayT>1)||(vis&&S.aqPend>aqRate()*12)){aqPayT=0;if(S.aqPend>0){S.coins+=S.aqPend;S.aqPend=0}}}
+/* the Net: level 0 fish are in S.net, bred ones in S.netLv[id][level] */
+function netN(id,L){return L?((S.netLv||{})[id]||{})[L]||0:(S.net||{})[id]||0}
+function netAdd(id,L,n){if(L){if(!S.netLv)S.netLv={};if(!S.netLv[id])S.netLv[id]={};S.netLv[id][L]=(S.netLv[id][L]||0)+n;if(S.netLv[id][L]<=0)delete S.netLv[id][L]}else{S.net[id]=(S.net[id]||0)+n}}
+function netItems(){const out=[];for(const id in S.net||{})if(FISHBY[id]&&S.net[id]>0)out.push({id,L:0,n:S.net[id]});for(const id in S.netLv||{}){if(!FISHBY[id])continue;for(const L in S.netLv[id]){const n=S.netLv[id][L];if(n>0)out.push({id,L:+L,n})}}return out}
 function breedOnce(id,L){const t=S.tank[id];t[L]-=2;if(!t[L])delete t[L];t[L+1]=(t[L+1]||0)+1;aqVer++;
   const o=aqFish.find(q=>q.f[6]===id&&q.lvl===L);if(o&&tab==='aqua')for(let k=0;k<4;k++)aqHearts.push({x:o.x+o.w/2+(Math.random()-.5)*8,y:o.y,t:-k*.15})}
 function aqPay(x,y){const a=S.aqPend||0;if(a<=0)return;S.coins+=a;S.aqPend=0;if(a>=1)aqFloats.push({x:Math.max(14,Math.min(242,x)),y,t:0,txt:'+'+fmt(a)})}
@@ -1565,7 +1578,7 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 function save(){S.last=now();if(S.cls)PROF[S.cls]=S;try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:2,active:S.cls,profiles:PROF}))}catch(e){}}
-function cleanPets(o){if(!o)return o;if(!o.tank)o.tank={};if(o.idx)for(const k in o.idx)if(k[0]!=='f')delete o.idx[k];if(!o.net){o.net={};for(const k in o.idx||{})if(FISHBY[k])o.net[k]=o.idx[k].n}if(Array.isArray(o.eggs)){const n=o.eggs.reduce((a,b)=>a+(b||0),0);o.eggs={};for(let i=0;i<n;i++){const k=SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)];o.eggs[k]=(o.eggs[k]||0)+1}}if(!o.eggs)o.eggs={};for(const id in o.pets||{})if(!PETS[id])delete o.pets[id];o.eq=(o.eq||[]).filter(id=>PETS[id]).slice(0,1);return o}
+function cleanPets(o){if(!o)return o;if(!o.tank)o.tank={};if(!o.netLv)o.netLv={};if(o.idx)for(const k in o.idx)if(k[0]!=='f')delete o.idx[k];if(!o.net){o.net={};for(const k in o.idx||{})if(FISHBY[k])o.net[k]=o.idx[k].n}if(Array.isArray(o.eggs)){const n=o.eggs.reduce((a,b)=>a+(b||0),0);o.eggs={};for(let i=0;i<n;i++){const k=SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)];o.eggs[k]=(o.eggs[k]||0)+1}}if(!o.eggs)o.eggs={};for(const id in o.pets||{})if(!PETS[id])delete o.pets[id];o.eq=(o.eq||[]).filter(id=>PETS[id]).slice(0,1);return o}
 function fromData(d){const r0=fromData0(d);if(r0){for(const k in r0.P)cleanPets(r0.P[k]);cleanPets(r0.pending)}return r0}
 function fromData0(d){/* v2: separate profiles. v1 (older single save): becomes the chosen fisher's save; other fishers keep only their level */
   const P={};if(d&&d.profiles){for(const k in d.profiles)if(CLS[k])P[k]=Object.assign(fresh(),d.profiles[k],{cls:k});return{P,active:CLS[d.active]?d.active:null}}
