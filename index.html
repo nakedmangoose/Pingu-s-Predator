@@ -719,7 +719,7 @@ function finishHatch(){const H=HATCH;const p=H.win,cur=S.pets[p.id]||0;let msg;
   $('hatchbtns').hidden=false;$('hatchequip').hidden=S.eq[0]===p.id||!S.pets[p.id];$('hatchagain').hidden=!(S.eggs[H.r]>0);$('hatchagain').textContent=`Hatch another ${EGGR[H.r].n}`;
   H.phase='done';renderPetBar();if(tab==='bag'||tab==='pets')renderPanel();save()}
 function openDex(i){const e=EGGS[i];if(!e)return;const nT=t=>e.pets.filter(pp=>pp[2]===t).length;
-  $('dextitle').textContent=SKILLS[e.skill].n+' pets';$('dextitle').style.color=e.pal.b;
+  $('dextitle').textContent=e.n;$('dextitle').style.color=e.pal.b;
   $('dexsub').textContent=e.skill?`Every ${SKILLS[e.skill].n.toLowerCase()} pet wears ${SKILLS[e.skill].hats} and does ${SKILLS[e.skill].n.toLowerCase()} for you while you fish. The chance shown is how often a hatch of that rarity of egg gives this pet. Duplicates add a star (up to 5★), and each star adds another 10%.`:'';
   $('dexgrid').innerHTML=e.pets.map(pp=>{const p=PETS[pp[0]],st=S.pets[p.id]||0,pct=100/SK_ORDER.length/nT(p.tier);
     const perk=p.skill?`${(PET_SPEED[p.tier]).toFixed(2)}× speed · +${Math.round(PET_VAL[p.tier]*100)}% value`:'';
@@ -823,9 +823,12 @@ function renderPanel(){
           <label class="hint" for="crew-${k}">Making</label><select id="crew-${k}" class="rsel" data-chg="recipe" data-skill="${k}">${SK.recipes.map((rn,i)=>`<option value="${i}" ${i===j.rec?'selected':''} ${j.lvl<REC_LVL[i]?'disabled':''}>${rn}${j.lvl<REC_LVL[i]?` (Lv ${REC_LVL[i]})`:` · ${fmt(REC_COST[i])} → ${fmt(recValue(k,i,id))}`}</option>`).join('')}</select>
           <div class="bar"><b id="cpb-${k}" style="width:${j.p/REC_TIME[j.rec]*100}%"></b></div><div class="hint">${run?'Working':'Not started'} · ${petSpeedOf(id).toFixed(2)}× speed · +${Math.round(petValOf(id)*100)}% value</div></div>`}).join('')
       :`<p class="hint">No pet equipped. Hatch an egg, then tap the pet in the pet bar at the top or press Equip in your collection.</p>`)+`</div>`;
+    const craftEgg=(e,i)=>`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">10 pets in ${SKILLS[e.skill].hats}. They do ${SKILLS[e.skill].n.toLowerCase()} while you fish.</div><div class="eggbtns"><button class="btn ghost dexbtn" data-act="eggdex" data-arg="${i}" title="See the pets in the ${e.n}" aria-label="See the pets in the ${e.n}">${imgTag(DEX_IC(),2)}</button></div></div>`;
+    h+=`<div class="sect"><h3>Hatchery</h3><p>Pets ride behind your boat in rubber dinghies the colour of their egg. Each pet does its craft for you, so you can fish and craft at the same time. Rarer pets are better. Duplicates add a star, up to 5★. Tap the book on an egg to see its pets.</p>
+      <div class="eggs">${EGGS.map(craftEgg).join('')}</div></div>`;
     h+=`<div class="sect"><h3>Eggs</h3><p>Eggs can't be bought. Every fish you catch has a small chance to bring up an egg, and rarer eggs are rarer catches. Luck makes eggs a little more likely. Hatched eggs go to your collection; duplicates add a star, up to 5★.</p>
       <div class="eggs">${[0,1,2,3,4].map(eggCard).join('')}</div></div>`;
-    h+=`<div class="sect"><h3>Pet index</h3><p>See every pet each craft has, from common to legendary. Pets ride in dinghies the colour of their craft.</p><div class="sk-row">${EGGS.map((e,i)=>`<button class="skc px" data-act="eggdex" data-arg="${i}"><i style="background:${e.pal.b}"></i>${SKILLS[e.skill].n} ${imgTag(DEX_IC(),1)}</button>`).join('')}</div></div>`;
+
     h+=`<div class="sect"><div class="kv"><span>Pet boss bite</span><span class="num">${fmt(petDps())}/s</span></div></div>`;
     const owned=Object.keys(S.pets);
     const petCard=p=>{
