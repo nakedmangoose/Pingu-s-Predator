@@ -1181,7 +1181,9 @@ function renderPanel(){
      h+=`<div class="sect"><h3>Aquarium shop</h3><p>Buy decorations and styles to make the tank your own. Each decoration on show adds +1% aquarium income, and each style you change from the default adds +2%. Decor bonus now: +${bonus}%.</p>
        <div class="sk-row">${AQCATS.map(([k,n])=>`<button class="skc px" data-act="aqcat" data-arg="${k}" aria-pressed="${aqCat===k}">${n}</button>`).join('')}</div>`;
      if(aqCat==='decor')h+=DECOR.map(d=>{const own=D.own['d_'+d.id],on=D.placed[d.id];return`<div class="row px"><div class="ic">${imgTag(decorIcon(d.id),1)}</div><div class="info"><div class="nm">${d.n}</div><div class="ds">${own?(on?'In the tank':'In storage'):'+1% income when placed'}</div></div>${own?`<button class="btn ${on?'ghost':''}" data-act="aqplace" data-arg="${d.id}">${on?'Remove':'Place'}</button>`:`<button class="btn" data-act="aqbuy" data-arg="decor|${d.id}" data-cost="${d.p}">${money(d.p)}</button>`}</div>`}).join('');
-     else h+=STY[aqCat].map(o=>{const own=D.own[aqCat+'_'+o.id],on=D[aqCat]===o.id;return`<div class="row px"><div class="ic"><span class="swatch" style="background:${o.sw}"></span></div><div class="info"><div class="nm">${o.n}</div><div class="ds">${on?'In use':own?'Owned':o.p?'+2% income while in use':'Default'}</div></div>${on?'<button class="btn ok" disabled>In use</button>':own?`<button class="btn ghost" data-act="aquse" data-arg="${aqCat}|${o.id}">Use</button>`:`<button class="btn" data-act="aqbuy" data-arg="${aqCat}|${o.id}" data-cost="${o.p}">${money(o.p)}</button>`}</div>`}).join('');
+     else{const row=o=>{const own=D.own[aqCat+'_'+o.id],on=D[aqCat]===o.id;return`<div class="row px"><div class="ic"><span class="swatch" style="background:${o.sw}"></span></div><div class="info"><div class="nm">${o.n}</div><div class="ds">${on?'In use':own?'Owned':o.p?'+2% income while in use':'Default'}</div></div>${on?'<button class="btn ok" disabled>In use</button>':own?`<button class="btn ghost" data-act="aquse" data-arg="${aqCat}|${o.id}">Use</button>`:`<button class="btn" data-act="aqbuy" data-arg="${aqCat}|${o.id}" data-cost="${o.p}">${money(o.p)}</button>`}</div>`};
+       if(aqCat==='floor')[['sand','Sand'],['gravel','Gravel'],['special','Special']].forEach(([t,lbl])=>{h+=`<div class="egghead">${lbl}</div>`+STY.floor.filter(o=>o.type===t).map(row).join('')});
+       else h+=STY[aqCat].map(row).join('')}
      h+=`</div>`}
     const rows=gs.slice().sort((a,b)=>FISHBY[b.id].f[1]-FISHBY[a.id].f[1]||FISHBY[b.id].f[2]-FISHBY[a.id].f[2]||b.lvl-a.lvl);
     const pairs=gs.reduce((a,g)=>a+(g.lvl<MAX_FLVL?Math.floor(g.n/2):0),0);
@@ -1600,16 +1602,25 @@ function aqPay(x,y){const a=S.aqPend||0;if(a<=0)return;S.coins+=a;S.aqPend=0;aqF
 /* ---------- aquarium decor & styles ---------- */
 function aqdFresh(){return{own:{water_blue:1,light_plain:1,floor_none:1,bg_none:1,frame_iron:1,room_gallery:1},water:'blue',light:'plain',floor:'none',bg:'none',frame:'iron',room:'gallery',placed:{}}}
 function aqd(){if(!S.aqd)S.aqd=aqdFresh();return S.aqd}
-const FLOORPAL={sand:['#e0cc98','#d4be88','#ecd8a8','#c8b07a'],white:['#f4f0e8','#e8e4dc','#ffffff','#d8d4cc'],black:['#2a2a30','#3a3a42','#1a1a20','#4a4a52'],pink:['#f0a0c8','#e080b0','#ffc0dc','#d070a0'],
-  pebbles:['#8a8478','#a49c8c','#6e685e','#bab2a2'],glass:['#d8cca8','#cfc39c','#e4d8b4','#c8bc94'],crystal:['#bfe8ff','#9ad0f0','#e8f8ff','#7ab0e0']};
+/* floors: sand (fine grains) and gravel (chunky stones) in many colours, plus a few specials */
+const shades=c=>[mix(c,'#ffffff',.28),c,mix(c,'#000000',.14),mix(c,'#ffffff',.12),mix(c,'#000000',.28)];
+const FLOORS=[
+ ['none','Bare Glass',0,'special',null],
+ ['sand','Golden Sand',200,'sand','#dcc490'],['white','White Sand',500,'sand','#ece8e0'],['sand_orange','Orange Sand',1000,'sand','#e8a050'],['sand_black','Black Sand',800,'sand','#3a3a40'],
+ ['sand_red','Red Sand',1200,'sand','#c85a40'],['sand_pink','Pink Sand',1400,'sand','#f0b0c8'],['sand_blue','Blue Sand',1500,'sand','#6aa0e0'],['sand_green','Green Sand',1500,'sand','#7ac07a'],['sand_purple','Purple Sand',2000,'sand','#a07ad8'],
+ ['gravel_natural','Natural Gravel',300,'gravel','#9a8e7a'],['gravel_white','White Gravel',600,'gravel','#e4e0d8'],['black','Black Gravel',1500,'gravel','#34343c'],['pink','Pink Gravel',2500,'gravel','#e888b8'],
+ ['gravel_blue','Blue Gravel',1200,'gravel','#4a8ad8'],['gravel_green','Green Gravel',1200,'gravel','#4aa05a'],['gravel_red','Red Gravel',1500,'gravel','#d04a4a'],['gravel_purple','Purple Gravel',1800,'gravel','#8a5ad0'],
+ ['gravel_teal','Teal Gravel',1800,'gravel','#3ab0a8'],['gravel_gold','Gold Gravel',4000,'gravel','#e0b040'],['gravel_rainbow','Rainbow Gravel',6000,'gravel','rainbow'],
+ ['pebbles','River Pebbles',900,'special','#a49c8c'],['glass','Glass Beads',5000,'special','#d8cca8'],['crystal','Crystal Bed',12000,'special','#bfe8ff']];
+const FLOORPAL={};FLOORS.forEach(([id,,,,c])=>{if(!c)return;FLOORPAL[id]=c==='rainbow'?['#ff5a5a','#ffa03a','#ffe04a','#5ad06a','#4aa0ff','#a06aff','#ff6ac0']:shades(c)});
+const FLOORTYPE=Object.fromEntries(FLOORS.map(f=>[f[0],f[3]]));
 const STY={
  water:[['blue','Clear Blue',0,'#46b4e0','#0c3460'],['teal','Tropical Teal',300,'#3ad0c0','#0a4048'],['emerald','Emerald',600,'#4ad08a','#0a3a24'],['turquoise','Lagoon Turquoise',900,'#6ae8e8','#0a5a6a'],['mint','Mint',1200,'#a8f0c8','#2a6a5a'],
   ['pink','Sunset Pink',2000,'#ff9ac8','#5a1a48'],['amber','Golden Amber',3000,'#f0c060','#5a3008'],['deep','Deep Ocean',5000,'#2a6ab0','#040e2a'],['purple','Midnight Purple',8000,'#9a7ae8','#1a0a3a'],['red','Blood Moon',12000,'#e0505a','#300810'],['arctic','Arctic',18000,'#d8f0ff','#5a7a9a'],['ink','Squid Ink',25000,'#3a3a4a','#05050a']]
   .map(([id,n,p,a,b])=>({id,n,p,c:[a,b],sw:`linear-gradient(${a},${b})`})),
  light:[['plain','Plain Strip',0,'#e8f4ff'],['warm','Warm White',500,'#ffe0a0'],['moon','Moonlight',1500,'#c8d0ff'],['neon','Neon Pink',3000,'#ff5ac0'],['spot','Spotlights',5000,'#ffffff'],['caustic','Ripple Caustics',8000,'#bff4ff'],
   ['uv','Blacklight',12000,'#a05aff'],['rainbow','Rainbow Strip',20000,'#ff5a5a'],['disco','Disco Party',35000,'#ffcd3c'],['aurora','Aurora Glow',60000,'#5fffb0']].map(([id,n,p,c])=>({id,n,p,c,sw:id==='rainbow'||id==='disco'?'linear-gradient(90deg,#ff5a5a,#ffcd3c,#5fd16a,#4fa8ff,#c07bff)':c})),
- floor:[['none','Bare Glass',0],['sand','Golden Sand',200],['white','White Sand',500],['pebbles','River Pebbles',900],['black','Black Gravel',1500],['pink','Pink Gravel',2500],['glass','Glass Beads',5000],['crystal','Crystal Bed',12000]]
-  .map(([id,n,p])=>({id,n,p,sw:id==='none'?'#3a5a7a':`linear-gradient(90deg,${(FLOORPAL[id]||[]).join(',')})`})),
+ floor:FLOORS.map(([id,n,p,type])=>({id,n,p,type,sw:id==='none'?'#3a5a7a':`linear-gradient(90deg,${FLOORPAL[id].join(',')})`})),
  bg:[['none','No Backdrop',0,'#3a5a7a'],['ocean','Open Ocean',1000,'#1a4a7a'],['reef','Coral Reef Mural',3000,'#e07a8a'],['jungle','Jungle Mural',6000,'#2a6a3a'],['city','Sunken City',10000,'#6a7a8a'],['stars','Starry Night',15000,'#1a1a4a'],['volcano','Volcano Mural',25000,'#c04a2a']]
   .map(([id,n,p,c])=>({id,n,p,sw:c})),
  frame:[['iron','Iron Frame',0,'#232a3c','#3a4460'],['wood','Oak Frame',800,'#5a3a20','#8a5a30'],['chrome','Chrome Frame',3000,'#8a94a8','#e0e8f0'],['pink','Bubblegum Frame',6000,'#c0507a','#ff9ac0'],['gold','Gold Frame',15000,'#a87a20','#ffd060'],['obsidian','Obsidian Frame',30000,'#120a0a','#5a2a2a']]
@@ -1680,8 +1691,10 @@ function drawBackdrop(g,id){if(id==='none')return;g.save();g.beginPath();g.rect(
   if(id==='stars'){g.globalAlpha=.6;for(let i=0;i<70;i++)R(g,AQ.x0+r()*(AQ.x1-AQ.x0),AQ.y0+r()*(b-AQ.y0-20),1,1,'#ffffff');disc(g,AQ.x1-30,AQ.y0+18,7,'#f3efd8')}
   if(id==='volcano'){for(let k=0;k<70;k++){const w=Math.round(80-k*1.05);R(g,128-w,b-k,w*2,1,'#2a1010')}R(g,124,b-70,8,2,'#ff7a2e');g.globalAlpha=.2;disc(g,128,b-72,14,'#ff7a2e')}
   g.restore()}
-function drawFloor(g,id){if(id==='none'){R(g,AQ.x0,AQ.y1-1,AQ.x1-AQ.x0,1,'#9ac8e8');return}const pal=FLOORPAL[id];
-  for(let x=AQ.x0;x<AQ.x1;x++){const top=AQ.y1-9+Math.round(Math.sin(x*.08)*1.5+Math.sin(x*.21));for(let y=top;y<AQ.y1;y++){g.fillStyle=pal[hsh(x+','+y)%pal.length];g.fillRect(x,y,1,1)}}
+function drawFloor(g,id){if(id==='none'){R(g,AQ.x0,AQ.y1-1,AQ.x1-AQ.x0,1,'#9ac8e8');return}const pal=FLOORPAL[id]||FLOORPAL.sand,type=FLOORTYPE[id]||'sand';
+  const top=x=>AQ.y1-9+Math.round(Math.sin(x*.08)*1.5+Math.sin(x*.21));
+  if(type==='gravel'){for(let x=AQ.x0;x<AQ.x1;x+=2){const t=top(x);for(let y=t;y<AQ.y1;y+=2){const h=hsh(x+'g'+y),c=pal[h%pal.length];R(g,x,y,2,2,c);R(g,x+1,y+1,1,1,mix(c,'#000000',.3));if(h%5===0)R(g,x,y,1,1,mix(c,'#ffffff',.35))}}return}
+  for(let x=AQ.x0;x<AQ.x1;x++){const t=top(x);for(let y=t;y<AQ.y1;y++){g.fillStyle=pal[hsh(x+','+y)%pal.length];g.fillRect(x,y,1,1)}}
   if(id==='pebbles')for(let i=0;i<40;i++){const x=AQ.x0+3+((i*53)%(AQ.x1-AQ.x0-6)),y=AQ.y1-3-(i%3)*2;disc(g,x,y,2+(i%2),pal[i%4])}
   if(id==='glass'){const bc=['#ff6a6a','#6ac0ff','#ffe06a','#8af08a','#d08aff'];for(let i=0;i<90;i++)R(g,AQ.x0+((i*37)%(AQ.x1-AQ.x0)),AQ.y1-1-((i*13)%7),2,2,bc[i%5])}
   if(id==='crystal')for(let i=0;i<30;i++){const x=AQ.x0+((i*41)%(AQ.x1-AQ.x0));R(g,x,AQ.y1-9-(i%4),1,3+(i%4),'#e8f8ff')}}
