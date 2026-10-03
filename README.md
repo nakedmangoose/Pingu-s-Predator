@@ -11,7 +11,7 @@ A pixel-art idle fishing game that runs in the browser. Open `index.html` to pla
   - Mole · Geomancer: raises stone pillars, fish weigh 25% more
   - Duck · Aeromancer: whirlwinds, +20% catch speed
 - **Six zones** from Willow Pond to Starfall Abyss, each with 7 fish across five rarities
-- **Boss fights** for every zone
+- **Bosses** that surface at random while you fish and are fought automatically, listed in the Index
 - **Shop** with rods/staffs, bait and timed supplies
 - **Seven crafts** (cooking, brewing, smithing, alchemy, engineering, tailoring, enchanting), each with levels, six recipes and a lasting bonus. Crafting yourself pauses fishing; a craft pet does it for you
 - **Pets**: eggs of five rarities are fished up by chance and hatched from the Bag with a roulette spin. 70 hat-wearing pets across the seven crafts; one rides behind the boat in a rubber dinghy

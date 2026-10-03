@@ -228,7 +228,6 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
         <button class="tab" role="tab" data-tab="shop">Shop</button>
         <button class="tab" role="tab" data-tab="pets">Pets</button>
         <button class="tab" role="tab" data-tab="craft">Crafts</button>
-        <button class="tab" role="tab" data-tab="boss">Bosses</button>
         <button class="tab" role="tab" data-tab="index">Index</button>
         <button class="tab" role="tab" data-tab="bag">Bag</button>
       </div>
@@ -548,7 +547,7 @@ function url(c,scale){const k=c.toDataURL();return k}
 function imgTag(c,scale,alt){const key=(c._u||(c._u=c.toDataURL()));return`<img src="${key}" width="${c.width*scale}" height="${c.height*scale}" alt="${alt||''}">`}
 
 function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},eggs:[1,0,0,0,0],
- buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
+ buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
 let PROF={}; /* every fisher is a separate save: PROF[cls] holds their whole state; S is the active one */
 let S=fresh(), B=null, tab='shop', castLeft=4, castMax=4, logItems=[];
 
@@ -598,7 +597,7 @@ function catchFish(){
   rollEgg();
   if(isNew&&c.tier>=3)toast(`${RAR[c.tier].n}! ${c.f[0]} added to your index`);
   else if(isNew&&zonesCompleteJust())toast(`${ZONES[c.zi].name} index complete: +10% coins`);
-  if(S.zc[c.zi]===15&&!S.beaten[c.zi])toast(`${ZONES[c.zi].boss.name} has noticed you. Check Bosses.`),markTabs();
+  if(!B&&now()>(S.bossCd||0)&&Math.random()<BOSS_CHANCE)startBoss(c.zi);
   if(tab==='index')renderPanel();
 }
 let _zcDone=0;function zonesCompleteJust(){const z=zonesComplete();const j=z>_zcDone;_zcDone=z;return j}
@@ -634,14 +633,16 @@ function craftOffline(away){let total=0;SK_ORDER.forEach(k=>{const j=skJ(k);if(!
   const cyc=Math.min(2000,Math.floor(away*.5*(pet?petSpeedOf(pet):1)*(1+.01*(skL('tailoring')-1))/REC_TIME[j.rec]));if(cyc<1||S.coins<REC_COST[j.rec])return;
   const net=(recValue(k,j.rec,pet)-REC_COST[j.rec])*cyc;S.coins+=net;total+=net;for(let i=0;i<cyc&&skL(k)<SK_MAX;i++)skGain(k,REC_XP[j.rec])});return total}
 /* ---------- bosses ---------- */
-function bossReady(i){return unlocked(i)&&(S.beaten[i]>0||S.zc[i]>=15)}
+const BOSS_CHANCE=1/80,AUTO_HITS=3;
+function bossReady(i){return unlocked(i)}
 function startBoss(i){
   if(B||!bossReady(i))return;const b=ZONES[i].boss;
   const dur=(30+i*3)*1000*(S.cls==='ice'?1.3:1);
-  B={zi:i,hp:b.hp,max:b.hp,ends:now()+dur,dur,harpoon:S.harpoon,shake:0,flash:0,rise:0};S.harpoon=false;
+  B={zi:i,hp:b.hp,max:b.hp,ends:now()+dur,dur,harpoon:S.harpoon,shake:0,flash:0,rise:0,auto:.6};S.harpoon=false;if(!S.bseen)S.bseen=[0,0,0,0,0,0];S.bseen[i]++;
+  toast(`${b.name} surfaces! Your ${curC().animal.toLowerCase()} fights it on their own. Tap the boss to strike harder`);
   if(S.zone!==i){S.zone=i;renderZones()}
   splash(200,100,24,'#e8f6ff');
-  tab='boss';renderTabs();renderPanel();renderBossBar();
+  if(tab==='index')renderPanel();renderBossBar();
 }
 function hitBoss(px,py){
   if(!B)return;const crit=Math.random()<0.12;const d=strikeDmg()*(crit?3:1);
@@ -657,11 +658,11 @@ function winBoss(){
   const reward=b.reward*(first?1:0.3);S.coins+=reward;S.beaten[i]++;gainXp(xpNeed(S.lvl)*(first?0.5:0.15));
   if(first){['chum','lure','charm','tonic'].forEach(k=>S.bag[k]++)}
   splash(200,110,40,'#ffcd3c');floats.push({x:190,y:90,t:-0.5,txt:'+'+fmt(reward),col:'#ffcd3c'});
-  B=null;toast(`${b.name} defeated! +${fmt(reward)} coins${first?' and a supply crate':''}`);
+  B=null;S.bossCd=now()+90000;toast(`${b.name} defeated! +${fmt(reward)} coins${first?' and a supply crate':''}`);
   if(first&&ZONES[i+1])toast(S.lvl>=ZONES[i+1].lvl?`${ZONES[i+1].name} unlocked`:`${ZONES[i+1].name} opens at level ${ZONES[i+1].lvl}`);
   renderZones();renderPanel();renderBossBar();castLeft=castMax=castTime();
 }
-function loseBoss(){const b=ZONES[B.zi].boss;B=null;splash(200,110,20,'#e8f6ff');toast(`${b.name} slipped the hook. Upgrade and try again.`);renderPanel();renderBossBar();castLeft=castMax=castTime()}
+function loseBoss(){const b=ZONES[B.zi].boss;B=null;S.bossCd=now()+90000;splash(200,110,20,'#e8f6ff');toast(`${b.name} slipped the hook. It will surface again some time. Better gear helps`);renderPanel();renderBossBar();castLeft=castMax=castTime()}
 
 /* ---------- actions ---------- */
 function openPicker(){$('pkgrid').innerHTML=CLS_ORDER.map(k=>{const C=CLS[k];const c=sitCanvas(k);
@@ -789,11 +790,12 @@ function renderBuffs(){
   const w=S.wx&&WX[S.wx.k];if(w&&w.d)out.push(`<span class="buff px" style="color:#9fd8ff">${w.n}: ${w.d}</span>`);if(TS.n>.6)out.push('<span class="buff px" style="color:#c8b8ff">Night: +15% luck</span>');
   $('buffs').innerHTML=out.join('');
 }
+function bossTick(){if(B){const n=$('bossname');n.textContent=`${ZONES[B.zi].boss.name} · ${Math.max(0,Math.ceil((B.ends-now())/1000))}s`;$('bosshp').style.width=Math.max(0,B.hp/B.max*100)+'%'}}
 function renderBossBar(){const bb=$('bossbar');if(!B){bb.hidden=true;$('zlabel').hidden=false;return}bb.hidden=false;$('zlabel').hidden=true;$('bossname').textContent=ZONES[B.zi].boss.name;$('bosshp').style.width=Math.max(0,B.hp/B.max*100)+'%'}
 function renderTabs(){document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));markTabs()}
 function markTabs(){
   const ready=ZONES.some((z,i)=>bossReady(i)&&!S.beaten[i]);
-  const bt=document.querySelector('[data-tab="boss"]');bt.innerHTML='Bosses'+(ready&&tab!=='boss'?'<span class="dot"></span>':'');
+
 }
 function money(p){return`<span class="coin"></span><span class="num">${fmt(p)}</span>`}
 function rodIcon(i){const c=document.createElement('canvas');c.width=14;c.height=14;const x=c.getContext('2d');x.fillStyle='#0e0f17';for(let k=0;k<13;k++){x.fillRect(k,13-k,1,1)}x.fillStyle=RODS[i].col;for(let k=1;k<12;k++)x.fillRect(k,12-k,1,1);x.fillStyle='#3a3a4a';x.fillRect(1,10,3,3);x.fillStyle='#c8c8d0';x.fillRect(2,11,1,1);x.fillStyle='rgba(255,255,255,.7)';for(let k=2;k<10;k++)x.fillRect(13,k,1,1);return c}
@@ -861,19 +863,6 @@ function renderPanel(){
     h+=SK.recipes.map((rn,i)=>{const lock=j.lvl<REC_LVL[i],sel=j.rec===i;const v=recValue(k,i,pet);
       return`<div class="row px"><div class="info"><div class="nm">${rn}</div><div class="ds">${REC_TIME[i]}s · costs ${fmt(REC_COST[i])} · sells for ${fmt(v)} · +${REC_XP[i]} XP</div></div>${lock?`<button class="btn" disabled>Lv ${REC_LVL[i]}</button>`:sel?'<button class="btn ok" disabled>Selected</button>':`<button class="btn ghost" data-act="recipe" data-arg="${k}:${i}">Select</button>`}</div>`}).join('')+`</div>`;
   }
-  else if(tab==='boss'){
-    if(B){const b=ZONES[B.zi].boss;
-      h+=`<div class="fight px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h3>${b.name}</h3><span class="num" id="btime"></span></div><div class="hp"><b id="bhp"></b></div><div class="num" id="btext" style="font-size:18px"></div>
-      <button class="btn strike" data-act="strike">STRIKE!</button><div class="hint">Tap Strike or the boss as fast as you can. Strike ${fmt(strikeDmg())} · 12% crit chance for 3× · Pets bite ${fmt(petDps())}/s</div></div>`}
-    h+=`<div class="sect"><h3>Boss waters</h3><p>Catch 15 fish in a zone to draw out its boss. Beating it opens the next zone and gives +5% coins forever.</p>`+ZONES.map((z,i)=>{const b=z.boss;
-      let tag,btn;
-      if(!unlocked(i)){tag='<span class="tag">Locked</span>';btn=''}
-      else if(S.beaten[i]){tag=`<span class="tag done">Beaten ×${S.beaten[i]}</span>`;btn=`<button class="btn ghost" data-act="boss" data-arg="${i}" ${B?'disabled':''}>Rematch for ${fmt(b.reward*.3)}</button>`}
-      else if(S.zc[i]>=15){tag='<span class="tag ready">Ready</span>';btn=`<button class="btn" data-act="boss" data-arg="${i}" ${B?'disabled':''}>Fight for ${fmt(b.reward)}</button>`}
-      else{tag=`<span class="tag">${S.zc[i]}/15 catches</span>`;btn=''}
-      const sp=bossSpr(z,unlocked(i)?null:'#3a4a72');const sc=Math.max(1,Math.floor(40/Math.max(sp.width,sp.height*1.6)));
-      return`<div class="boss px"><div class="top"><div class="who">${imgTag(sp,sc)}<div><div style="font-weight:600">${unlocked(i)?b.name:'???'}</div><div class="hint">${z.name}${unlocked(i)?' · '+fmt(b.hp)+' HP':''}</div></div></div>${tag}</div>${unlocked(i)?`<div class="hint">${b.desc}</div>`:''}${btn?`<div>${btn}</div>`:''}</div>`}).join('')+`</div>`;
-  }
   else if(tab==='index'){
     const all=ZONES.reduce((a,z)=>a+z.fish.length,0),got=Object.keys(S.idx).length;
     h+=`<div class="sect"><h3>Fish index</h3><div class="prog"><span class="num">${got}/${all}</span><div class="bar"><b style="width:${got/all*100}%"></b></div><span class="num">${Math.round(got/all*100)}%</span></div><p>Finish every fish in a zone for +10% coins. Completed: ${zonesComplete()}/${ZONES.length}.</p></div>`;
@@ -881,6 +870,11 @@ function renderPanel(){
       h+=`<div class="sect"><h3>${unlocked(zi)||n?z.name:'Unknown waters'} <span class="hint num">${n}/${z.fish.length}</span></h3><div class="grid">`+z.fish.map((f,fi)=>{const e=S.idx[zi+'-'+fi];
         return e?`<div class="card px"><div class="pic">${imgTag(fishSpr(f),f[4]==='B'?2:3)}</div><span class="rar" style="color:${RAR[f[1]].c}">${RAR[f[1]].n}</span><div class="nm">${f[0]}</div><div class="ds num">×${fmt(e.n)} · best ${kg(e.best)}</div></div>`
         :`<div class="card px locked"><div class="pic">${imgTag(fishSpr(f,'#3a4a72'),f[4]==='B'?2:3)}</div><span class="rar" style="color:${RAR[f[1]].c};opacity:.6">${RAR[f[1]].n}</span><div class="nm">???</div><div class="ds">Not caught yet</div></div>`}).join('')+`</div></div>`});
+    const bb=S.beaten.filter(Boolean).length;
+    h+=`<div class="sect"><h3>Bosses <span class="hint num">${bb}/${ZONES.length}</span></h3><p>Each zone's boss surfaces at random while you fish there, about once every ${Math.round(1/BOSS_CHANCE)} catches. Fights play out on their own: your fisher strikes ${AUTO_HITS} times a second and your pet bites too. Tap the boss to strike harder. Beating a boss opens the next zone and gives +5% coins forever.</p>`+ZONES.map((z,i)=>{const b=z.boss,seen=(S.bseen&&S.bseen[i])||S.beaten[i];
+      const tag=S.beaten[i]?`<span class="tag done">Beaten ×${S.beaten[i]}</span>`:seen?'<span class="tag">Escaped</span>':!unlocked(i)?'<span class="tag">Locked</span>':'<span class="tag">Not seen yet</span>';
+      const sp=bossSpr(z,seen?null:'#3a4a72');const sc=Math.max(1,Math.floor(40/Math.max(sp.width,sp.height*1.6)));
+      return`<div class="boss px"><div class="top"><div class="who">${imgTag(sp,sc)}<div><div style="font-weight:600">${seen?b.name:'???'}</div><div class="hint">${z.name}${seen?` · ${fmt(b.hp)} HP · ${S.beaten[i]?'rematch '+fmt(b.reward*.3):fmt(b.reward)} coins`:''}</div></div></div>${tag}</div>${seen?`<div class="hint">${b.desc}</div>`:''}</div>`}).join('')+`</div>`;
   }
   else if(tab==='bag'){
     const inv=[];[0,1,2,3,4].forEach(r=>{if(S.eggs[r]>0)inv.push({key:'egg'+r,ic:mk(MAPS.EGG,eggPal(r)),sc:4,n:S.eggs[r],name:EGGR[r].n,col:EGGR[r].c,desc:`Fished up by chance (about 1 in ${fmt(oneIn(r))} catches). Hatches a ${RAR[r].n.toLowerCase()} pet from any craft.`,act:'hatchegg',arg:r,btn:'Hatch'})});
@@ -912,7 +906,7 @@ function refreshPanel(){
   if(B)$('bosshp').style.width=Math.max(0,B.hp/B.max*100)+'%';
   if(tab==='craft'||tab==='pets')SK_ORDER.forEach(k=>{const b=$('cpb-'+k);if(b&&document.body.contains?true:true){const j=skJ(k);if(b)b.style.width=Math.min(100,j.p/REC_TIME[j.rec]*100)+'%'}});
 }
-function renderHeader(){if(S.cls){const b=$('crewxp-'+S.cls);if(b)b.style.width=(S.xp/xpNeed(S.lvl)*100)+'%'}
+function renderHeader(){bossTick();if(S.cls){const b=$('crewxp-'+S.cls);if(b)b.style.width=(S.xp/xpNeed(S.lvl)*100)+'%'}
   $('coins').textContent=fmt(S.coins);$('lvl').textContent=S.lvl;$('xpbar').style.width=(S.xp/xpNeed(S.lvl)*100)+'%';
   if(B){$('castlabel').textContent='Boss fight';$('castbar').style.width=Math.max(0,(B.ends-now())/B.dur*100)+'%';$('castsec').textContent=Math.max(0,(B.ends-now())/1000).toFixed(1)+'s'}
   else if(avatarJob()){const k=avatarJob(),j=skJ(k);$('castlabel').textContent=SKILLS[k].recipes[j.rec];$('castbar').style.width=Math.min(100,j.p/REC_TIME[j.rec]*100)+'%';$('castsec').textContent=Math.max(0,REC_TIME[j.rec]-j.p).toFixed(1)+'s'}
@@ -1300,7 +1294,7 @@ function draw(dt){
 let lastT=performance.now(),uiAcc=0,saveAcc=0;
 function loop(t){
   let dt=Math.min((t-lastT)/1000,0.5);lastT=t;T+=dt;
-  if(B){B.hp-=petDps()*dt;if(B.hp<=0)winBoss();else if(now()>B.ends)loseBoss()}
+  if(B){B.hp-=petDps()*dt;B.auto-=dt;if(B.auto<=0&&B.hp>0){B.auto=1/AUTO_HITS;hitBoss()}if(B&&B.hp<=0)winBoss();else if(B&&now()>B.ends)loseBoss()}
   else if(S.cls&&!avatarJob()){castLeft-=dt;if(castLeft<=0){catchFish();castMax=castLeft=castTime()}}
   if(S.cls)craftTick(dt);
   renderHeader();draw(dt);
