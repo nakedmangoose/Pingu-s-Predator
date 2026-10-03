@@ -546,7 +546,7 @@ MAPS.BP=["kkkkkkkkkkkk","kbbbbbbbbbbk","kbbbbwbbbbbk","kbbbwbwbbbbk","kbbwbbbwbb
 function url(c,scale){const k=c.toDataURL();return k}
 function imgTag(c,scale,alt){const key=(c._u||(c._u=c.toDataURL()));return`<img src="${key}" width="${c.width*scale}" height="${c.height*scale}" alt="${alt||''}">`}
 
-function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},eggs:[1,0,0,0,0],
+function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},eggs:{[SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)]]:1},
  buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
 let PROF={}; /* every fisher is a separate save: PROF[cls] holds their whole state; S is the active one */
 let S=fresh(), B=null, tab='shop', castLeft=4, castMax=4, logItems=[];
@@ -673,20 +673,21 @@ function renderCrew(){$('crew').innerHTML=CLS_ORDER.map(k=>{const C=CLS[k],c=cha
 function setLogo(){$('logo').src=avatarCanvas(S.cls||'std').toDataURL();$('hint').textContent=`Your ${curC().animal.toLowerCase()} fishes on its own. Tap the water to ${curC().verb} and land fish faster.`}
 let crSel='cooking',_dexIc=null,bagSel=null;
 /* fished eggs, by rarity: chance per fish caught (luck raises it a little) */
-const EGGR=[{n:'Common Egg',c:'#c8d0dc',d:'#8a96a8',ch:.03},{n:'Uncommon Egg',c:'#5fd16a',d:'#2f8a3a',ch:.012},{n:'Rare Egg',c:'#4fa8ff',d:'#2a5ab0',ch:.004},{n:'Epic Egg',c:'#c07bff',d:'#6a3ab0',ch:.0012},{n:'Legendary Egg',c:'#ffcd3c',d:'#c07a10',ch:.0003}];
+/* one egg per craft; each is an equal, rare catch. The roulette decides the pet's rarity */
+const EGGR=Object.fromEntries(SK_ORDER.map(k=>[k,{n:SKILLS[k].n+' Egg',c:SKILLS[k].col,d:mix(SKILLS[k].col,'#05060c',.35),ch:.006}]));
 const DUPE_COINS=[200,800,3000,12000,50000];
-function eggPal(r){const e=EGGR[r];return{b:e.c,l:mix(e.c,'#ffffff',.55),d:e.d}}
+function eggPal(r){return EGGS[SK_ORDER.indexOf(r)].pal}
 function eggChance(r){return EGGR[r].ch*(1+luck()*.5)}
 function oneIn(r){return Math.round(1/eggChance(r))}
-function rollEgg(){for(let r=4;r>=0;r--){if(Math.random()<eggChance(r)){S.eggs[r]=(S.eggs[r]||0)+1;splash(BOBX,BOBY-4,14,EGGR[r].c);
-  logItems.unshift({egg:r});logItems.length=Math.min(logItems.length,6);renderLog();toast(`You fished up a ${EGGR[r].n}! Hatch it from your Bag`);if(tab==='bag'||tab==='pets')renderPanel();return}}}
+function rollEgg(){for(const r of SK_ORDER.slice().sort(()=>Math.random()-.5)){if(Math.random()<eggChance(r)){S.eggs[r]=(S.eggs[r]||0)+1;splash(BOBX,BOBY-4,14,EGGR[r].c);
+  logItems.unshift({egg:r});logItems.length=Math.min(logItems.length,6);renderLog();toast(`You fished up a ${EGGR[r].n}! Hatch it from your Bag to see which pet is inside`);if(tab==='bag'||tab==='pets')renderPanel();return}}}
 /* small pixel "pet book" icon */
 function DEX_IC(){return _dexIc||(_dexIc=mk(["kkkkkkkk.","kwwkwwwwk","kwwkwbbwk","kwwkwwwwk","kwwkwbbwk","kwwkwwwwk","kwwkwbbwk","kkkkkkkk."],{w:'#f4efe2',b:'#9aa6c4'}))}
 /* ---- hatching: roulette spin, then the pet breaks out of its egg ---- */
 let HATCH=null;
-function pickHatch(r){const k=SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)];const list=Object.values(PETS).filter(p=>p.skill===k&&p.tier===r);return list[Math.floor(Math.random()*list.length)]}
+function pickHatch(k){const e=EGGS[SK_ORDER.indexOf(k)];let r=Math.random()*e.pets.reduce((a,p)=>a+p[5],0);for(const pp of e.pets){r-=pp[5];if(r<0)return PETS[pp[0]]}return PETS[e.pets[0][0]]}
 function reelSlot(p){const SK=SKILLS[p.skill];return`<div class="reel-slot" style="--rc:${RAR[p.tier].c};background:${mix('#2a3858',SK.col,.25)}">${imgTag(petSpr(p.id),3,p.n)}<span>${RAR[p.tier].n.toUpperCase()}</span></div>`}
-function openHatch(r){if(!(S.eggs[r]>0)||HATCH)return;S.eggs[r]--;const win=pickHatch(r);const all=Object.values(PETS);
+function openHatch(r){if(!(S.eggs[r]>0)||HATCH)return;S.eggs[r]--;const win=pickHatch(r);const all=Object.values(PETS).filter(p=>p.skill===r);
   const N=46,W=38,strip=[];for(let i=0;i<N;i++)strip.push(i===W?win:all[Math.floor(Math.random()*all.length)]);
   $('hatchtitle').textContent=`Hatching a ${EGGR[r].n}`;$('hatchtitle').style.color=EGGR[r].c;
   $('reelstrip').innerHTML=strip.map(reelSlot).join('');$('reel').hidden=false;$('hatchcv').hidden=true;$('hatchbtns').hidden=true;$('hatchres').innerHTML='Spinning…';
@@ -727,18 +728,18 @@ function finishHatch(){const H=HATCH;const p=H.win,cur=S.pets[p.id]||0;let msg;
   $('hatchres').innerHTML=`<span style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span> ${p.n}<small>${SKILLS[p.skill].n} pet · ${msg}</small>`;
   $('hatchbtns').hidden=false;$('hatchequip').hidden=S.eq[0]===p.id||!S.pets[p.id];$('hatchagain').hidden=!(S.eggs[H.r]>0);$('hatchagain').textContent=`Hatch another ${EGGR[H.r].n}`;
   H.phase='done';renderPetBar();if(tab==='bag'||tab==='pets')renderPanel();save()}
-function openDex(i){const e=EGGS[i];if(!e)return;const nT=t=>e.pets.filter(pp=>pp[2]===t).length;
+function openDex(i){const e=EGGS[i];if(!e)return;const tw=e.pets.reduce((a,p)=>a+p[5],0);
   $('dextitle').textContent=e.n;$('dextitle').style.color=e.pal.b;
-  $('dexsub').textContent=e.skill?`Every ${SKILLS[e.skill].n.toLowerCase()} pet wears ${SKILLS[e.skill].hats} and does ${SKILLS[e.skill].n.toLowerCase()} for you while you fish. The chance shown is how often a hatch of that rarity of egg gives this pet. Duplicates add a star (up to 5★), and each star adds another 10%.`:'';
-  $('dexgrid').innerHTML=e.pets.map(pp=>{const p=PETS[pp[0]],st=S.pets[p.id]||0,pct=100/SK_ORDER.length/nT(p.tier);
+  $('dexsub').textContent=e.skill?`Every pet in this egg wears ${SKILLS[e.skill].hats} and does ${SKILLS[e.skill].n.toLowerCase()} for you while you fish. The chance shown is how often a hatch lands on that pet. Duplicates add a star (up to 5★), and each star adds another 10%.`:'';
+  $('dexgrid').innerHTML=e.pets.map(pp=>{const p=PETS[pp[0]],st=S.pets[p.id]||0,pct=pp[5]/tw*100;
     const perk=p.skill?`${(PET_SPEED[p.tier]).toFixed(2)}× speed · +${Math.round(PET_VAL[p.tier]*100)}% value`:'';
-    return`<div class="card px"><div class="pic">${imgTag(petSpr(p.id),3,p.n)}</div><span class="rar" style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span><div class="nm">${p.n}</div><div class="chance">${pct.toFixed(1)}%</div><div class="ds" style="color:${EGGR[p.tier].c}">of ${EGGR[p.tier].n} hatches</div><div class="ds">${perk}</div>${st?`<div class="own">Owned ${'★'.repeat(st)}</div>`:'<div class="notyet">Not hatched yet</div>'}</div>`}).join('');
+    return`<div class="card px"><div class="pic">${imgTag(petSpr(p.id),3,p.n)}</div><span class="rar" style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span><div class="nm">${p.n}</div><div class="chance">${pct.toFixed(1)}%</div><div class="ds">of ${e.n} hatches</div><div class="ds">${perk}</div>${st?`<div class="own">Owned ${'★'.repeat(st)}</div>`:'<div class="notyet">Not hatched yet</div>'}</div>`}).join('');
   $('eggdex').hidden=false}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('eggdex').hidden)$('eggdex').hidden=true});
 function craftArgs(a){const [k,i]=String(a).split(':');return[k,+i]}
 const act={
   bagsel(k){bagSel=k;renderPanel()},
-  hatchegg(r){openHatch(+r)},
+  hatchegg(r){openHatch(r)},
   hatchequip(){if(HATCH&&HATCH.win&&S.pets[HATCH.win.id]){S.eq=[HATCH.win.id];toast(`${HATCH.win.n} hops into the dinghy`);$('hatchequip').hidden=true;renderPetBar();renderPanel()}},
   hatchagain(){if(!HATCH||HATCH.phase!=='done')return;const r=HATCH.r;HATCH=null;openHatch(r)},
   hatchdone(){if(HATCH&&HATCH.phase!=='done')return;HATCH=null;$('hatchbox').hidden=true},
@@ -825,7 +826,6 @@ function renderPanel(){
   }
   else if(tab==='pets'){
     const tot=['coin','speed','xp','luck'].map(t=>`<span>${BTYPE[t][0].toUpperCase()+BTYPE[t].slice(1)}</span><span class="num">+${Math.round(petBonus(t)*100)}%</span>`).join('');
-    const eggCard=r=>`<div class="egg px">${imgTag(mk(MAPS.EGG,eggPal(r)),5)}<div style="font-weight:600;color:${EGGR[r].c}">${EGGR[r].n}</div><div class="ds">About 1 in ${fmt(oneIn(r))} catches. Hatches a ${RAR[r].n.toLowerCase()} pet from any craft.</div><div class="num" style="font-size:20px">×${S.eggs[r]||0}</div><button class="btn" data-act="hatchegg" data-arg="${r}" ${(S.eggs[r]||0)?'':'disabled'}>Hatch</button></div>`;
     const crew=S.eq.filter(id=>CPET[id]);
     h+=`<div class="sect"><h3>Equipped pet</h3><p>You can have one pet out at a time. It rides in a dinghy behind your boat. Pick what it makes and press Start, and it keeps working while you fish. Swap pets here or from the pet bar at the top.</p>${Object.keys(S.pets).length?`<label class="hint" for="petsel-tab">Equipped pet</label>${petSelect('petsel-tab')}`:''}`+
       (crew.length?crew.map(id=>{const P=PETS[id],k=P.skill,SK=SKILLS[k],j=skJ(k),boss=craftPetFor(k);
@@ -834,11 +834,9 @@ function renderPanel(){
           <label class="hint" for="crew-${k}">Making</label><select id="crew-${k}" class="rsel" data-chg="recipe" data-skill="${k}">${SK.recipes.map((rn,i)=>`<option value="${i}" ${i===j.rec?'selected':''} ${j.lvl<REC_LVL[i]?'disabled':''}>${rn}${j.lvl<REC_LVL[i]?` (Lv ${REC_LVL[i]})`:` · ${fmt(REC_COST[i])} → ${fmt(recValue(k,i,id))}`}</option>`).join('')}</select>
           <div class="bar"><b id="cpb-${k}" style="width:${j.p/REC_TIME[j.rec]*100}%"></b></div><div class="hint">${run?'Working':'Not started'} · ${petSpeedOf(id).toFixed(2)}× speed · +${Math.round(petValOf(id)*100)}% value</div></div>`}).join('')
       :`<p class="hint">No pet equipped. Hatch an egg, then tap the pet in the pet bar at the top or press Equip in your collection.</p>`)+`</div>`;
-    const craftEgg=(e,i)=>`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">10 pets in ${SKILLS[e.skill].hats}. They do ${SKILLS[e.skill].n.toLowerCase()} while you fish.</div><div class="eggbtns"><button class="btn ghost dexbtn" data-act="eggdex" data-arg="${i}" title="See the pets in the ${e.n}" aria-label="See the pets in the ${e.n}">${imgTag(DEX_IC(),2)}</button></div></div>`;
-    h+=`<div class="sect"><h3>Hatchery</h3><p>Pets ride behind your boat in rubber dinghies the colour of their egg. Each pet does its craft for you, so you can fish and craft at the same time. Rarer pets are better. Duplicates add a star, up to 5★. Tap the book on an egg to see its pets.</p>
+    const craftEgg=(e,i)=>`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">10 pets in ${SKILLS[e.skill].hats}. They do ${SKILLS[e.skill].n.toLowerCase()} while you fish.</div><div class="num" style="font-size:20px">×${S.eggs[e.skill]||0}</div><div class="eggbtns"><button class="btn" data-act="hatchegg" data-arg="${e.skill}" ${(S.eggs[e.skill]||0)?'':'disabled'}>Hatch</button><button class="btn ghost dexbtn" data-act="eggdex" data-arg="${i}" title="See the pets in the ${e.n}" aria-label="See the pets in the ${e.n}">${imgTag(DEX_IC(),2)}</button></div></div>`;
+    h+=`<div class="sect"><h3>Hatchery</h3><p>Pets ride behind your boat in rubber dinghies the colour of their egg. Each pet does its craft for you, so you can fish and craft at the same time. Rarer pets are better. Duplicates add a star, up to 5★.</p><p>Eggs can't be bought. Every fish you catch has a small chance (about 1 in ${fmt(oneIn('cooking'))} for each kind) to bring up an egg. Hatching spins a roulette to decide which pet, and how rare, is inside. Tap the book on an egg to see its pets and their chances.</p>
       <div class="eggs">${EGGS.map(craftEgg).join('')}</div></div>`;
-    h+=`<div class="sect"><h3>Eggs</h3><p>Eggs can't be bought. Every fish you catch has a small chance to bring up an egg, and rarer eggs are rarer catches. Luck makes eggs a little more likely. Hatched eggs go to your collection; duplicates add a star, up to 5★.</p>
-      <div class="eggs">${[0,1,2,3,4].map(eggCard).join('')}</div></div>`;
 
     h+=`<div class="sect"><div class="kv"><span>Pet boss bite</span><span class="num">${fmt(petDps())}/s</span></div></div>`;
     const owned=Object.keys(S.pets);
@@ -877,10 +875,10 @@ function renderPanel(){
       return`<div class="boss px"><div class="top"><div class="who">${imgTag(sp,sc)}<div><div style="font-weight:600">${seen?b.name:'???'}</div><div class="hint">${z.name}${seen?` · ${fmt(b.hp)} HP · ${S.beaten[i]?'rematch '+fmt(b.reward*.3):fmt(b.reward)} coins`:''}</div></div></div>${tag}</div>${seen?`<div class="hint">${b.desc}</div>`:''}</div>`}).join('')+`</div>`;
   }
   else if(tab==='bag'){
-    const inv=[];[0,1,2,3,4].forEach(r=>{if(S.eggs[r]>0)inv.push({key:'egg'+r,ic:mk(MAPS.EGG,eggPal(r)),sc:4,n:S.eggs[r],name:EGGR[r].n,col:EGGR[r].c,desc:`Fished up by chance (about 1 in ${fmt(oneIn(r))} catches). Hatches a ${RAR[r].n.toLowerCase()} pet from any craft.`,act:'hatchegg',arg:r,btn:'Hatch'})});
+    const inv=[];SK_ORDER.forEach(r=>{if(S.eggs[r]>0)inv.push({key:'egg'+r,ic:mk(MAPS.EGG,eggPal(r)),sc:4,n:S.eggs[r],name:EGGR[r].n,col:EGGR[r].c,desc:`Fished up by chance (about 1 in ${fmt(oneIn(r))} catches). Hatches a ${SKILLS[r].n.toLowerCase()} pet; the roulette decides how rare.`,act:'hatchegg',arg:r,btn:'Hatch'})});
     Object.keys(ITEMS).forEach(k=>{if(S.bag[k]>0)inv.push({key:k,ic:mk(ITEM_MAP[k],ITEM_PAL[k]),sc:4,n:S.bag[k],name:ITEMS[k].n,col:'var(--foam)',desc:ITEMS[k].d+(ITEMS[k].buff?'. Using more adds to the time left.':'.'),act:'use',arg:k,btn:'Use'})});
     if(!inv.find(it=>it.key===bagSel))bagSel=inv.length?inv[0].key:null;
-    const eggTot=[0,1,2,3,4].reduce((a,r)=>a+(S.eggs[r]||0),0),supTot=Object.keys(ITEMS).reduce((a,k)=>a+(S.bag[k]||0),0);
+    const eggTot=SK_ORDER.reduce((a,r)=>a+(S.eggs[r]||0),0),supTot=Object.keys(ITEMS).reduce((a,k)=>a+(S.bag[k]||0),0);
     const slots=Math.max(10,Math.ceil(inv.length/5)*5);
     h+=`<div class="sect"><h3>Bag</h3><div class="invsum"><span>Eggs <b class="num">${eggTot}</b></span><span>Supplies <b class="num">${supTot}</b></span></div>
       <div class="inv">${Array.from({length:slots},(_,n)=>{const it=inv[n];if(!it)return'<div class="slot empty px"></div>';
@@ -1303,7 +1301,7 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 function save(){S.last=now();if(S.cls)PROF[S.cls]=S;try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:2,active:S.cls,profiles:PROF}))}catch(e){}}
-function cleanPets(o){if(!o)return o;for(const id in o.pets||{})if(!PETS[id])delete o.pets[id];o.eq=(o.eq||[]).filter(id=>PETS[id]).slice(0,1);return o}
+function cleanPets(o){if(!o)return o;if(Array.isArray(o.eggs)){const n=o.eggs.reduce((a,b)=>a+(b||0),0);o.eggs={};for(let i=0;i<n;i++){const k=SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)];o.eggs[k]=(o.eggs[k]||0)+1}}if(!o.eggs)o.eggs={};for(const id in o.pets||{})if(!PETS[id])delete o.pets[id];o.eq=(o.eq||[]).filter(id=>PETS[id]).slice(0,1);return o}
 function fromData(d){const r0=fromData0(d);if(r0){for(const k in r0.P)cleanPets(r0.P[k]);cleanPets(r0.pending)}return r0}
 function fromData0(d){/* v2: separate profiles. v1 (older single save): becomes the chosen fisher's save; other fishers keep only their level */
   const P={};if(d&&d.profiles){for(const k in d.profiles)if(CLS[k])P[k]=Object.assign(fresh(),d.profiles[k],{cls:k});return{P,active:CLS[d.active]?d.active:null}}
@@ -1318,7 +1316,7 @@ function offline(){
   for(let i=0;i<sim;i++){const c=rollFish(S.zone,luck());const cc=c.value*coinMult()*scale,xx=RAR[c.tier].xp*(1+S.zone*1.5)*xpMult()*scale;
     const id=c.zi+'-'+c.fi;if(!S.idx[id]){S.idx[id]={n:0,best:0};news++}S.idx[id].n+=Math.round(scale);S.idx[id].best=Math.max(S.idx[id].best,c.weight);coins+=cc;xp+=xx}
   S.coins+=coins;S.total+=n;S.zc[S.zone]+=n;S.last=now();gainXp(xp);
-  let eggsGot=0;for(let r=0;r<5;r++){const ex=n*eggChance(r),k=Math.floor(ex)+(Math.random()<ex%1?1:0);if(k){S.eggs[r]=(S.eggs[r]||0)+k;eggsGot+=k}}
+  let eggsGot=0;for(const r of SK_ORDER){const ex=n*eggChance(r),k=Math.floor(ex)+(Math.random()<ex%1?1:0);if(k){S.eggs[r]=(S.eggs[r]||0)+k;eggsGot+=k}}
   toast(`While you were away: ${fmt(n)} fish, +${fmt(coins+cc0)} coins${eggsGot?`, ${eggsGot} egg${eggsGot>1?'s':''}`:''}${news?`, ${news} new in the index`:''}`);
 }
 
