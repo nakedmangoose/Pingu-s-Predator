@@ -192,6 +192,7 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
 .slot[aria-pressed="true"]{background:var(--panel2);box-shadow:inset 0 -4px 0 var(--rc,transparent),0 -3px 0 0 var(--brass),0 3px 0 0 var(--brass),-3px 0 0 0 var(--brass),3px 0 0 0 var(--brass)}
 .slot .slv{position:absolute;left:4px;top:4px;font-family:var(--display);font-size:7px;line-height:1;color:var(--brass);background:#0b0f1ccc;padding:2px 3px}
 .slot .cnt{position:absolute;right:4px;bottom:3px;font-family:var(--mono);font-size:20px;line-height:1;color:#fff;text-shadow:2px 0 0 #0b0f1c,-2px 0 0 #0b0f1c,0 2px 0 #0b0f1c,0 -2px 0 #0b0f1c}
+.swatch{display:block;width:34px;height:34px;box-shadow:0 0 0 2px var(--edge)}
 .lvtag{font-family:var(--display);font-size:8px;background:var(--edge);color:var(--brass);padding:3px 5px;vertical-align:2px}
 .odds{background:var(--panel2);padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin:3px}
 .oddrow{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
@@ -828,7 +829,7 @@ function url(c,scale){const k=c.toDataURL();return k}
 function imgTag(c,scale,alt){const key=(c._u||(c._u=c.toDataURL()));return`<img src="${key}" width="${c.width*scale}" height="${c.height*scale}" alt="${alt||''}">`}
 
 function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},eggs:{[SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)]]:1},
- buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,net:{},netLv:{},tank:{},aqPend:0,visitors:0,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
+ buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,net:{},netLv:{},tank:{},aqd:null,aqPend:0,visitors:0,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
 let PROF={}; /* every fisher is a separate save: PROF[cls] holds their whole state; S is the active one */
 let S=fresh(), B=null, tab='shop', castLeft=4, castMax=4, logItems=[];
 
@@ -959,7 +960,7 @@ function charLv(k){const o=k===S.cls?S:PROF[k];return o?{lvl:o.lvl,xp:o.xp,coins
 function renderCrew(){$('crew').innerHTML=CLS_ORDER.map(k=>{const C=CLS[k],c=charLv(k),on=S.cls===k;
   return`<button class="mate px" data-act="choose" data-arg="${k}" aria-pressed="${on}"><span class="pic">${imgTag(sitCanvas(k),2,C.animal)}</span><span class="info"><span class="nm">${C.animal}</span><span class="lv">${c.on?`Lv <span class="num" id="crewlv-${k}">${c.lvl}</span> · ${fmt(c.coins)} coins`:'New · Lv 1'}</span><span class="bar"><b id="crewxp-${k}" style="width:${c.xp/xpNeed(c.lvl)*100}%"></b></span></span></button>`}).join('')}
 function setLogo(){$('logo').src=avatarCanvas(S.cls||'std').toDataURL();$('hint').textContent=`Your ${curC().animal.toLowerCase()} fishes on its own. Tap the water to ${curC().verb} and land fish faster.`}
-let crSel='cooking',_dexIc=null,bagSel=null,idxZ=null,idxT=1,netT=-1,netSel=null;
+let crSel='cooking',_dexIc=null,bagSel=null,idxZ=null,idxT=1,netT=-1,netSel=null,aqCat='decor';
 /* fished eggs, by rarity: chance per fish caught (luck raises it a little) */
 /* one egg per craft; each is an equal, rare catch. The roulette decides the pet's rarity */
 const EGGR=Object.fromEntries(SK_ORDER.map(k=>[k,{n:SKILLS[k].n+' Egg',c:SKILLS[k].col,d:mix(SKILLS[k].col,'#05060c',.35),ch:.006}]));
@@ -1026,6 +1027,11 @@ function openDex(i){const e=EGGS[i];if(!e)return;const tw=e.pets.reduce((a,p)=>a
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('eggdex').hidden)$('eggdex').hidden=true});
 function craftArgs(a){const [k,i]=String(a).split(':');return[k,+i]}
 const act={
+  aqcat(k){aqCat=k;renderPanel()},
+  aqbuy(a){const [cat,id]=String(a).split('|'),D=aqd();let item,key;if(cat==='decor'){item=DECOR_BY[id];key='d_'+id}else{item=STY[cat]&&STY[cat].find(x=>x.id===id);key=cat+'_'+id}
+    if(!item||D.own[key]||S.coins<item.p)return;S.coins-=item.p;D.own[key]=1;if(cat==='decor')D.placed[id]=1;else D[cat]=id;toast(`${item.n} added to your aquarium`);renderPanel()},
+  aquse(a){const [cat,id]=String(a).split('|'),D=aqd();if(!D.own[cat+'_'+id])return;D[cat]=id;renderPanel()},
+  aqplace(id){const D=aqd();if(!D.own['d_'+id])return;if(D.placed[id])delete D.placed[id];else D.placed[id]=1;renderPanel()},
   tankput(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id],have=netN(id,L);if(!e||e.f[1]===0||!(have>0))return;const n=all?have:1;
     netAdd(id,L,-n);if(!S.tank[id])S.tank[id]={};S.tank[id][L]=(S.tank[id][L]||0)+n;aqVer++;
     toast(`${n>1?n+' ':''}${L?'level '+L+' ':''}${e.f[0]} moved into the aquarium`);renderPanel()},
@@ -1171,6 +1177,12 @@ function renderPanel(){
   else if(tab==='aqua'){const gs=tankGroups(),tot=gs.reduce((a,g)=>a+g.n,0),kinds=new Set(gs.map(g=>g.id)).size;
     h+=`<div class="sect"><h3>Aquarium</h3><p>Fish only go into the tank when you move them in from your Net (in the Bag). Visitors pay to see them: more fish, rarer fish and higher-level fish earn more. The aquarium keeps earning while you fish or craft, and at half rate while you're away.</p>
       <div class="kv"><span>Income</span><span class="num" id="aqrate">${fmtR(aqRate())}/s</span><span>Fish in the tank</span><span class="num">${fmt(tot)}</span><span>Kinds</span><span class="num">${kinds}</span><span>Visitors</span><span class="num" id="aqvis">${fmt(S.visitors||0)}</span></div><p class="hint">Tap the glass to make the fish dart about.</p></div>`;
+    {const D=aqd(),bonus=Math.round(decorBonus()*100);
+     h+=`<div class="sect"><h3>Aquarium shop</h3><p>Buy decorations and styles to make the tank your own. Each decoration on show adds +1% aquarium income, and each style you change from the default adds +2%. Decor bonus now: +${bonus}%.</p>
+       <div class="sk-row">${AQCATS.map(([k,n])=>`<button class="skc px" data-act="aqcat" data-arg="${k}" aria-pressed="${aqCat===k}">${n}</button>`).join('')}</div>`;
+     if(aqCat==='decor')h+=DECOR.map(d=>{const own=D.own['d_'+d.id],on=D.placed[d.id];return`<div class="row px"><div class="ic">${imgTag(decorIcon(d.id),1)}</div><div class="info"><div class="nm">${d.n}</div><div class="ds">${own?(on?'In the tank':'In storage'):'+1% income when placed'}</div></div>${own?`<button class="btn ${on?'ghost':''}" data-act="aqplace" data-arg="${d.id}">${on?'Remove':'Place'}</button>`:`<button class="btn" data-act="aqbuy" data-arg="decor|${d.id}" data-cost="${d.p}">${money(d.p)}</button>`}</div>`}).join('');
+     else h+=STY[aqCat].map(o=>{const own=D.own[aqCat+'_'+o.id],on=D[aqCat]===o.id;return`<div class="row px"><div class="ic"><span class="swatch" style="background:${o.sw}"></span></div><div class="info"><div class="nm">${o.n}</div><div class="ds">${on?'In use':own?'Owned':o.p?'+2% income while in use':'Default'}</div></div>${on?'<button class="btn ok" disabled>In use</button>':own?`<button class="btn ghost" data-act="aquse" data-arg="${aqCat}|${o.id}">Use</button>`:`<button class="btn" data-act="aqbuy" data-arg="${aqCat}|${o.id}" data-cost="${o.p}">${money(o.p)}</button>`}</div>`}).join('');
+     h+=`</div>`}
     const rows=gs.slice().sort((a,b)=>FISHBY[b.id].f[1]-FISHBY[a.id].f[1]||FISHBY[b.id].f[2]-FISHBY[a.id].f[2]||b.lvl-a.lvl);
     const pairs=gs.reduce((a,g)=>a+(g.lvl<MAX_FLVL?Math.floor(g.n/2):0),0);
     h+=`<div class="sect"><h3>Breeding</h3><p>Breed two fish of the same kind and the same level. They join into one fish a level higher, and the two parents are gone. Every fish starts at level 0. Each level makes a fish earn ${LVL_MULT}× as much.</p>`+
@@ -1572,8 +1584,8 @@ const LVL_MULT=2.5,MAX_FLVL=30;
 function tankGroups(){const out=[];for(const id in S.tank||{}){if(!FISHBY[id])continue;for(const L in S.tank[id]){const n=S.tank[id][L];if(n>0)out.push({id,lvl:+L,n})}}return out}
 function tankCount(){return tankGroups().reduce((a,g)=>a+g.n,0)}
 function aqSpecies(){return [...new Set(tankGroups().map(g=>g.id))]}
-function fishEarnL(id,lvl){const e=FISHBY[id];return e?e.f[2]*Math.pow(LVL_MULT,lvl)*AQ_RATE*coinMult()*(1+.01*(skL('enchanting')-1)):0}
-function aqRate(){if(_aqFor!==S||_aqV!==aqVer){let a=0;tankGroups().forEach(g=>a+=FISHBY[g.id].f[2]*Math.pow(LVL_MULT,g.lvl)*g.n);_aqR=a*AQ_RATE;_aqFor=S;_aqV=aqVer}return _aqR*coinMult()*(1+.01*(skL('enchanting')-1))}
+function fishEarnL(id,lvl){const e=FISHBY[id];return e?e.f[2]*Math.pow(LVL_MULT,lvl)*AQ_RATE*coinMult()*(1+.01*(skL('enchanting')-1))*(1+decorBonus()):0}
+function aqRate(){if(_aqFor!==S||_aqV!==aqVer){let a=0;tankGroups().forEach(g=>a+=FISHBY[g.id].f[2]*Math.pow(LVL_MULT,g.lvl)*g.n);_aqR=a*AQ_RATE;_aqFor=S;_aqV=aqVer}return _aqR*coinMult()*(1+.01*(skL('enchanting')-1))*(1+decorBonus())}
 function aqLabel(){const n=tankCount();return n?`Aquarium · ${n} fish`:'Aquarium · empty tank'}
 function aqTick(dt){if(!S.cls)return;S.aqPend=(S.aqPend||0)+aqRate()*dt;const vis=tab==='aqua'&&!document.hidden;aqPayT+=dt;
   if((!vis&&aqPayT>1)||(vis&&S.aqPend>aqRate()*12)){aqPayT=0;if(S.aqPend>0){S.coins+=S.aqPend;S.aqPend=0}}}
@@ -1584,15 +1596,121 @@ function netAdd(id,L,n){if(L){if(!S.netLv)S.netLv={};if(!S.netLv[id])S.netLv[id]
 function netItems(){const out=[];for(const id in S.net||{})if(FISHBY[id]&&S.net[id]>0)out.push({id,L:0,n:S.net[id]});for(const id in S.netLv||{}){if(!FISHBY[id])continue;for(const L in S.netLv[id]){const n=S.netLv[id][L];if(n>0)out.push({id,L:+L,n})}}return out}
 function breedOnce(id,L){const t=S.tank[id];t[L]-=2;if(!t[L])delete t[L];t[L+1]=(t[L+1]||0)+1;aqVer++;
   const o=aqFish.find(q=>q.f[6]===id&&q.lvl===L);if(o&&tab==='aqua')for(let k=0;k<4;k++)aqHearts.push({x:o.x+o.w/2+(Math.random()-.5)*8,y:o.y,t:-k*.15})}
-function aqPay(x,y){const a=S.aqPend||0;if(a<=0)return;S.coins+=a;S.aqPend=0;if(a>=1)aqFloats.push({x:Math.max(14,Math.min(242,x)),y,t:0,txt:'+'+fmt(a)})}
-function buildAquaBG(){if(aqBG)return aqBG;const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
-  R(g,0,0,W,H,'#0c111e');for(let x=0;x<W;x+=32)R(g,x,0,1,132,'#0f1526');
-  for(let y=130;y<H;y++)R(g,0,y,W,1,mix('#182036','#090c16',(y-130)/30));R(g,0,130,W,1,'#232c46');R(g,0,141,W,1,'#121a2c');R(g,0,154,W,1,'#0e1424');
-  R(g,AQ.x0-4,AQ.y0-6,AQ.x1-AQ.x0+8,AQ.y1-AQ.y0+11,'#232a3c');R(g,AQ.x0-4,AQ.y0-6,AQ.x1-AQ.x0+8,2,'#3a4460');R(g,AQ.x0-4,AQ.y1+3,AQ.x1-AQ.x0+8,2,'#171c2a');
-  const bands=[...Array(6)].map((_,i)=>mix('#46b4e0','#0c3460',i/5));
-  for(let y=AQ.y0;y<AQ.y1;y++){const f=(y-AQ.y0)/(AQ.y1-AQ.y0-1)*5,i=Math.floor(f),fr=f-i;for(let x=AQ.x0;x<AQ.x1;x++){const th=(BAYER[y&3][x&3]+.5)/16;g.fillStyle=bands[Math.min(5,fr>th?i+1:i)];g.fillRect(x,y,1,1)}}
-  R(g,AQ.x0+12,AQ.y0-8,AQ.x1-AQ.x0-24,2,'#e8f4ff');R(g,AQ.x0+12,AQ.y0-6,AQ.x1-AQ.x0-24,1,'#9ac8e8');
+function aqPay(x,y){const a=S.aqPend||0;if(a<=0)return;S.coins+=a;S.aqPend=0;aqFloats.push({x:Math.max(14,Math.min(242,x)),y,t:0,txt:'+'+fmtR(a)})}
+/* ---------- aquarium decor & styles ---------- */
+function aqdFresh(){return{own:{water_blue:1,light_plain:1,floor_none:1,bg_none:1,frame_iron:1,room_gallery:1},water:'blue',light:'plain',floor:'none',bg:'none',frame:'iron',room:'gallery',placed:{}}}
+function aqd(){if(!S.aqd)S.aqd=aqdFresh();return S.aqd}
+const FLOORPAL={sand:['#e0cc98','#d4be88','#ecd8a8','#c8b07a'],white:['#f4f0e8','#e8e4dc','#ffffff','#d8d4cc'],black:['#2a2a30','#3a3a42','#1a1a20','#4a4a52'],pink:['#f0a0c8','#e080b0','#ffc0dc','#d070a0'],
+  pebbles:['#8a8478','#a49c8c','#6e685e','#bab2a2'],glass:['#d8cca8','#cfc39c','#e4d8b4','#c8bc94'],crystal:['#bfe8ff','#9ad0f0','#e8f8ff','#7ab0e0']};
+const STY={
+ water:[['blue','Clear Blue',0,'#46b4e0','#0c3460'],['teal','Tropical Teal',300,'#3ad0c0','#0a4048'],['emerald','Emerald',600,'#4ad08a','#0a3a24'],['turquoise','Lagoon Turquoise',900,'#6ae8e8','#0a5a6a'],['mint','Mint',1200,'#a8f0c8','#2a6a5a'],
+  ['pink','Sunset Pink',2000,'#ff9ac8','#5a1a48'],['amber','Golden Amber',3000,'#f0c060','#5a3008'],['deep','Deep Ocean',5000,'#2a6ab0','#040e2a'],['purple','Midnight Purple',8000,'#9a7ae8','#1a0a3a'],['red','Blood Moon',12000,'#e0505a','#300810'],['arctic','Arctic',18000,'#d8f0ff','#5a7a9a'],['ink','Squid Ink',25000,'#3a3a4a','#05050a']]
+  .map(([id,n,p,a,b])=>({id,n,p,c:[a,b],sw:`linear-gradient(${a},${b})`})),
+ light:[['plain','Plain Strip',0,'#e8f4ff'],['warm','Warm White',500,'#ffe0a0'],['moon','Moonlight',1500,'#c8d0ff'],['neon','Neon Pink',3000,'#ff5ac0'],['spot','Spotlights',5000,'#ffffff'],['caustic','Ripple Caustics',8000,'#bff4ff'],
+  ['uv','Blacklight',12000,'#a05aff'],['rainbow','Rainbow Strip',20000,'#ff5a5a'],['disco','Disco Party',35000,'#ffcd3c'],['aurora','Aurora Glow',60000,'#5fffb0']].map(([id,n,p,c])=>({id,n,p,c,sw:id==='rainbow'||id==='disco'?'linear-gradient(90deg,#ff5a5a,#ffcd3c,#5fd16a,#4fa8ff,#c07bff)':c})),
+ floor:[['none','Bare Glass',0],['sand','Golden Sand',200],['white','White Sand',500],['pebbles','River Pebbles',900],['black','Black Gravel',1500],['pink','Pink Gravel',2500],['glass','Glass Beads',5000],['crystal','Crystal Bed',12000]]
+  .map(([id,n,p])=>({id,n,p,sw:id==='none'?'#3a5a7a':`linear-gradient(90deg,${(FLOORPAL[id]||[]).join(',')})`})),
+ bg:[['none','No Backdrop',0,'#3a5a7a'],['ocean','Open Ocean',1000,'#1a4a7a'],['reef','Coral Reef Mural',3000,'#e07a8a'],['jungle','Jungle Mural',6000,'#2a6a3a'],['city','Sunken City',10000,'#6a7a8a'],['stars','Starry Night',15000,'#1a1a4a'],['volcano','Volcano Mural',25000,'#c04a2a']]
+  .map(([id,n,p,c])=>({id,n,p,sw:c})),
+ frame:[['iron','Iron Frame',0,'#232a3c','#3a4460'],['wood','Oak Frame',800,'#5a3a20','#8a5a30'],['chrome','Chrome Frame',3000,'#8a94a8','#e0e8f0'],['pink','Bubblegum Frame',6000,'#c0507a','#ff9ac0'],['gold','Gold Frame',15000,'#a87a20','#ffd060'],['obsidian','Obsidian Frame',30000,'#120a0a','#5a2a2a']]
+  .map(([id,n,p,a,b])=>({id,n,p,c:[a,b],sw:`linear-gradient(${b},${a})`})),
+ room:[['gallery','Dark Gallery',0,'#0c111e'],['lodge','Wooden Lodge',2000,'#3a2416'],['brick','Brick Hall',5000,'#5a2a20'],['marble','Marble Hall',12000,'#cfcac0'],['arcade','Neon Arcade',25000,'#140a24'],['space','Space Station',50000,'#05060f']]
+  .map(([id,n,p,c])=>({id,n,p,sw:c}))};
+const AQCATS=[['decor','Decorations'],['water','Water dye'],['light','Lights'],['floor','Floor'],['bg','Backdrop'],['frame','Frame'],['room','Room']];
+function styleOf(cat){return STY[cat].find(x=>x.id===aqd()[cat])||STY[cat][0]}
+function floorY(){return aqd().floor==='none'?AQ.y1-1:AQ.y1-9}
+/* decorations: x position, layer, price; st = static drawing, an = animated drawing (both take a context) */
+const DECOR=[
+ {id:'starfish',n:'Starfish',p:60,x:72,z:3,st:(g,x,y)=>{const c='#ff8a4a';[[0,-4],[4,-1],[2,3],[-2,3],[-4,-1]].forEach(([dx,dy])=>{line(x,y-3,x+dx,y-3+dy,c,g);line(x+1,y-3,x+1+dx,y-3+dy,c,g)});R(g,x,y-3,2,1,'#ffc08a')}},
+ {id:'rocks',n:'Rock Pile',p:80,x:46,z:2,st:(g,x,y)=>{disc(g,x,y-4,6,'#5a6274',(a,b)=>a+b<-3?'#7a8498':a+b>4?'#3e4454':'#5a6274');disc(g,x+8,y-3,4,'#6a7284',(a,b)=>a+b<-2?'#8a94a8':'#5a6274');disc(g,x-6,y-2,3,'#4a5264')}},
+ {id:'kelp',n:'Kelp Forest',p:120,x:22,z:1,an:(g,x,y,t)=>{[x,x+210,x+8].forEach((kx,i)=>{const h=30+i*8;for(let k=0;k<h;k++){const sw=Math.sin(t*1.2+i+k*.18)*(k/h)*4;R(g,kx+sw,y-k,2,1,k%4===0?'#5ab05a':'#3a8a4a');if(k%5===2)R(g,kx+sw+(k%10<5?2:-2),y-k,2,1,'#4aa058')}})}},
+ {id:'fern',n:'Java Fern',p:150,x:118,z:2,an:(g,x,y,t)=>{for(let l=0;l<5;l++){const a=-1.2+l*.6+Math.sin(t+l)*.08;for(let k=0;k<9;k++)R(g,x+Math.round(Math.sin(a)*k),y-Math.round(Math.cos(a)*k*1.3),2,1,k>6?'#7ad06a':'#3a8a3a')}}},
+ {id:'seagrass',n:'Seagrass Meadow',p:200,x:0,z:2,an:(g,x,y,t)=>{for(let gx=AQ.x0+3;gx<AQ.x1-3;gx+=7){const h=6+((gx*13)%7);for(let k=0;k<h;k++)R(g,gx+Math.round(Math.sin(t*1.5+gx*.3)*(k/h)*2),y-k,1,1,k%3?'#4a9a4a':'#6ac05a')}}},
+ {id:'bubbler',n:'Bubble Stone',p:250,x:62,z:3,st:(g,x,y)=>{R(g,x-3,y-2,7,3,'#4a4a52');R(g,x-2,y-3,5,1,'#6a6a72')},an:(g,x,y,t,live)=>{if(live&&Math.random()<.22)aqBubbles.push({x:x+(Math.random()-.5)*3,y:y-4,r:Math.random()<.35?2:1,p:Math.random()*6})}},
+ {id:'clam',n:'Giant Clam',p:400,x:34,z:3,an:(g,x,y,t)=>{const o=Math.max(0,Math.sin(t*.7))*4;for(let k=0;k<5;k++){R(g,x-6+k,y-2-k*.2,12-k*2+k,1,'#8ab0c8')}R(g,x-6,y-3,13,3,'#6a90a8');R(g,x-5,y-4-o,11,2,'#9ac0d8');R(g,x-5,y-3-o,11,1,'#6a90a8');if(o>1){disc(g,x,y-4,1,'#ffffff');R(g,x-1,y-5,1,1,'#fff6f0')}}},
+ {id:'coral_r',n:'Red Coral',p:500,x:126,z:2,st:(g,x,y)=>{const c='#e04a4a',tip='#ff9a9a';[[0,-14],[-5,-10],[5,-11],[-3,-6],[3,-7]].forEach(([dx,dy],i)=>{line(x,y,x+dx,y+dy,c,g);line(x+1,y,x+1+dx,y+dy,c,g);R(g,x+dx,y+dy,2,1,tip)})}},
+ {id:'coral_p',n:'Purple Fan Coral',p:600,x:176,z:2,st:(g,x,y)=>{for(let a=-1.2;a<=1.2;a+=.2)for(let k=2;k<13;k++)R(g,x+Math.round(Math.sin(a)*k),y-Math.round(Math.cos(a)*k),1,1,k%3===0?'#c07bff':'#8a4ad0');R(g,x,y-2,1,3,'#6a3aa0')}},
+ {id:'skull',n:'Skull Rock',p:800,x:54,z:3,st:(g,x,y)=>{disc(g,x,y-6,5,'#d8d4c8',(a,b)=>a+b<-3?'#f0ece0':'#c8c4b8');R(g,x-3,y-2,7,2,'#c8c4b8');R(g,x-3,y-7,2,2,'#1a1a20');R(g,x+2,y-7,2,2,'#1a1a20');R(g,x,y-4,1,1,'#1a1a20');for(let k=-2;k<=2;k+=2)R(g,x+k,y-2,1,2,'#8a8478')}},
+ {id:'anemone',n:'Anemone',p:1000,x:214,z:2,st:(g,x,y)=>{R(g,x-3,y-3,7,3,'#c04a7a')},an:(g,x,y,t)=>{for(let k=-4;k<=4;k++){const sw=Math.sin(t*2+k)*2;for(let j=0;j<7;j++)R(g,x+k+Math.round(sw*j/7),y-3-j,1,1,j>4?'#ffb0d8':'#ff6aaa')}}},
+ {id:'driftwood',n:'Driftwood',p:1200,x:112,z:2,st:(g,x,y)=>{for(let k=0;k<26;k++){R(g,x-13+k,y-2-Math.round(k*.35),2,2,k%5?'#8a6a4a':'#6a4e34')}line(x+2,y-6,x+5,y-14,'#7a5a3a',g);line(x-6,y-4,x-9,y-10,'#7a5a3a',g)}},
+ {id:'chest',n:'Treasure Chest',p:1500,x:198,z:3,st:(g,x,y)=>{R(g,x-7,y-7,15,7,'#6a4020');R(g,x-7,y-7,15,1,'#a8703a');R(g,x-1,y-6,3,3,'#ffcd3c');R(g,x-7,y-4,15,1,'#3a2410')},an:(g,x,y,t,live)=>{const o=Math.sin(t*.6)>.6;R(g,x-7,y-10-(o?2:0),15,3,'#8a5a2a');R(g,x-7,y-10-(o?2:0),15,1,'#a8703a');if(o){R(g,x-5,y-8,11,1,'#ffcd3c');if(Math.floor(t*6)%2)R(g,x+Math.round(Math.sin(t*3)*4),y-9,1,1,'#ffffff');if(live&&Math.random()<.1)aqBubbles.push({x:x,y:y-9,r:1,p:0})}}},
+ {id:'anchor',n:'Old Anchor',p:2000,x:186,z:2,st:(g,x,y)=>{const c='#4a4e58';R(g,x,y-18,2,17,c);R(g,x-3,y-16,8,2,c);disc(g,x+1,y-20,2,c);R(g,x+1,y-21,1,1,'#3aa8d8');for(let k=0;k<6;k++){R(g,x-k,y-1-Math.round(k*.6),2,2,c);R(g,x+1+k,y-1-Math.round(k*.6),2,2,c)}R(g,x-6,y-6,2,2,c);R(g,x+6,y-6,2,2,c)}},
+ {id:'diver',n:'Diver Helmet',p:3000,x:80,z:2,st:(g,x,y)=>{disc(g,x,y-8,7,'#c8902a',(a,b)=>a+b<-4?'#ffd070':a+b>5?'#8a5a10':'#c8902a');disc(g,x+1,y-8,3,'#1a2a3a');R(g,x,y-10,1,1,'#bfeaff');R(g,x-7,y-2,15,2,'#8a5a10')},an:(g,x,y,t,live)=>{if(live&&Math.random()<.08)aqBubbles.push({x:x+5,y:y-14,r:1,p:Math.random()*6})}},
+ {id:'duck',n:'Rubber Duck',p:3500,x:0,z:4,an:(g,x,y,t)=>{const dx=AQ.x0+20+((t*8)%(AQ.x1-AQ.x0-40)),dy=AQ.y0-2+Math.round(Math.sin(t*2));R(g,dx,dy,8,4,'#ffcd3c');R(g,dx+5,dy-3,4,3,'#ffcd3c');R(g,dx+9,dy-2,2,1,'#ff8a1e');R(g,dx+7,dy-2,1,1,'#0e0f17');R(g,dx+1,dy,3,1,'#ffe88a')}},
+ {id:'castle',n:'Castle',p:5000,x:100,z:1,st:(g,x,y)=>{const bx=x-9,by=y;R(g,bx,by-18,18,18,'#8a8070');R(g,bx-2,by-26,6,26,'#9a9080');R(g,bx+14,by-26,6,26,'#9a9080');for(let k=0;k<3;k++){R(g,bx-2+k*2,by-28,1,2,'#9a9080');R(g,bx+14+k*2,by-28,1,2,'#9a9080')}
+   R(g,bx+6,by-8,6,8,'#16203a');R(g,bx+7,by-9,4,1,'#16203a');R(g,bx,by-22,1,2,'#16203a');R(g,bx+16,by-22,1,2,'#16203a');R(g,bx+19,by-26,1,26,'#6a6458');R(g,bx+3,by-26,1,26,'#6a6458');R(g,bx+8,by-34,1,8,'#3a3030');R(g,bx+9,by-34,4,3,'#d6334a')}},
+ {id:'pineapple',n:'Pineapple House',p:7000,x:28,z:1,st:(g,x,y)=>{for(let yy=0;yy<18;yy++){const w=Math.round(6+Math.sin(yy/18*Math.PI)*2);for(let xx=-w;xx<=w;xx++)R(g,x+xx,y-1-yy,1,1,(xx+yy)%4===0||(xx-yy)%4===0?'#c86a10':'#f0a020')}
+   for(let k=-3;k<=3;k++)line(x,y-19,x+k*2,y-27+Math.abs(k),'#3a8a3a',g);R(g,x-1,y-6,3,5,'#6a3a10');disc(g,x+3,y-12,1,'#8ad0ff')}},
+ {id:'tiki',n:'Tiki Totem',p:9000,x:140,z:1,st:(g,x,y)=>{for(let k=0;k<3;k++){const ty=y-8-k*8;R(g,x-4,ty,9,8,k%2?'#8a5a30':'#a06a38');R(g,x-3,ty+2,2,2,'#1a1010');R(g,x+2,ty+2,2,2,'#1a1010');R(g,x-2,ty+5,5,1,'#1a1010');R(g,x-4,ty,9,1,'#c08a50')}}},
+ {id:'arch',n:'Rock Arch',p:12000,x:88,z:0,st:(g,x,y)=>{for(let a=0;a<=Math.PI;a+=.05)for(let r=14;r<19;r++)R(g,x+Math.round(Math.cos(a)*r),y-6-Math.round(Math.sin(a)*r*1.1),1,1,r===14?'#7a8090':'#5a6070');R(g,x-18,y-8,5,8,'#5a6070');R(g,x+14,y-8,5,8,'#5a6070')}},
+ {id:'mushrooms',n:'Glow Mushrooms',p:16000,x:206,z:3,st:(g,x,y)=>{[[0,8],[-5,5],[5,6]].forEach(([dx,h])=>R(g,x+dx,y-h,1,h,'#d8d0c0'))},an:(g,x,y,t)=>{[[0,8,3],[-5,5,2],[5,6,2]].forEach(([dx,h,r],i)=>{const v=.6+.4*Math.sin(t*2+i);g.globalAlpha=.25*v;disc(g,x+dx,y-h,r+3,'#4ae0d0');g.globalAlpha=1;R(g,x+dx-r,y-h-1,r*2+1,2,v>.7?'#9ffff0':'#4ae0d0')})}},
+ {id:'crystals',n:'Crystal Cluster',p:22000,x:164,z:2,st:(g,x,y)=>{[[0,14,2],[-4,9,1],[4,10,1],[-7,6,1],[7,7,1]].forEach(([dx,h,w])=>{for(let k=0;k<h;k++){const ww=k>h-3?0:w;R(g,x+dx-ww,y-k,ww*2+1,1,k%3?'#9ad0f0':'#c8e8ff')}})},an:(g,x,y,t)=>{if(Math.floor(t*5)%4===0)R(g,x+Math.round(Math.sin(t*7)*7),y-4-Math.round(Math.abs(Math.cos(t*5))*9),1,1,'#ffffff')}},
+ {id:'volcano',n:'Bubbling Volcano',p:30000,x:132,z:1,st:(g,x,y)=>{for(let k=0;k<14;k++){const w=Math.round(12-k*.7);R(g,x-w,y-k,w*2+1,1,k%3?'#4a3a3a':'#5a4646')}R(g,x-2,y-14,5,1,'#ff7a2e')},an:(g,x,y,t,live)=>{R(g,x-1,y-15,3,1,Math.floor(t*6)%2?'#ffcd3c':'#ff5a1e');if(live&&Math.random()<.2)aqBubbles.push({x:x+(Math.random()-.5)*3,y:y-16,r:Math.random()<.5?2:1,p:Math.random()*6})}},
+ {id:'lighthouse',n:'Mini Lighthouse',p:40000,x:16,z:1,st:(g,x,y)=>{for(let k=0;k<26;k++){const w=Math.round(4-k*.06);R(g,x-w,y-1-k,w*2+1,1,Math.floor(k/5)%2?'#d6334a':'#f4efe2')}R(g,x-3,y-31,7,4,'#2a2a3a');R(g,x-2,y-30,5,2,'#ffe27a')},an:(g,x,y,t)=>{const a=(Math.sin(t)+1)/2;g.globalCompositeOperation='lighter';g.fillStyle=`rgba(255,240,160,${.08+.06*a})`;g.beginPath();g.moveTo(x,y-29);g.lineTo(x+40+a*20,y-38);g.lineTo(x+40+a*20,y-20);g.closePath();g.fill();g.globalCompositeOperation='source-over'}},
+ {id:'statue',n:'Stone Head',p:60000,x:226,z:0,st:(g,x,y)=>{R(g,x-7,y-28,14,28,'#7a7a72');R(g,x-8,y-30,16,4,'#8a8a82');R(g,x-5,y-20,3,2,'#3a3a36');R(g,x+2,y-20,3,2,'#3a3a36');R(g,x-1,y-18,3,7,'#6a6a62');R(g,x-4,y-9,9,2,'#4a4a46');R(g,x+6,y-28,1,28,'#5a5a54');for(let k=0;k<6;k++)R(g,x-7+((k*5)%13),y-26+k*4,1,1,'#3a6a3a')}},
+ {id:'sub',n:'Toy Submarine',p:80000,x:0,z:4,an:(g,x,y,t)=>{const sx=AQ.x0+20+((Math.sin(t*.15)+1)/2)*(AQ.x1-AQ.x0-60),sy=AQ.y0+30+Math.round(Math.sin(t*.8)*6);R(g,sx,sy,22,7,'#ffcd3c');R(g,sx+1,sy-1,20,1,'#ffe88a');R(g,sx+8,sy-4,6,3,'#e0a020');R(g,sx+10,sy-7,1,3,'#4a4a52');[4,10,16].forEach(k=>{R(g,sx+k,sy+2,3,3,'#1a2a3a');R(g,sx+k,sy+2,1,1,'#bfeaff')});R(g,sx-3,sy+2,3,3,Math.floor(t*12)%2?'#8a8a92':'#5a5a62')}},
+ {id:'ship',n:'Sunken Ship',p:120000,x:150,z:0,st:(g,x,y)=>{for(let k=0;k<12;k++){R(g,x-24+k,y-12+k,48-k*2,1,k%3?'#5a3a20':'#4a2e18')}for(let k=0;k<5;k++)R(g,x-16+k*8,y-9,3,2,'#1a1010');R(g,x+2,y-38,2,26,'#5a3a20');R(g,x-6,y-30,18,1,'#4a2e18');
+   for(let k=0;k<10;k++)R(g,x-5+k,y-29+k*.3,1,12-k,'#c8c0a0');R(g,x+3,y-41,8,4,'#2a2a2a');R(g,x+6,y-40,2,2,'#e8e8e8')}}];
+const DECOR_BY=Object.fromEntries(DECOR.map(d=>[d.id,d]));
+function placedDecor(){const P=aqd().placed;return DECOR.filter(d=>P[d.id]).sort((a,b)=>a.z-b.z)}
+function decorBonus(){const D=aqd();let b=placedDecor().length*.01;['water','light','floor','bg','frame','room'].forEach(c=>{if(D[c]!==STY[c][0].id)b+=.02});return b}
+const _icon={};
+function decorIcon(id){if(_icon[id])return _icon[id];const d=DECOR_BY[id],c=document.createElement('canvas');c.width=48;c.height=48;const g=c.getContext('2d');
+  for(let y=0;y<48;y++)R(g,0,y,48,1,mix('#46b4e0','#0c3460',y/47));const ox=AQ.x0,oy=AQ.y1;
+  g.save();g.translate(24-(d.x||128)+0,0);g.translate(0,46-oy);
+  if(d.x===0){g.restore();g.save();g.translate(-AQ.x0-10,46-AQ.y0-40)}
+  if(d.st)d.st(g,d.x||128,oy);if(d.an)d.an(g,d.x||128,oy,1.3,false);g.restore();return _icon[id]=c}
+let aqBGKey='';
+function drawRoom(g,id){const wall={gallery:'#0c111e',lodge:'#3a2416',brick:'#5a2a20',marble:'#cfcac0',arcade:'#140a24',space:'#05060f'}[id],fl={gallery:['#182036','#090c16'],lodge:['#5a3a20','#2a180c'],brick:['#3a3030','#1a1414'],marble:['#e8e4dc','#a8a49c'],arcade:['#1a0f2e','#08040f'],space:['#141828','#05060c']}[id];
+  R(g,0,0,W,130,wall);
+  if(id==='gallery')for(let x=0;x<W;x+=32)R(g,x,0,1,130,'#0f1526');
+  if(id==='lodge')for(let x=0;x<W;x+=8){R(g,x,0,1,130,'#2a180e');if(x%24===0)R(g,x+3,20+(x*7)%80,1,1,'#2a180e')}
+  if(id==='brick')for(let y=0;y<130;y+=5){R(g,0,y,W,1,'#3a1a14');for(let x=(y/5)%2?0:6;x<W;x+=12)R(g,x,y,1,5,'#3a1a14')}
+  if(id==='marble'){const r=rng(5);for(let i=0;i<14;i++){let x=r()*W,y=r()*130;for(let k=0;k<40;k++){x+=r()*2-.5;y+=r()*2-1;R(g,x,y,1,1,'#b0aaa0')}}}
+  if(id==='arcade'){R(g,0,3,W,1,'#ff5ac0');R(g,0,6,W,1,'#4ae0ff');for(let x=8;x<W;x+=40){R(g,x,20,10,6,'#ff5ac0');R(g,x+1,21,8,4,'#140a24')}}
+  if(id==='space'){const r=rng(9);for(let i=0;i<90;i++)R(g,r()*W,r()*130,1,1,r()<.3?'#ffffff':'#7f8fc0');disc(g,226,20,6,'#c06ad0')}
+  for(let y=130;y<H;y++)R(g,0,y,W,1,mix(fl[0],fl[1],(y-130)/30));R(g,0,130,W,1,mix(fl[0],'#ffffff',.15));
+  if(id==='marble')for(let x=0;x<W;x+=12)for(let y=131;y<H;y+=10)if(((x/12)+(y-131)/10)%2<1)R(g,x,y,12,10,'#bfbab2');
+  if(id==='arcade')for(let x=0;x<W;x+=16)line(x,131,x+(x-128)*.5,H,'#3a1a5a',g)}
+function drawBackdrop(g,id){if(id==='none')return;g.save();g.beginPath();g.rect(AQ.x0,AQ.y0,AQ.x1-AQ.x0,AQ.y1-AQ.y0);g.clip();g.globalAlpha=.32;const r=rng(17),b=AQ.y1;
+  if(id==='ocean'){for(let i=0;i<8;i++)disc(g,AQ.x0+i*32+r()*10,b+4,10+r()*12,'#06203a');for(let i=0;i<12;i++){const x=AQ.x0+r()*(AQ.x1-AQ.x0);for(let k=0;k<30+r()*30;k++)R(g,x+Math.sin(k*.2)*2,b-k,2,1,'#06283a')}}
+  if(id==='reef'){const cs=['#ff6a8a','#ffa04a','#ffe06a','#c07bff','#4ae0d0'];for(let i=0;i<22;i++){const x=AQ.x0+r()*(AQ.x1-AQ.x0),c=cs[i%5];disc(g,x,b-4-r()*20,3+r()*6,c)}}
+  if(id==='jungle'){for(let i=0;i<10;i++){const x=AQ.x0+i*26+r()*8,h=40+r()*40;R(g,x,b-h,3,h,'#0a2a14');disc(g,x+1,b-h,10+r()*6,'#0e3a1a')}}
+  if(id==='city'){for(let i=0;i<9;i++){const x=AQ.x0+8+i*27,h=26+r()*50;R(g,x,b-h,10,h,'#2a3a4a');R(g,x-2,b-h,14,3,'#3a4a5a');for(let k=0;k<h-6;k+=8)R(g,x+3,b-h+5+k,4,4,'#0a1a2a')}}
+  if(id==='stars'){g.globalAlpha=.6;for(let i=0;i<70;i++)R(g,AQ.x0+r()*(AQ.x1-AQ.x0),AQ.y0+r()*(b-AQ.y0-20),1,1,'#ffffff');disc(g,AQ.x1-30,AQ.y0+18,7,'#f3efd8')}
+  if(id==='volcano'){for(let k=0;k<70;k++){const w=Math.round(80-k*1.05);R(g,128-w,b-k,w*2,1,'#2a1010')}R(g,124,b-70,8,2,'#ff7a2e');g.globalAlpha=.2;disc(g,128,b-72,14,'#ff7a2e')}
+  g.restore()}
+function drawFloor(g,id){if(id==='none'){R(g,AQ.x0,AQ.y1-1,AQ.x1-AQ.x0,1,'#9ac8e8');return}const pal=FLOORPAL[id];
+  for(let x=AQ.x0;x<AQ.x1;x++){const top=AQ.y1-9+Math.round(Math.sin(x*.08)*1.5+Math.sin(x*.21));for(let y=top;y<AQ.y1;y++){g.fillStyle=pal[hsh(x+','+y)%pal.length];g.fillRect(x,y,1,1)}}
+  if(id==='pebbles')for(let i=0;i<40;i++){const x=AQ.x0+3+((i*53)%(AQ.x1-AQ.x0-6)),y=AQ.y1-3-(i%3)*2;disc(g,x,y,2+(i%2),pal[i%4])}
+  if(id==='glass'){const bc=['#ff6a6a','#6ac0ff','#ffe06a','#8af08a','#d08aff'];for(let i=0;i<90;i++)R(g,AQ.x0+((i*37)%(AQ.x1-AQ.x0)),AQ.y1-1-((i*13)%7),2,2,bc[i%5])}
+  if(id==='crystal')for(let i=0;i<30;i++){const x=AQ.x0+((i*41)%(AQ.x1-AQ.x0));R(g,x,AQ.y1-9-(i%4),1,3+(i%4),'#e8f8ff')}}
+function buildAquaBG(){const D=aqd(),key=JSON.stringify([D.water,D.floor,D.bg,D.frame,D.room,Object.keys(D.placed).sort()]);if(aqBG&&aqBGKey===key)return aqBG;aqBGKey=key;
+  const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  drawRoom(g,D.room);const fr=styleOf('frame').c;
+  R(g,AQ.x0-4,AQ.y0-6,AQ.x1-AQ.x0+8,AQ.y1-AQ.y0+11,fr[0]);R(g,AQ.x0-4,AQ.y0-6,AQ.x1-AQ.x0+8,2,fr[1]);R(g,AQ.x0-4,AQ.y1+3,AQ.x1-AQ.x0+8,2,mix(fr[0],'#000000',.3));R(g,AQ.x0-4,AQ.y0-6,2,AQ.y1-AQ.y0+11,fr[1]);
+  const wc=styleOf('water').c,bands=[...Array(6)].map((_,i)=>mix(wc[0],wc[1],i/5));
+  for(let y=AQ.y0;y<AQ.y1;y++){const f=(y-AQ.y0)/(AQ.y1-AQ.y0-1)*5,i=Math.floor(f),fr2=f-i;for(let x=AQ.x0;x<AQ.x1;x++){const th=(BAYER[y&3][x&3]+.5)/16;g.fillStyle=bands[Math.min(5,fr2>th?i+1:i)];g.fillRect(x,y,1,1)}}
+  drawBackdrop(g,D.bg);drawFloor(g,D.floor);
+  const fy=floorY();placedDecor().forEach(d=>{if(d.st)d.st(g,d.x,fy)});
   return aqBG=c}
+function lightStrip(){const L=styleOf('light');if(L.id==='rainbow'||L.id==='disco')return`hsl(${(T*90)%360},90%,65%)`;return L.c}
+function drawLightsBehind(){const L=aqd().light;const ray=c=>{for(let i=0;i<5;i++){const bx=AQ.x0+14+i*48+Math.sin(T*.3+i)*12;cx.fillStyle=c(i);cx.beginPath();cx.moveTo(bx,AQ.y0);cx.lineTo(bx+12,AQ.y0);cx.lineTo(bx+40,AQ.y1-10);cx.lineTo(bx+20,AQ.y1-10);cx.closePath();cx.fill()}};
+  cx.globalCompositeOperation='lighter';
+  if(L==='warm')ray(i=>`rgba(255,220,150,${.05+.03*Math.sin(T*.7+i*2)})`);
+  if(L==='neon')ray(i=>`rgba(255,90,192,${.06+.03*Math.sin(T*.7+i*2)})`);
+  if(L==='rainbow')ray(i=>`hsla(${(T*60+i*70)%360},90%,60%,.08)`);
+  if(L==='uv')ray(i=>`rgba(160,90,255,${.05+.03*Math.sin(T+i)})`);
+  if(L==='caustic'){for(let y=AQ.y0+2;y<AQ.y1;y+=3)for(let x=AQ.x0;x<AQ.x1;x+=3){const v=Math.sin(x*.21+T*1.3)*Math.sin(y*.27-T)+Math.sin((x+y)*.12+T*.8);if(v>1.1){cx.fillStyle='rgba(220,250,255,.16)';cx.fillRect(x,y,2,1)}}}
+  if(L==='aurora')for(let x=AQ.x0;x<AQ.x1;x++){const h=10+Math.round(Math.sin(x*.05+T*.6)*5);cx.fillStyle=Math.sin(x*.03+T*.3)>0?'rgba(95,255,176,.1)':'rgba(176,122,255,.1)';cx.fillRect(x,AQ.y0+2,1,h)}
+  cx.globalCompositeOperation='source-over'}
+function drawLightsFront(){const L=aqd().light;
+  if(L==='moon'){cx.fillStyle='rgba(20,30,90,.22)';cx.fillRect(AQ.x0,AQ.y0,AQ.x1-AQ.x0,AQ.y1-AQ.y0)}
+  cx.globalCompositeOperation='lighter';
+  if(L==='uv'){cx.fillStyle='rgba(90,30,160,.12)';cx.fillRect(AQ.x0,AQ.y0,AQ.x1-AQ.x0,AQ.y1-AQ.y0)}
+  if(L==='spot')[[AQ.x0+50,1],[AQ.x1-50,-1]].forEach(([x,d],i)=>{const sw=Math.sin(T*.5+i*2)*30;cx.fillStyle='rgba(255,255,240,.1)';cx.beginPath();cx.moveTo(x,AQ.y0);cx.lineTo(x+6,AQ.y0);cx.lineTo(x+sw+26,AQ.y1-8);cx.lineTo(x+sw-20,AQ.y1-8);cx.closePath();cx.fill()});
+  if(L==='disco')for(let i=0;i<7;i++){const x=AQ.x0+20+((Math.sin(T*.7+i*1.7)+1)/2)*(AQ.x1-AQ.x0-40),y=AQ.y0+10+((Math.cos(T*.9+i*2.3)+1)/2)*(AQ.y1-AQ.y0-30);cx.globalAlpha=.22;disc(cx,Math.round(x),Math.round(y),5,`hsl(${(i*52+T*120)%360},95%,60%)`);cx.globalAlpha=1}
+  cx.globalCompositeOperation='source-over'}
 function aqBuild(){const key=(S.cls||'')+'|'+aqVer;if(key===aqKey&&aqFish._for===S)return;aqKey=key;
   const want=[];tankGroups().sort((a,b)=>FISHBY[b.id].f[1]-FISHBY[a.id].f[1]||b.lvl-a.lvl).forEach(g=>{for(let k=0;k<g.n&&want.length<40;k++)want.push({f:FISHBY[g.id].f,lvl:g.lvl})});
   const old=aqFish._for===S?aqFish:[];const next=want.map(w=>{const o=old.find(q=>q.f===w.f&&q.lvl===w.lvl&&!q.used);if(o){o.used=true;return o}
@@ -1626,21 +1744,26 @@ function drawPerson(v){const K=v.shade,H2=v.h,base=Math.round(v.base),x=Math.rou
   if(v.fl>0){glowAt(x,top-hr-5,10,'#ffffff',v.fl*.9);R(cx,x-1,top-hr-6,3,3,'#ffffff');for(let k=0;k<4;k++){const a=k*Math.PI/2+.4;R(cx,x+Math.cos(a)*6*v.fl,top-hr-5+Math.sin(a)*6*v.fl,1,1,'#ffffff')}}}
 function drawAquarium(dt){anims.length=0;parts.length=0;motes.length=0;floats.length=0;
   cx.drawImage(buildAquaBG(),0,0);
-  for(let x=AQ.x0;x<AQ.x1;x+=2){const y=AQ.y0+1+Math.round(Math.sin(x*.15+T*2));R(cx,x,y,2,1,'#bfeaff')}
+  R(cx,AQ.x0+12,AQ.y0-8,AQ.x1-AQ.x0-24,2,lightStrip());R(cx,AQ.x0+12,AQ.y0-6,AQ.x1-AQ.x0-24,1,mix(styleOf('water').c[0],'#ffffff',.4));
+  drawLightsBehind();
+  {const fy=floorY();placedDecor().forEach(d=>{if(d.an&&d.z<4)d.an(cx,d.x,fy,T,true)})}
+  for(let x=AQ.x0;x<AQ.x1;x+=2){const y=AQ.y0+1+Math.round(Math.sin(x*.15+T*2));R(cx,x,y,2,1,mix(styleOf('water').c[0],'#ffffff',.6))}
   for(let i=aqBubbles.length-1;i>=0;i--){const b=aqBubbles[i];b.y-=18*dt;const x=Math.round(b.x+Math.sin(T*3+b.p)*1.5),y=Math.round(b.y);
     if(b.r>1){R(cx,x-1,y,3,1,'#dff6ff');R(cx,x-1,y+2,3,1,'#dff6ff');R(cx,x-2,y+1,1,1,'#dff6ff');R(cx,x+2,y+1,1,1,'#dff6ff')}else R(cx,x,y,1,1,'#e8fbff');if(b.y<AQ.y0+2)aqBubbles.splice(i,1)}
   aqBuild();
   aqFish.forEach(o=>{const sp=o.dart>0?3:1;o.dart=Math.max(0,o.dart-dt);o.x+=o.vx*dt*sp;o.turn-=dt;
     if(o.x<AQ.x0+2){o.x=AQ.x0+2;o.vx=Math.abs(o.vx)}if(o.x>AQ.x1-o.w-2){o.x=AQ.x1-o.w-2;o.vx=-Math.abs(o.vx)}
     if(o.turn<=0){o.turn=3+Math.random()*7;if(Math.random()<.35)o.vx=-o.vx;o.ty=AQ.y0+6+Math.random()*(AQ.y1-AQ.y0-14-o.h)}
-    o.y+=(o.ty-o.y)*Math.min(1,dt*.6);const yy=Math.round(o.y+Math.sin(T*2+o.ph)*1.2);
+    o.y+=(o.ty-o.y)*Math.min(1,dt*.6);if(o.y>floorY()-o.h-2)o.ty=o.y=floorY()-o.h-2;const yy=Math.round(o.y+Math.sin(T*2+o.ph)*1.2);
     blit(fishSpr(o.f),o.x,yy,1,o.vx>0);
     if(o.f[1]>=4&&Math.floor(T*8+o.ph)%5===0)R(cx,o.x+Math.random()*o.w,yy-1+Math.random()*(o.h+2),1,1,FRAR[o.f[1]].c);
     if(o.lvl>0&&Math.random()<dt*(1+o.lvl))aqGlints.push({x:o.x+Math.random()*o.w,y:yy+Math.random()*o.h,t:0})});
   for(let i=aqGlints.length-1;i>=0;i--){const g=aqGlints[i];g.t+=dt;g.y-=6*dt;if(g.t<.5)R(cx,g.x,g.y,1,1,'#ffe88a');if(g.t>.6)aqGlints.splice(i,1)}
   for(let i=aqHearts.length-1;i>=0;i--){const hh=aqHearts[i];hh.t+=dt;hh.y-=10*dt;const x=Math.round(hh.x+Math.sin(hh.t*5)*2),y=Math.round(hh.y);if(hh.t<1.4){R(cx,x-1,y,1,1,'#ff6a9a');R(cx,x+1,y,1,1,'#ff6a9a');R(cx,x-1,y+1,3,1,'#ff6a9a');R(cx,x,y+2,1,1,'#ff6a9a')}if(hh.t>1.6)aqHearts.splice(i,1)}
+  {const fy=floorY();placedDecor().forEach(d=>{if(d.an&&d.z>=4)d.an(cx,d.x,fy,T,true)})}
+  drawLightsFront();
   cx.globalAlpha=.09;line(AQ.x0+34,AQ.y0+2,AQ.x0+12,AQ.y0+44,'#ffffff');line(AQ.x0+40,AQ.y0+2,AQ.x0+16,AQ.y0+50,'#ffffff');line(AQ.x1-30,AQ.y0+40,AQ.x1-6,AQ.y0+4,'#ffffff');cx.globalAlpha=1;
-  cx.globalAlpha=.14;R(cx,AQ.x0,AQ.y1+12,AQ.x1-AQ.x0,5,'#3aa8d8');cx.globalAlpha=1;
+  cx.globalAlpha=.14;R(cx,AQ.x0,AQ.y1+12,AQ.x1-AQ.x0,5,styleOf('water').c[0]);cx.globalAlpha=1;
   const nsp=tankCount();
   if(nsp>0){aqSpawn-=dt;if(aqSpawn<=0&&aqPeople.length<9){aqSpawn=(1.4+Math.random()*3.2)/(1+Math.min(2,nsp/25));aqPeople.push(newVisitor());S.visitors=(S.visitors||0)+1}}
   for(let i=aqPeople.length-1;i>=0;i--){const v=aqPeople[i];
@@ -1873,7 +1996,7 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 function save(){S.last=now();if(S.cls)PROF[S.cls]=S;try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:2,active:S.cls,profiles:PROF}))}catch(e){}}
-function cleanPets(o){if(!o)return o;if(!o.tank)o.tank={};if(!o.netLv)o.netLv={};if(o.idx)for(const k in o.idx)if(k[0]!=='f'&&k[0]!=='b')delete o.idx[k];if(!o.net){o.net={};for(const k in o.idx||{})if(FISHBY[k])o.net[k]=o.idx[k].n}if(Array.isArray(o.eggs)){const n=o.eggs.reduce((a,b)=>a+(b||0),0);o.eggs={};for(let i=0;i<n;i++){const k=SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)];o.eggs[k]=(o.eggs[k]||0)+1}}if(!o.eggs)o.eggs={};for(const id in o.pets||{})if(!PETS[id])delete o.pets[id];o.eq=(o.eq||[]).filter(id=>PETS[id]).slice(0,1);return o}
+function cleanPets(o){if(!o)return o;if(!o.tank)o.tank={};if(!o.aqd)o.aqd=aqdFresh();if(!o.netLv)o.netLv={};if(o.idx)for(const k in o.idx)if(k[0]!=='f'&&k[0]!=='b')delete o.idx[k];if(!o.net){o.net={};for(const k in o.idx||{})if(FISHBY[k])o.net[k]=o.idx[k].n}if(Array.isArray(o.eggs)){const n=o.eggs.reduce((a,b)=>a+(b||0),0);o.eggs={};for(let i=0;i<n;i++){const k=SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)];o.eggs[k]=(o.eggs[k]||0)+1}}if(!o.eggs)o.eggs={};for(const id in o.pets||{})if(!PETS[id])delete o.pets[id];o.eq=(o.eq||[]).filter(id=>PETS[id]).slice(0,1);return o}
 function fromData(d){const r0=fromData0(d);if(r0){for(const k in r0.P)cleanPets(r0.P[k]);cleanPets(r0.pending)}return r0}
 function fromData0(d){/* v2: separate profiles. v1 (older single save): becomes the chosen fisher's save; other fishers keep only their level */
   const P={};if(d&&d.profiles){for(const k in d.profiles)if(CLS[k])P[k]=Object.assign(fresh(),d.profiles[k],{cls:k});return{P,active:CLS[d.active]?d.active:null}}
