@@ -446,13 +446,13 @@ function hatCv(skill){const key='h'+skill;if(cpCache[key])return cpCache[key];co
 function pawCv(id,pose){return mk(PAW[pose].map,CPET[id].pal)}
 function craftPetCanvas(id,mono){const key=id+(mono||'');if(cpCache[key])return cpCache[key];const P=CPET[id],H=HAT2[SKILLS[P.skill].hat];
   const c=document.createElement('canvas');c.width=17;c.height=18;const g=c.getContext('2d');
-  g.drawImage(petBody(id,false),0,4);const pw=PAW.rest;g.drawImage(pawCv(id,'rest'),pw.x,pw.y+4);const [ox,oy]=hatOff(H,1);g.drawImage(hatCv(P.skill),H.x+ox,H.y+oy+4);
+  g.drawImage(petBody(id,false),0,4);const pw=PAW.rest;g.drawImage(pawCv(id,'rest'),pw.x,pw.y+4);const [ox,oy]=hatOff(H,H.gog?0:1);g.drawImage(hatCv(P.skill),H.x+ox,H.y+oy+4);
   if(mono){g.globalCompositeOperation='source-in';g.fillStyle=mono;g.fillRect(0,0,17,18)}
   return cpCache[key]=c}
 let PSOOT=null;function petSoot(){if(PSOOT)return PSOOT;const r=rng(91);PSOOT=[];PB.forEach((row,y)=>{if(y<3||y>9)return;for(let x=0;x<row.length;x++)if(row[x]!=='.'&&row[x]!=='k'&&r()<.45)PSOOT.push([x,y,r()])});return PSOOT}
 /* pet poses: idle = hat push like the penguin; crafting = the craft's own 5s loop */
 function petPose(skill,t,crafting){const r={paw:'rest',hat:2,closed:false,dx:0,dy:0,face:null,soot:0};
-  if(!crafting){const p=t%6.5;r.hat=p<2.8?0:p<2.95?1:p<5.5?2:p<5.7?1:0;r.paw=p>=2.6&&p<3.4?'up':'rest';r.closed=r.hat===2&&((p>3.6&&p<3.72)||(p>4.8&&p<4.92));return r}
+  if(!crafting)return r;
   t=t%5;
   if(skill==='cooking'){const fl=t>=2.4&&t<3.4;r.paw=fl?'up':'fwd';r.dy=fl&&t<2.6?-1:0;r.face=fl?'shock':null}
   else if(skill==='brewing'){const dr=t>=1.5&&t<4.5;r.dx=dr?Math.round(Math.sin(T*2.5)):0;r.face=dr?'drunk':'happy';r.paw=t<1.5?'fwd':'rest'}
@@ -1062,9 +1062,10 @@ function draw(dt){
     blit(petBody(id,r.closed),px,py);
     const pw=PAW[r.paw],pawWipe=working&&P.skill==='smithing'&&(pt%5)>=3&&(pt%5)<4.4?Math.round(((pt%5)-3)/1.4*2):0,pawY=py+pw.y+(working&&P.skill==='smithing'&&(pt%5)<3&&Math.floor((pt%5)*4)%2===1?-2:0);
     blit(pawCv(id,r.paw),px+pw.x+pawWipe,pawY);
-    const [ox,oy]=hatOff(H,working?2:r.hat);blit(hatCv(P.skill),px+H.x+ox,py+H.y+oy);
+    if(working)drawPetFace(r.face,px,py,id);
+    const [ox,oy]=hatOff(H,H.gog?0:1);blit(hatCv(P.skill),px+H.x+ox,py+H.y+oy);
     blit(mk(MAPS.DINGHYF,dp),dx,dy);R(cx,dx+1,dy+6,16,1,hl);
-    if(working){drawPetStation(P.skill,pt,px,py,dx,dy,dt,id);drawPetFace(r.face,px,py,id)}
+    if(working)drawPetStation(P.skill,pt,px,py,dx,dy,dt,id);
     window.__petPos[id]={x:dx+8,y:py+2}});
   // boat reflection
   const bsp=mk(MAPS.BOAT,BOAT_PAL);cx.globalAlpha=.22;cx.save();cx.translate(boatX,deckY+14);cx.scale(1,-1);cx.drawImage(mk(MAPS.BOAT,BOAT_PAL,'#05060c'),0,0);cx.restore();cx.globalAlpha=1;
