@@ -430,7 +430,7 @@ HATS.leaf={map:["...kk.......","..kggk......","...kkkkkk...","..khhhhhhk..",".kh
 for(const k in HATS)HATS[k].up=upHat(HATS[k].map,HATS[k].brim);
 const CLS={
  std:{animal:'Armadillo',title:'Ironclad',el:'Steel',col:'#b8c4d0',gem:'#c8d4e0',perk:'+15% coins from selling fish and the aquarium',desc:'A tough little angler with a steel rod and a steel shell. Fires steel spikes at bosses.',
-   pal:{b:'#9a8a78',w:'#ecd8c0',o:'#e0a8a0',q:'#e0a8a0',d:'#6e5f50'},snout:'kbbbbbwwwwwwqk..........',pattern:'bands',gear:'Steel rods',verb:'tug the line',fx:'#dfe6ee',
+   pal:{b:'#9c8a74',w:'#e8c8b0',o:'#4a3a2e',q:'#3a2a24',d:'#5e4e40',p:'#e0a0a0',s:'#d4b098'},snout:'kbbbbbwwwwwwqk..........',pattern:'bands',tail:{b:'#a08c76',d:'#6e5c4a',w:'#ecd8c0'},gear:'Steel rods',verb:'tug the line',fx:'#dfe6ee',
    names:['Tin Rod','Iron Rod','Steel Rod','Carbon Steel Rod','Damascus Rod','Titanium Rod','Starsteel Rod']},
  fire:{animal:'Fox',title:'Pyromancer',el:'Fire',col:'#ff7a2e',gem:'#ff7a2e',perk:'+40% boss strike damage',desc:'Boils the water with alchemy and flame until the fish leap out to escape.',
    pal:{b:'#e8742a',w:'#fbf1e4',o:'#3a2420',q:'#1a1010'},snout:'kbbbbbwwwwwqk...........',tail:{b:'#e8742a',w:'#fbf1e4'},gear:'Fire foci',verb:'stoke the flames',fx:'#ffb050',
@@ -448,30 +448,115 @@ const CLS={
    pal:{b:'#f08a2a',w:'#fff4e0',o:'#f4c0a0',q:'#1a1010',d:'#2a1a10'},snout:'kbbbbbwwwwwqk...........',pattern:'stripes',tail:{b:'#f08a2a',w:'#2a1a10'},gear:'Storm rods',verb:'charge the water',fx:'#fff4a0',
    names:['Copper Wire Wand','Spark Rod','Coil Staff','Tesla Prong','Thunder Rod','Storm Scepter','Skybolt Crown']},
  leaf:{animal:'Giraffe',title:'Druid',el:'Leaf',col:'#7ad05a',gem:'#8ae070',perk:'Eggs turn up 50% more often',desc:'Grows lily pads and long vines that wrap up fish and swing them into the boat.',
-   pal:{b:'#f0c060',w:'#fff4d8',o:'#c8905a',q:'#3a2010',d:'#a0602a'},snout:'kbbbbbwwwwwqk...........',pattern:'spots',gear:'Living staffs',verb:'grow the vines',fx:'#a8e890',
+   pal:{b:'#f4d49a',w:'#fff4d8',o:'#c8905a',q:'#3a2010',d:'#b0642a',p:'#e8b090',s:'#ecd6b0',h:'#3a2a20'},snout:'kbbbbbwwwwwqk...........',pattern:'spots',tail:{b:'#f4d49a',h:'#3a2a20'},gear:'Living staffs',verb:'grow the vines',fx:'#a8e890',
    names:['Twig Wand','Sapling Staff','Bramble Rod','Willow Staff','Oakheart Rod','Elder Bough','Worldtree Scepter']}};
 const CLS_ORDER=['std','fire','ice','earth','air','elec','leaf'];
+/* realistic bodies: lounging (24 wide) and sitting portrait (16 wide). Giraffe is taller, so its head sits higher. */
+const BODY={
+ std:{lounge:[
+  "...kk...................",
+  "..kppk..................",
+  "..kpsk..................",
+  ".kbbbbkk................",
+  "kbbbbbebk...............",
+  "kssssssssssqk...........",
+  "kbbddbbsskkkkkkk....o..o",
+  "kbbddbbwwwwwwwwwkkk.ooo.",
+  "kbbddbbddwwwwwwwwwwkkoo.",
+  ".kbddbbddbbwwwwwwwwwkoo.",
+  "..kddbbddbbddbbddbbdk...",
+  "...kkkkkkkkkkkkkkkkkk..."],
+  sit:[
+  "..kk.kk.........",
+  ".kppkppk........",
+  ".kpskpsk........",
+  "..kbbbbbk.......",
+  "..kbbbebbk......",
+  "..ksssssssssqk..",
+  "...kbbbkkkkkk...",
+  "..kbbbbbbk......",
+  ".kddddwwwwk.....",
+  ".kbbbwwwwwk.....",
+  "kddddwwwwwwk....",
+  "kbbbbwwwwwwk....",
+  "kddddwwwwwwk....",
+  "kbbbbwwwwwwk....",
+  ".kdddwwwwwk.....",
+  ".kbbbbbbbbk.....",
+  "..kkbkkbkk......",
+  "..kook.kook....."],
+  tail:["....kk","..kkdk","kkbdbk","..kkk."],sitTail:["...kk","..kdk",".kbdk","kbdk.","kkk.."],eye:[4,6]},
+ leaf:{lounge:[
+  "..k..k..................",
+  "..kh.kh.................",
+  ".kkbkkbk................",
+  "kpbbbbbbk...............",
+  ".kbbbbebbk..............",
+  "..kbbbbbbbk.............",
+  "..kdbbbbsssk............",
+  "..kbbbbsssqk............",
+  "..kbddkkkkk.............",
+  "..kdddk.................",
+  "..kbbbk.................",
+  "..kddbk.................",
+  "..kdbddkkkkkkkkk........",
+  ".kbbbbbbddbbddbbkkkkkkk.",
+  "kddbddbddbbddbbddbbbbbkh",
+  "kddbddbbbddbbddbkkkkkkkh",
+  ".kbbbbbddbbddbbbbk......",
+  "..kddbddbddbddbddk......",
+  "...kkkkkkkkkkkkkkk......"],
+  sit:[
+  "...k..k.........",
+  "...kh.kh........",
+  "..kkbkkbk.......",
+  ".kpbbbbbbk......",
+  "..kbbbbebk......",
+  "..kbbbbbbbk.....",
+  "..kdbbbbsssk....",
+  "...kbbbssqk.....",
+  "...kbddkkk......",
+  "...kdddk........",
+  "...kbbbk........",
+  "...kddbk........",
+  "...kdbdk........",
+  "..kbbbbbk.......",
+  ".kddbddbdk......",
+  ".kdbbddbbk......",
+  "kbbddbbddbk.....",
+  "kddbbddbddk.....",
+  "kdbbddbbbbk.....",
+  "kbbddbbddbk.....",
+  ".kddbbddbk......",
+  ".kdk..kdk.......",
+  ".kbk..kbk.......",
+  ".khk..khk.......",
+  ".kkk..kkk......."],
+  tail:["......","....kk","...kbk","..kbk.","khhk..","khk..."],sitTail:["....k","...kb","..kb.","khk..","kk..."],
+  bodyDY:-7,hatDY:-5,eyeD:[-2,-7],eye:[4,6],sitDY:5}};
 function patternRows(rows,pat){if(!pat)return rows;return rows.map((r,y)=>r.split('').map((ch,x)=>{if(ch!=='b')return ch;
   if(pat==='bands')return x%3===1?'d':ch;if(pat==='stripes')return x%4===0&&y%5!==0?'d':ch;if(pat==='spots')return(x*7+y*5)%9===0?'d':ch;return ch}).join(''))}
 function curC(){return CLS[S.cls||'std']}
 function gearName(i){const C=curC();return C.names?C.names[i]:RODS[i].n}
-function bodyMap(cls,closed){const C=CLS[cls];return patternRows(MAPS.PENG.map((r,i)=>i===5?C.snout:i===4&&closed?r.replace('e','k'):r),C.pattern)}
+function bodyMap(cls,closed){const C=CLS[cls],Bd=BODY[cls];if(Bd){const ey=Bd.eye[0];return Bd.lounge.map((r,i)=>i===ey&&closed?r.replace('e','k'):r)}return patternRows(MAPS.PENG.map((r,i)=>i===5?C.snout:i===4&&closed?r.replace('e','k'):r),C.pattern)}
+const bDY=cls=>(BODY[cls]||{}).bodyDY||0,hDY=cls=>(BODY[cls]||{}).hatDY||0;
+function tailOf(cls){const Bd=BODY[cls];return Bd&&Bd.tail?Bd.tail:MAPS.TAIL}
 /* picker portrait: sitting up, no hat, holding a fish */
 const SIT=["....kkkkk.......","...kbbbbbk......","..kbbbbwwwk.....","..kbbbwwewk.....","SNOUT","..kbbbwwwwk.....","...kbbbwwk......","..kbbbbwwwk.....",".kbbbwwwwwwk....",".kbbwwwwwwwwk...","kbbbwwwwwwwwk...","kbbwwwwwwwwwwk..","kbbwwwwwwwwwwk..","kbbwwwwwwwwwwk..","kbbbwwwwwwwwwk..",".kbbwwwwwwwwk...",".kbbbwwwwwwbk...","..kkbbbbbbkk....","..okkkkkkko.....",".ooo.....ooo...."];
 const SIT_SNOUT={elec:"..kbbbwwwwwqk...",leaf:"..kbbbwwwwwqk...",std:"..kbbbwwwwwqqk..",fire:"..kbbbwwwwwqk...",ice:"..kbbbwwwwook...",earth:"..kbbbwwwwqqk...",air:"..kbbbwwwwoook.."};
 const SIT_FISH={elec:['A',['#3a8ad0','#e0f0ff','#ffe040']],leaf:['C',['#5ab04a','#e8f8c0','#2a7a2a']],std:['A',['#ff8a1e','#fff1d8','#e83a2a']],fire:['A',['#e04a4a','#ffc0b0','#a02a3a']],ice:['A',['#5a6a7a','#dfe4ea','#a8b8c8']],earth:['C',['#b08a4a','#e8d39a','#7a5a2a']],air:['A',['#3a8aa8','#e8f0f0','#1a3a5a']]};
 const EARS={fire:{map:[".k.","kbk","kwk"],at:[[3,-2],[7,-2]]},std:{map:[".k.","kbk"],at:[[3,-1],[7,-1]]},elec:{map:[".kk.","kbdk"],at:[[2,-1],[7,-1]]},leaf:{map:[".k.","kdk",".kk","kbk"],at:[[3,-4],[7,-4]]}};
-function sitCanvas(cls){const C=CLS[cls];const c=document.createElement('canvas');c.width=24;c.height=26;const g=c.getContext('2d');const ox=5,oy=4;
-  if(C.tail)g.drawImage(mk(["..kkk","kkbbk","kbbbk","kbwwk",".kkk."],C.tail),ox-4,oy+13);
-  g.drawImage(mk(patternRows(SIT.map(r=>r==='SNOUT'?SIT_SNOUT[cls]:r),C.pattern),C.pal),ox,oy);
-  const [tp,cl]=SIT_FISH[cls],fs=fishSpr(['',1,0,1,tp,cl]);g.save();g.translate(ox+2+fs.width,oy+10);g.scale(-1,1);g.drawImage(fs,0,0);g.restore();
-  g.drawImage(mk(["kk..","kbk.",".kbk",".kbk","..kk"],C.pal),ox+9,oy+9);
-  const E=EARS[cls];if(E)E.at.forEach(([x,y])=>g.drawImage(mk(E.map,C.pal),ox+x,oy+y));
+function sitCanvas(cls){const C=CLS[cls],Bd=BODY[cls],sdy=Bd&&Bd.sitDY||0;const c=document.createElement('canvas');c.width=24;c.height=26+sdy;const g=c.getContext('2d');const ox=5,oy=4;
+  if(C.tail)g.drawImage(mk(Bd&&Bd.sitTail?Bd.sitTail:["..kkk","kkbbk","kbbbk","kbwwk",".kkk."],C.tail),ox-4,oy+13+sdy);
+  g.drawImage(mk(Bd?Bd.sit:patternRows(SIT.map(r=>r==='SNOUT'?SIT_SNOUT[cls]:r),C.pattern),C.pal),ox,oy);
+  const [tp,cl]=SIT_FISH[cls],fs=fishSpr(['',1,0,1,tp,cl]);g.save();g.translate(ox+2+fs.width,oy+10+sdy);g.scale(-1,1);g.drawImage(fs,0,0);g.restore();
+  g.drawImage(mk(["kk..","kbk.",".kbk",".kbk","..kk"],C.pal),ox+9,oy+9+sdy);
+  const E=Bd?null:EARS[cls];if(E)E.at.forEach(([x,y])=>g.drawImage(mk(E.map,C.pal),ox+x,oy+y));
   return c}
-function avatarCanvas(cls){const C=CLS[cls],hat=HATS[cls];const c=document.createElement('canvas');c.width=56;c.height=22;const g=c.getContext('2d');
-  const bx=6,dy=13,px=bx+3,py=dy-9;
-  if(C.tail)g.drawImage(mk(MAPS.TAIL,C.tail),px-5,py+4);
-  g.drawImage(mk(bodyMap(cls,false),C.pal),px,py);g.drawImage(mk(MAPS.FLIP0,C.pal),px+6,py+6);g.drawImage(mk(hat.map,hat.pal),px,py+3-hat.brim);
+function avatarCanvas(cls){const C=CLS[cls],hat=HATS[cls],up=-bDY(cls);const c=document.createElement('canvas');c.width=56;c.height=22+up;const g=c.getContext('2d');
+  const bx=6,dy=13+up,px=bx+3,py=dy-9;
+  if(C.tail)g.drawImage(mk(tailOf(cls),C.tail),px-5,py+4);
+  g.drawImage(mk(bodyMap(cls,false),C.pal),px,py+bDY(cls));g.drawImage(mk(MAPS.FLIP0,C.pal),px+6,py+6);g.drawImage(mk(hat.map,hat.pal),px,py+3-hat.brim+hDY(cls));
   g.drawImage(mk(MAPS.BOAT,BOAT_PAL),bx,dy);
   const tx=cls==='std'?bx+50:bx+44,ty=cls==='std'?1:2;line(bx+31,dy+1,tx,ty,'#0e0f17',g);line(bx+30,dy,tx-1,ty,cls==='std'?'#8a5a2a':'#7a5230',g);
   if(cls!=='std'){g.fillStyle='#0e0f17';g.fillRect(tx-2,ty-2,5,5);g.fillStyle=C.gem;g.fillRect(tx-1,ty-1,3,3);g.fillStyle='#ffffff';g.fillRect(tx-1,ty-1,1,1)}
@@ -1298,7 +1383,7 @@ function craftPose(k,t){const r={dx:0,dy:0,flip:0,fx:0,face:null,soot:0};
 let SOOT=null;
 function sootPts(){if(SOOT)return SOOT;const r=rng(77);SOOT=[];MAPS.PENG.forEach((row,y)=>{if(y>9)return;for(let x=0;x<row.length;x++)if(row[x]!=='.'&&row[x]!=='k'&&r()<.45)SOOT.push([x,y,r()])});return SOOT}
 function drawStation(F,boatX,deckY,pX,pY,dt,C){
-  const k=F.job,t=F.t,r=F.r,sx=boatX+20,K='#0e0f17',ex=pX+8,ey=pY+4;
+  const k=F.job,t=F.t,r=F.r,sx=boatX+20,K='#0e0f17',eD=(BODY[S.cls||'std']||{}).eyeD||[0,0],ex=pX+8+eD[0],ey=pY+4+eD[1];
   if(k==='cooking'){
     R(cx,sx-1,deckY-2,10,3,K);R(cx,sx,deckY-1,8,1,'#5a5a68');R(cx,sx+9,deckY-2,4,1,'#6a4a2a');R(cx,sx+2,deckY-3,4,1,'#ff9a5a');R(cx,sx+6,deckY-4,1,1,'#ff9a5a');
     for(let i=0;i<4;i++)if((Math.floor(T*12)+i)%2)R(cx,sx+1+i*2,deckY-4-(i%2),1,1,'#ffb050');
@@ -1511,21 +1596,21 @@ function draw(dt){
   const job=!B?avatarJob():null;let craftFX=null;
   let pengX=boatX+3,pengY=deckY-9+(Math.sin(T*1.7)>.55?-1:0);
   if(job){cT=(cT+dt)%5;const r=craftPose(job,cT);pengX+=r.dx;pengY+=r.dy;
-    if(C.tail)blit(mk(MAPS.TAIL,C.tail),pengX-5,pengY+4+(Math.sin(T*2)>.3?1:0));
-    blit(mk(bodyMap(cls,false),C.pal),pengX,pengY);
+    if(C.tail)blit(mk(tailOf(cls),C.tail),pengX-5,pengY+4+(Math.sin(T*2)>.3?1:0));
+    blit(mk(bodyMap(cls,false),C.pal),pengX,pengY+bDY(cls));
     if(r.flip===0)blit(mk(MAPS.FLIP0,C.pal),pengX+6,pengY+6);else if(r.flip===1)blit(mk(MAPS.FLIP1,C.pal),pengX+6,pengY+4);else blit(mk(MAPS.FLIP2,C.pal),pengX+5+r.fx,pengY+2);
-    blit(mk(hat.up,hat.pal),pengX-1,pengY-hat.brim);window.__lamp=cls==='earth'?{x:pengX+9,y:pengY-hat.brim+3}:null;craftFX={job,t:cT,r};
+    blit(mk(hat.up,hat.pal),pengX-1,pengY-hat.brim+hDY(cls));window.__lamp=cls==='earth'?{x:pengX+9,y:pengY-hat.brim+3}:null;craftFX={job,t:cT,r};
   } else {
   pT=(pT+dt)%6.5;const p=pT;
   const hatSt=p<2.8?0:p<2.95?1:p<5.5?2:p<5.7?1:0;
   const flipSt=p<2.6?0:p<2.75?1:p<3.25?2:p<3.4?1:0;
   const closed=hatSt===2&&((p>3.6&&p<3.72)||(p>4.8&&p<4.92));
-  if(C.tail)blit(mk(MAPS.TAIL,C.tail),pengX-5,pengY+4+(Math.sin(T*2)>.3?1:0));
-  blit(mk(bodyMap(cls,closed),C.pal),pengX,pengY);
+  if(C.tail)blit(mk(tailOf(cls),C.tail),pengX-5,pengY+4+(Math.sin(T*2)>.3?1:0));
+  blit(mk(bodyMap(cls,closed),C.pal),pengX,pengY+bDY(cls));
   if(flipSt===0)blit(mk(MAPS.FLIP0,C.pal),pengX+6,pengY+6);
   else if(flipSt===1)blit(mk(MAPS.FLIP1,C.pal),pengX+6,pengY+4);
   else blit(mk(MAPS.FLIP2,C.pal),pengX+5,pengY+2);
-  let hx0,hy0;if(hatSt===2){hx0=pengX-1;hy0=pengY-hat.brim}else{hx0=pengX;hy0=pengY+3-hat.brim-(hatSt===1?1:0)}
+  let hx0,hy0;if(hatSt===2){hx0=pengX-1;hy0=pengY-hat.brim}else{hx0=pengX;hy0=pengY+3-hat.brim-(hatSt===1?1:0)}hy0+=hDY(cls);
   blit(mk(hatSt===2?hat.up:hat.map,hat.pal),hx0,hy0);window.__lamp=cls==='earth'?{x:hx0+10,y:hy0+3}:null;
   }
   blit(bsp,boatX,deckY);
