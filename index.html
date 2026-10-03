@@ -183,6 +183,14 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
 .hatchres small{display:block;font-size:14px;color:var(--muted);font-weight:400}
 .hatchbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 @media (prefers-reduced-motion:reduce){.reel-slot.win{animation:none}}
+.invsum{display:flex;gap:16px;font-size:15px;color:var(--muted)}
+.invsum b{color:var(--foam)}
+.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:12px;padding:3px}
+.slot{aspect-ratio:1;background:var(--edge);position:relative;display:flex;align-items:center;justify-content:center;border:0;padding:0;box-shadow:inset 0 -4px 0 var(--rc,transparent),0 -3px 0 0 var(--hi),0 3px 0 0 var(--hi),-3px 0 0 0 var(--hi),3px 0 0 0 var(--hi)}
+.slot.empty{opacity:.45}
+.slot img{image-rendering:pixelated;max-width:70%;height:auto}
+.slot[aria-pressed="true"]{background:var(--panel2);box-shadow:inset 0 -4px 0 var(--rc,transparent),0 -3px 0 0 var(--brass),0 3px 0 0 var(--brass),-3px 0 0 0 var(--brass),3px 0 0 0 var(--brass)}
+.slot .cnt{position:absolute;right:4px;bottom:3px;font-family:var(--mono);font-size:20px;line-height:1;color:#fff;text-shadow:2px 0 0 #0b0f1c,-2px 0 0 #0b0f1c,0 2px 0 #0b0f1c,0 -2px 0 #0b0f1c}
 #toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;align-items:center;z-index:10;pointer-events:none;width:min(92vw,440px)}
 .toast{background:var(--edge);color:var(--foam);font-weight:600;padding:9px 14px;text-align:center;animation:tin .2s steps(3);box-shadow:0 -3px 0 0 var(--brass),0 3px 0 0 var(--brass),-3px 0 0 0 var(--brass),3px 0 0 0 var(--brass)}
 @keyframes tin{from{transform:translateY(10px);opacity:0}}
@@ -662,7 +670,7 @@ function charLv(k){const o=k===S.cls?S:PROF[k];return o?{lvl:o.lvl,xp:o.xp,coins
 function renderCrew(){$('crew').innerHTML=CLS_ORDER.map(k=>{const C=CLS[k],c=charLv(k),on=S.cls===k;
   return`<button class="mate px" data-act="choose" data-arg="${k}" aria-pressed="${on}"><span class="pic">${imgTag(sitCanvas(k),2,C.animal)}</span><span class="info"><span class="nm">${C.animal}</span><span class="lv">${c.on?`Lv <span class="num" id="crewlv-${k}">${c.lvl}</span> · ${fmt(c.coins)} coins`:'New · Lv 1'}</span><span class="bar"><b id="crewxp-${k}" style="width:${c.xp/xpNeed(c.lvl)*100}%"></b></span></span></button>`}).join('')}
 function setLogo(){$('logo').src=avatarCanvas(S.cls||'std').toDataURL();$('hint').textContent=`Your ${curC().animal.toLowerCase()} fishes on its own. Tap the water to ${curC().verb} and land fish faster.`}
-let crSel='cooking',_dexIc=null;
+let crSel='cooking',_dexIc=null,bagSel=null;
 /* fished eggs, by rarity: chance per fish caught (luck raises it a little) */
 const EGGR=[{n:'Common Egg',c:'#c8d0dc',d:'#8a96a8',ch:.03},{n:'Uncommon Egg',c:'#5fd16a',d:'#2f8a3a',ch:.012},{n:'Rare Egg',c:'#4fa8ff',d:'#2a5ab0',ch:.004},{n:'Epic Egg',c:'#c07bff',d:'#6a3ab0',ch:.0012},{n:'Legendary Egg',c:'#ffcd3c',d:'#c07a10',ch:.0003}];
 const DUPE_COINS=[200,800,3000,12000,50000];
@@ -728,6 +736,7 @@ function openDex(i){const e=EGGS[i];if(!e)return;const nT=t=>e.pets.filter(pp=>p
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('eggdex').hidden)$('eggdex').hidden=true});
 function craftArgs(a){const [k,i]=String(a).split(':');return[k,+i]}
 const act={
+  bagsel(k){bagSel=k;renderPanel()},
   hatchegg(r){openHatch(+r)},
   hatchequip(){if(HATCH&&HATCH.win&&S.pets[HATCH.win.id]){S.eq=[HATCH.win.id];toast(`${HATCH.win.n} hops into the dinghy`);$('hatchequip').hidden=true;renderPetBar();renderPanel()}},
   hatchagain(){if(!HATCH||HATCH.phase!=='done')return;const r=HATCH.r;HATCH=null;openHatch(r)},
@@ -874,8 +883,18 @@ function renderPanel(){
         :`<div class="card px locked"><div class="pic">${imgTag(fishSpr(f,'#3a4a72'),f[4]==='B'?2:3)}</div><span class="rar" style="color:${RAR[f[1]].c};opacity:.6">${RAR[f[1]].n}</span><div class="nm">???</div><div class="ds">Not caught yet</div></div>`}).join('')+`</div></div>`});
   }
   else if(tab==='bag'){
-    h+=`<div class="sect"><h3>Eggs</h3><p>Fished up by chance. Tap Hatch to see what's inside.</p>${[0,1,2,3,4].map(r=>`<div class="row px"><div class="ic">${imgTag(mk(MAPS.EGG,eggPal(r)),3)}</div><div class="info"><div class="nm" style="color:${EGGR[r].c}">${EGGR[r].n} <span class="num ds">×${S.eggs[r]||0}</span></div><div class="ds">About 1 in ${fmt(oneIn(r))} catches</div></div><button class="btn" data-act="hatchegg" data-arg="${r}" ${(S.eggs[r]||0)?'':'disabled'}>Hatch</button></div>`).join('')}</div>`;
-    h+=`<div class="sect"><h3>Bag</h3><p>Use supplies whenever you like. Timed effects stack their duration.</p>`+Object.keys(ITEMS).map(k=>`<div class="row px"><div class="ic">${imgTag(mk(ITEM_MAP[k],ITEM_PAL[k]),3)}</div><div class="info"><div class="nm">${ITEMS[k].n} <span class="num ds">×${S.bag[k]}</span></div><div class="ds">${ITEMS[k].d}</div></div><button class="btn" data-act="use" data-arg="${k}" ${S.bag[k]?'':'disabled'}>Use</button></div>`).join('')+`</div>`;
+    const inv=[];[0,1,2,3,4].forEach(r=>{if(S.eggs[r]>0)inv.push({key:'egg'+r,ic:mk(MAPS.EGG,eggPal(r)),sc:4,n:S.eggs[r],name:EGGR[r].n,col:EGGR[r].c,desc:`Fished up by chance (about 1 in ${fmt(oneIn(r))} catches). Hatches a ${RAR[r].n.toLowerCase()} pet from any craft.`,act:'hatchegg',arg:r,btn:'Hatch'})});
+    Object.keys(ITEMS).forEach(k=>{if(S.bag[k]>0)inv.push({key:k,ic:mk(ITEM_MAP[k],ITEM_PAL[k]),sc:4,n:S.bag[k],name:ITEMS[k].n,col:'var(--foam)',desc:ITEMS[k].d+(ITEMS[k].buff?'. Using more adds to the time left.':'.'),act:'use',arg:k,btn:'Use'})});
+    if(!inv.find(it=>it.key===bagSel))bagSel=inv.length?inv[0].key:null;
+    const eggTot=[0,1,2,3,4].reduce((a,r)=>a+(S.eggs[r]||0),0),supTot=Object.keys(ITEMS).reduce((a,k)=>a+(S.bag[k]||0),0);
+    const slots=Math.max(10,Math.ceil(inv.length/5)*5);
+    h+=`<div class="sect"><h3>Bag</h3><div class="invsum"><span>Eggs <b class="num">${eggTot}</b></span><span>Supplies <b class="num">${supTot}</b></span></div>
+      <div class="inv">${Array.from({length:slots},(_,n)=>{const it=inv[n];if(!it)return'<div class="slot empty px"></div>';
+        return`<button class="slot px" data-act="bagsel" data-arg="${it.key}" aria-pressed="${it.key===bagSel}" aria-label="${it.name}, ${it.n}" title="${it.name}" style="--rc:${it.col}">${imgTag(it.ic,it.sc)}<span class="cnt">${it.n}</span></button>`}).join('')}</div>`;
+    const sel=inv.find(it=>it.key===bagSel);
+    h+=sel?`<div class="row px"><div class="ic">${imgTag(sel.ic,3)}</div><div class="info"><div class="nm" style="color:${sel.col}">${sel.name} <span class="num ds">×${sel.n}</span></div><div class="ds">${sel.desc}</div></div><button class="btn" data-act="${sel.act}" data-arg="${sel.arg}">${sel.btn}</button></div>`
+      :`<p class="hint">Your bag is empty. Eggs turn up while you fish, and supplies are in the Shop.</p>`;
+    h+=`</div>`;
     h+=`<div class="sect"><h3>Fisher</h3><div class="row px"><div class="ic" style="width:84px">${imgTag(avatarCanvas(S.cls||'std'),1.5)}</div><div class="info"><div class="nm">${curC().animal} · ${curC().title}</div><div class="ds">${curC().perk}</div></div><button class="btn ghost" data-act="pick">Change</button></div></div>`;
     h+=`<div class="sect"><h3>Stats</h3><div class="kv">
       <span>${S.cls&&S.cls!=='std'?'Focus':'Rod'}</span><span>${gearName(S.rod)}</span><span>Bait</span><span>${BAITS[S.bait].n}</span>
