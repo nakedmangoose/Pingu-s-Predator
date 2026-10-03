@@ -10,7 +10,7 @@ A pixel-art idle fishing game that runs in the browser. Open `index.html` to pla
   - Polar Cub · Cryomancer: freezes fish in ice, +10% luck and longer boss fights
   - Mole · Geomancer: raises stone pillars, fish weigh 25% more
   - Duck · Aeromancer: whirlwinds, +20% catch speed
-- **Six zones** from Willow Pond to Starfall Abyss and **600 catches** in six tiers (Junk, Common, Uncommon, Rare, Epic, Legendary, 100 each). Odds shift with rod, bait, zone and weather
+- **A world per fisher**: the penguin's ponds and coast, the fox's volcanoes and savanna, the polar cub's Iceland and icebergs, the mole's swamps and hills, and the duck's waterfalls and national park, each with six zones and **600 catches** in six tiers (Junk, Common, Uncommon, Rare, Epic, Legendary, 100 each). Odds shift with rod, bait, zone and weather
 - **Bosses** that surface at random while you fish and are fought automatically, listed in the Index
 - **Shop** with rods/staffs, bait and timed supplies
 - **Seven crafts** (cooking, brewing, smithing, alchemy, engineering, tailoring, enchanting), each with levels, six recipes and a lasting bonus. Crafting yourself pauses fishing; a craft pet does it for you
