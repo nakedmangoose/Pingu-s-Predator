@@ -425,34 +425,45 @@ const HATS={
  ice:{map:["...kkk......","..kwwwk.....","...kkkkkk...","..khhhhhhk..",".khhnhnhhhk.",".khhhhhhhhk.","kkwwwwwwwwkk",".kkwwwwwwwwk",".....kkkkk.."],brim:6,pal:{h:'#4f8ad8',n:'#ffffff',w:'#f4f8ff'}},
  earth:{map:["...kkkkk....","..khhhhhk...",".khhhhhhhkkk",".khhhhhhhkyk","kkhhhhhhhhkk",".kkkhhhhhhhk",".....kkkkk.."],brim:4,pal:{h:'#e8b830',y:'#fff6c8'}},
  air:{map:["...kkkkk....","..khhhhhk...",".khhhhhhhk..",".kggkggkhk..","kkhhhhhhhhkk",".kkkhhhhhhhk",".....kkkkk.."],brim:4,pal:{h:'#7a4a2a',g:'#9fe0ff'}}};
+HATS.elec={map:["...kkkkk....","..khhhhhk...",".khhhyhhhk..",".khhyyhhhk..","kkhhhyhhhkkk",".kkkhhhhhhhk",".....kkkkk.."],brim:4,pal:{h:'#2a2a4a',y:'#ffe040'}};
+HATS.leaf={map:["...kk.......","..kggk......","...kkkkkk...","..khhhhhhk..",".khhhhhhhhk.","kkhhhhhhhhkk",".kkkkkkkkkkk"],brim:5,pal:{h:'#e8c070',g:'#5ab04a'}};
 for(const k in HATS)HATS[k].up=upHat(HATS[k].map,HATS[k].brim);
 const CLS={
- std:{animal:'Penguin',title:'Angler',el:'Standard',col:'#4fa8ff',gem:'#4fa8ff',perk:'+15% coins from selling fish and the aquarium',desc:'A classic rod-and-bobber fisher. Patient, reliable, never without the bucket hat.',
-   pal:{b:'#2a3150',w:'#f4f1e8',o:'#ff9a2e',q:'#0e0f17'},snout:'kbbbbbwwwwook...........',gear:'Rods',verb:'tug the line',fx:'#e8f6ff'},
+ std:{animal:'Armadillo',title:'Ironclad',el:'Steel',col:'#b8c4d0',gem:'#c8d4e0',perk:'+15% coins from selling fish and the aquarium',desc:'A tough little angler with a steel rod and a steel shell. Fires steel spikes at bosses.',
+   pal:{b:'#9a8a78',w:'#ecd8c0',o:'#e0a8a0',q:'#e0a8a0',d:'#6e5f50'},snout:'kbbbbbwwwwwwqk..........',pattern:'bands',gear:'Steel rods',verb:'tug the line',fx:'#dfe6ee',
+   names:['Tin Rod','Iron Rod','Steel Rod','Carbon Steel Rod','Damascus Rod','Titanium Rod','Starsteel Rod']},
  fire:{animal:'Fox',title:'Pyromancer',el:'Fire',col:'#ff7a2e',gem:'#ff7a2e',perk:'+40% boss strike damage',desc:'Boils the water with alchemy and flame until the fish leap out to escape.',
    pal:{b:'#e8742a',w:'#fbf1e4',o:'#3a2420',q:'#1a1010'},snout:'kbbbbbwwwwwqk...........',tail:{b:'#e8742a',w:'#fbf1e4'},gear:'Fire foci',verb:'stoke the flames',fx:'#ffb050',
    names:['Matchstick Wand','Ember Wand','Cinder Staff','Alembic of Embers','Salamander Rod','Phoenix Quill','Sunforge Scepter']},
- ice:{animal:'Polar Cub',title:'Cryomancer',el:'Ice',col:'#9fe8ff',gem:'#9fe8ff',perk:'+10% luck, boss fights last 30% longer',desc:'Freezes fish solid in blocks of ice and floats them back to the boat.',
-   pal:{b:'#dfe6ee',w:'#ffffff',o:'#aab6c4',q:'#1a1c2c'},snout:'kbbbbbwwwwwqk...........',gear:'Frost staffs',verb:'chill the water',fx:'#d8f6ff',
+ ice:{animal:'Penguin',title:'Cryomancer',el:'Ice',col:'#9fe8ff',gem:'#9fe8ff',perk:'+10% luck, boss fights last 30% longer',desc:'Freezes fish solid in blocks of ice and floats them back to the boat. Never without the woolly hat.',
+   pal:{b:'#2a3150',w:'#f4f1e8',o:'#ff9a2e',q:'#0e0f17'},snout:'kbbbbbwwwwook...........',gear:'Frost staffs',verb:'chill the water',fx:'#d8f6ff',
    names:['Icicle Twig','Frostbark Wand','Rime Staff','Glacier Shard','Blizzard Rod','Permafrost Scepter','Starfrost Crown']},
  earth:{animal:'Mole',title:'Geomancer',el:'Earth',col:'#c8a060',gem:'#a8e05a',perk:'Fish weigh 25% more and sell for 25% more',desc:'Raises stone pillars from the lakebed to lift fish clean out of the water.',
    pal:{b:'#5a4a5e',w:'#8a7a90',o:'#f0a0b0',q:'#f0a0b0'},snout:'kbbbbbwwwwqqk...........',gear:'Stone tomes',verb:'shake the lakebed',fx:'#b89a6a',
    names:['Pebble Charm','Clay Wand','Granite Staff','Geode Tome','Obsidian Rod','Mountain Heart','Worldroot Scepter']},
  air:{animal:'Duck',title:'Aeromancer',el:'Air',col:'#e8f4ff',gem:'#e8f4ff',perk:'+20% catch speed',desc:'Whips up little whirlwinds that spin fish straight up into the boat.',
    pal:{b:'#ffcd3c',w:'#fff3b0',o:'#ff8a1e',q:'#ff8a1e'},snout:'kbbbbbwwwwoook..........',gear:'Wind feathers',verb:'stir the wind',fx:'#ffffff',
-   names:['Dandelion Wand','Breeze Feather','Gust Staff','Cyclone Fan','Thunderhead Rod','Skyrender','Tempest Crown']}};
-const CLS_ORDER=['std','fire','ice','earth','air'];
+   names:['Dandelion Wand','Breeze Feather','Gust Staff','Cyclone Fan','Thunderhead Rod','Skyrender','Tempest Crown']},
+ elec:{animal:'Tiger',title:'Stormcaller',el:'Electric',col:'#ffe040',gem:'#ffe860',perk:'Bosses surface twice as often',desc:'Shocks the water with crackling sparks and calls down lightning to stun fish to the surface.',
+   pal:{b:'#f08a2a',w:'#fff4e0',o:'#f4c0a0',q:'#1a1010',d:'#2a1a10'},snout:'kbbbbbwwwwwqk...........',pattern:'stripes',tail:{b:'#f08a2a',w:'#2a1a10'},gear:'Storm rods',verb:'charge the water',fx:'#fff4a0',
+   names:['Copper Wire Wand','Spark Rod','Coil Staff','Tesla Prong','Thunder Rod','Storm Scepter','Skybolt Crown']},
+ leaf:{animal:'Giraffe',title:'Druid',el:'Leaf',col:'#7ad05a',gem:'#8ae070',perk:'Eggs turn up 50% more often',desc:'Grows lily pads and long vines that wrap up fish and swing them into the boat.',
+   pal:{b:'#f0c060',w:'#fff4d8',o:'#c8905a',q:'#3a2010',d:'#a0602a'},snout:'kbbbbbwwwwwqk...........',pattern:'spots',gear:'Living staffs',verb:'grow the vines',fx:'#a8e890',
+   names:['Twig Wand','Sapling Staff','Bramble Rod','Willow Staff','Oakheart Rod','Elder Bough','Worldtree Scepter']}};
+const CLS_ORDER=['std','fire','ice','earth','air','elec','leaf'];
+function patternRows(rows,pat){if(!pat)return rows;return rows.map((r,y)=>r.split('').map((ch,x)=>{if(ch!=='b')return ch;
+  if(pat==='bands')return x%3===1?'d':ch;if(pat==='stripes')return x%4===0&&y%5!==0?'d':ch;if(pat==='spots')return(x*7+y*5)%9===0?'d':ch;return ch}).join(''))}
 function curC(){return CLS[S.cls||'std']}
 function gearName(i){const C=curC();return C.names?C.names[i]:RODS[i].n}
-function bodyMap(cls,closed){const C=CLS[cls];return MAPS.PENG.map((r,i)=>i===5?C.snout:i===4&&closed?r.replace('e','k'):r)}
+function bodyMap(cls,closed){const C=CLS[cls];return patternRows(MAPS.PENG.map((r,i)=>i===5?C.snout:i===4&&closed?r.replace('e','k'):r),C.pattern)}
 /* picker portrait: sitting up, no hat, holding a fish */
 const SIT=["....kkkkk.......","...kbbbbbk......","..kbbbbwwwk.....","..kbbbwwewk.....","SNOUT","..kbbbwwwwk.....","...kbbbwwk......","..kbbbbwwwk.....",".kbbbwwwwwwk....",".kbbwwwwwwwwk...","kbbbwwwwwwwwk...","kbbwwwwwwwwwwk..","kbbwwwwwwwwwwk..","kbbwwwwwwwwwwk..","kbbbwwwwwwwwwk..",".kbbwwwwwwwwk...",".kbbbwwwwwwbk...","..kkbbbbbbkk....","..okkkkkkko.....",".ooo.....ooo...."];
-const SIT_SNOUT={std:"..kbbbwwwwook...",fire:"..kbbbwwwwwqk...",ice:"..kbbbwwwwwqk...",earth:"..kbbbwwwwqqk...",air:"..kbbbwwwwoook.."};
-const SIT_FISH={std:['A',['#ff8a1e','#fff1d8','#e83a2a']],fire:['A',['#e04a4a','#ffc0b0','#a02a3a']],ice:['A',['#5a6a7a','#dfe4ea','#a8b8c8']],earth:['C',['#b08a4a','#e8d39a','#7a5a2a']],air:['A',['#3a8aa8','#e8f0f0','#1a3a5a']]};
-const EARS={fire:{map:[".k.","kbk","kwk"],at:[[3,-2],[7,-2]]},ice:{map:[".kk.","kbbk"],at:[[2,-1],[7,-1]]}};
+const SIT_SNOUT={elec:"..kbbbwwwwwqk...",leaf:"..kbbbwwwwwqk...",std:"..kbbbwwwwwqqk..",fire:"..kbbbwwwwwqk...",ice:"..kbbbwwwwook...",earth:"..kbbbwwwwqqk...",air:"..kbbbwwwwoook.."};
+const SIT_FISH={elec:['A',['#3a8ad0','#e0f0ff','#ffe040']],leaf:['C',['#5ab04a','#e8f8c0','#2a7a2a']],std:['A',['#ff8a1e','#fff1d8','#e83a2a']],fire:['A',['#e04a4a','#ffc0b0','#a02a3a']],ice:['A',['#5a6a7a','#dfe4ea','#a8b8c8']],earth:['C',['#b08a4a','#e8d39a','#7a5a2a']],air:['A',['#3a8aa8','#e8f0f0','#1a3a5a']]};
+const EARS={fire:{map:[".k.","kbk","kwk"],at:[[3,-2],[7,-2]]},std:{map:[".k.","kbk"],at:[[3,-1],[7,-1]]},elec:{map:[".kk.","kbdk"],at:[[2,-1],[7,-1]]},leaf:{map:[".k.","kdk",".kk","kbk"],at:[[3,-4],[7,-4]]}};
 function sitCanvas(cls){const C=CLS[cls];const c=document.createElement('canvas');c.width=24;c.height=26;const g=c.getContext('2d');const ox=5,oy=4;
   if(C.tail)g.drawImage(mk(["..kkk","kkbbk","kbbbk","kbwwk",".kkk."],C.tail),ox-4,oy+13);
-  g.drawImage(mk(SIT.map(r=>r==='SNOUT'?SIT_SNOUT[cls]:r),C.pal),ox,oy);
+  g.drawImage(mk(patternRows(SIT.map(r=>r==='SNOUT'?SIT_SNOUT[cls]:r),C.pattern),C.pal),ox,oy);
   const [tp,cl]=SIT_FISH[cls],fs=fishSpr(['',1,0,1,tp,cl]);g.save();g.translate(ox+2+fs.width,oy+10);g.scale(-1,1);g.drawImage(fs,0,0);g.restore();
   g.drawImage(mk(["kk..","kbk.",".kbk",".kbk","..kk"],C.pal),ox+9,oy+9);
   const E=EARS[cls];if(E)E.at.forEach(([x,y])=>g.drawImage(mk(E.map,C.pal),ox+x,oy+y));
@@ -663,7 +674,7 @@ function catchFish(){
   if(tab==='bag')renderPanel();
   if(isNew&&c.tier>=4)toast(`${FRAR[c.tier].n}! ${c.f[0]} added to your index`);
   else if(isNew&&zonesCompleteJust())toast(`${ZONES[c.zi].name} index complete: +10% coins`);
-  if(!B&&now()>(S.bossCd||0)&&Math.random()<BOSS_CHANCE)startBoss(c.zi);
+  if(!B&&now()>(S.bossCd||0)&&Math.random()<BOSS_CHANCE*(S.cls==='elec'?2:1))startBoss(c.zi);
   if(tab==='index')renderPanel();
 }
 let _zcDone=0;function zonesCompleteJust(){const z=zonesComplete();const j=z>_zcDone;_zcDone=z;return j}
@@ -715,8 +726,8 @@ function hitBoss(px,py){
   B.hp-=d;B.shake=1;B.flash=1;
   const bx=px??(180+Math.random()*40),by=py??(100+Math.random()*20);
   floats.push({x:bx,y:by-6,t:0,txt:(crit?'CRIT -':'-')+fmt(d),col:crit?'#ffcd3c':'#ffffff'});
-  splash(bx,by,crit?10:5,crit?'#ffcd3c':(S.cls&&S.cls!=='std'?curC().fx:'#ff8a9a'));
-  if(S.cls&&S.cls!=='std'&&window.__gem)projs.push({x0:window.__gem.x,y0:window.__gem.y,x1:bx,y1:by,t:0,col:curC().gem});
+  splash(bx,by,crit?10:5,crit?'#ffcd3c':curC().fx);
+  const psrc=window.__gem||(S.cls==='std'?window.__tip:null);if(S.cls&&psrc)projs.push({x0:psrc.x,y0:psrc.y,x1:bx,y1:by,t:0,col:curC().gem});
   if(B.hp<=0)winBoss();
 }
 function winBoss(){
@@ -743,7 +754,7 @@ let crSel='cooking',_dexIc=null,bagSel=null,idxZ=null,idxT=1,netT=-1,netSel=null
 const EGGR=Object.fromEntries(SK_ORDER.map(k=>[k,{n:SKILLS[k].n+' Egg',c:SKILLS[k].col,d:mix(SKILLS[k].col,'#05060c',.35),ch:.006}]));
 const DUPE_COINS=[200,800,3000,12000,50000];
 function eggPal(r){return EGGS[SK_ORDER.indexOf(r)].pal}
-function eggChance(r){return EGGR[r].ch*(1+luck()*.5)}
+function eggChance(r){return EGGR[r].ch*(1+luck()*.5)*(S.cls==='leaf'?1.5:1)}
 function oneIn(r){return Math.round(1/eggChance(r))}
 function rollEgg(){for(const r of SK_ORDER.slice().sort(()=>Math.random()-.5)){if(Math.random()<eggChance(r)){S.eggs[r]=(S.eggs[r]||0)+1;splash(BOBX,BOBY-4,14,EGGR[r].c);
   logItems.unshift({egg:r});logItems.length=Math.min(logItems.length,6);renderLog();toast(`You fished up a ${EGGR[r].n}! Hatch it from your Bag to see which pet is inside`);if(tab==='bag'||tab==='pets')renderPanel();return}}}
@@ -1083,8 +1094,12 @@ function qz(h){return'#'+hex(h).map(v=>(Math.round(v/6)*6>255?255:Math.round(v/6
 const sceneryCache={},waterCache={};
 /* ---- each fisher has their own world: zone names, colours, scenery and moving effects ---- */
 const THEMES={
- fire:{world:'Volcanoes & savanna',names:['Savanna Waterhole','Acacia River','Ember Lake','Volcano Bay','Magma Trench','Ashfall Abyss'],
-  sky:[['#f0a050','#ffe0a0','#5a8a6a','#2a4a3a'],['#e8904a','#ffd090','#4a7a7a','#1a3a40'],['#c0603a','#f8b070','#8a4a3a','#3a1a1a'],['#a04030','#f08050','#2a6a7a','#102a3a'],['#2a0a10','#5a1a1a','#3a1010','#0a0204'],['#1a0a14','#4a1a24','#2a0a14','#050206']],swap:{snow:'clear'}},
+ fire:{world:'Volcanoes & black stone',names:['Obsidian Shore','Lava Falls','Ember Lake','Volcano Bay','Magma Trench','Ashfall Abyss'],
+  sky:[['#4a2228','#d0704a','#2a3a3e','#0c1416'],['#3a1a20','#c0583a','#3a2a2a','#140a0a'],['#2a1218','#a04030','#5a2a1a','#1a0806'],['#3a1a1e','#b05038','#24343a','#081014'],['#1a0608','#4a1210','#2a0a08','#080202'],['#140610','#3a1222','#200810','#050206']],swap:{snow:'clear'}},
+ elec:{world:'Jungle',names:['Jungle Creek','Vine River','Temple Lagoon','Monsoon Coast','Cenote Depths','Canopy Abyss'],
+  sky:[['#7ab0a0','#e0f0d0','#3a7a5a','#123a28'],['#6aa0b0','#d0e8d8','#3a6a5a','#10301e'],['#80b8c0','#f0f0d0','#2a8a7a','#0a3a30'],['#5a90a8','#d8e8e0','#2a7a80','#0a3040'],['#0c1a14','#203a2c','#0a2a20','#020a06'],['#0a140c','#1a3020','#0e2a18','#020804']],swap:{snow:'rain'}},
+ leaf:{world:'Savanna',names:['Savanna Waterhole','Acacia River','Baobab Lake','Golden Coast','Rift Depths','Sunset Abyss'],
+  sky:[['#f0a050','#ffe0a0','#5a8a6a','#2a4a3a'],['#e8904a','#ffd090','#4a7a7a','#1a3a40'],['#e0a060','#fff0c0','#4a8a8a','#18404a'],['#f08a5a','#ffd8a0','#2a7a8a','#0a3a4a'],['#2a1420','#6a3030','#2a1a1a','#080404'],['#3a1830','#a04a40','#2a1424','#08040a']],swap:{snow:'clear',fog:'clear'}},
  ice:{world:'Iceland & icebergs',names:['Glacier Lagoon','Fjord Run','Black Sand Bay','Iceberg Sound','Frozen Trench','Aurora Abyss'],
   sky:[['#8ac0e8','#e8f4ff','#5ab0c8','#1a5a7a'],['#7aa8d8','#d8ecf8','#3a8aa8','#123a58'],['#9aa8c0','#e0e4ec','#3a5a6a','#0e1e2a'],['#6a9ad0','#d0e8f8','#2a7aa0','#0a3050'],['#0a1430','#203868','#0a2848','#020812'],['#0a1028','#1a3060','#102040','#02060f']],swap:{rain:'snow'}},
  earth:{world:'Swamps & hills',names:['Mossy Bog','Bayou Bend','Misty Marsh','Mangrove Shallows','Sinkhole Depths','Mire Abyss'],
@@ -1097,7 +1112,8 @@ function applyTheme(){const th=curTheme();ZONES.forEach((z,i)=>{z.name=th?th.nam
   for(const k in sceneryCache)delete sceneryCache[k];for(const k in waterCache)delete waterCache[k];skyKey='';themeParts.length=0}
 const themeParts=[];
 /* crater spots (fire) and waterfalls (air) per zone, used by the moving effects */
-const VOLC={0:[[215,HZ-16]],1:[[190,HZ-27]],2:[[150,HZ-41],[60,HZ-19]],3:[[200,HZ-47]],5:[[180,HZ-31]]};
+const VOLC={0:[[70,HZ-34],[200,HZ-22]],1:[[60,HZ-30]],2:[[128,HZ-48],[30,HZ-20],[236,HZ-18]],3:[[200,HZ-47],[90,HZ-24]],5:[[180,HZ-31],[60,HZ-40]]};
+const STEAMV={0:[30,124,150,236],1:[20,110],2:[70,190],3:[40,140,206],4:[50,150,220],5:[110,230]},LAVAF={1:[[178,5,HZ-40]],4:[[100,3,HZ-30]]};
 const FALLS={0:[[198,10,HZ-44]],1:[[60,4,HZ-28]],2:[[112,3,HZ-34]],3:[[40,8,HZ-40]],4:[[30,3,HZ-52],[222,4,HZ-48]],5:[[58,4,HZ-38],[192,3,HZ-46]]};
 function landG(g,col,fnH){for(let x=0;x<W;x++){const h=Math.round(fnH(x));if(h>0)R(g,x,HZ-h,1,h,col)}}
 function volcano(g,cx,h,w,lava,dark){const a=dark?'#2a1418':'#5a3228',b=dark?'#1a0c10':'#3a1e1e';
@@ -1115,7 +1131,41 @@ function cypress(g,x,h,r){for(let y=0;y<h;y++){const w=1+(y>h-5?y-(h-5):0);R(g,x
 function cattails(g,r,n){for(let i=0;i<n;i++){const x=Math.floor(r()*W),h=4+Math.floor(r()*6);R(g,x,HZ-h,1,h,'#5a6a3a');R(g,x,HZ-h,1,2,'#6a4a2a')}}
 function mesa(g,x0,x1,h){for(let x=x0;x<=x1;x++){const e=Math.min(x-x0,x1-x),hh=h-(e<3?3-e:0);for(let y=0;y<hh;y++)R(g,x,HZ-hh+y,1,1,y%7===2?'#c8704a':x>x0+(x1-x0)*.6?'#8a3a2a':'#b0583a')}}
 function cliff(g,x0,x1,top,c1,c2){for(let x=x0;x<=x1;x++){const t=top+Math.round(Math.sin(x*.7)*1.5+Math.sin(x*.23)*2);for(let y=t;y<HZ;y++)R(g,x,y,1,1,(x+y)%5===0?c2:c1);R(g,x,t,1,1,'#5a8a3a')}}
+function blackGround(g,r,h0,amp){landG(g,'#1c1416',x=>h0+amp*Math.abs(Math.sin(x*.07))+((x*13)%7<2?2:0));landG(g,'#2a2024',x=>Math.max(0,h0-3+amp*.5*Math.abs(Math.sin(x*.11+1))));
+  for(let i=0;i<46;i++){const x=Math.floor(r()*W),y=HZ-1-Math.floor(r()*h0);R(g,x,y,1,1,r()<.55?'#3a2e30':'#ff5a1e')}
+  for(let x=0;x<W;x++)if((x*7)%23<3)R(g,x,HZ-1,1,1,'#ff7a2e')}
+function jungleTrees(g,r,n,yMin,yMax,cols){for(let i=0;i<n;i++){const x=Math.floor(r()*W),top=HZ-yMin-Math.floor(r()*(yMax-yMin)),rad=5+Math.floor(r()*7);
+  R(g,x-1,top,2,HZ-top,'#3a2a1a');for(let k=0;k<4;k++)disc(g,x+Math.round((r()-.5)*rad*1.6),top+Math.round((r()-.5)*rad*.6),Math.max(3,rad-Math.floor(r()*3)),cols[k%cols.length])}}
+function vines(g,r,n,yTop,len){for(let i=0;i<n;i++){const x=Math.floor(r()*W),L=Math.floor(len*(.4+r()*.6));for(let y=0;y<L;y++){R(g,x+Math.round(Math.sin(y*.3)*1),HZ-yTop+y,1,1,'#2e5a22');if(y%4===0)R(g,x+1,HZ-yTop+y,2,1,'#4a8a3a')}}}
+function palm(g,x,h,lean){for(let y=0;y<h;y++)R(g,x+Math.round(lean*y/h*4),HZ-y,2,1,y%3?'#8a6a3a':'#6a4a2a');const tx=x+lean*4,ty=HZ-h;
+  [[-8,3],[-6,-2],[6,-2],[8,3],[0,-4]].forEach(([dx,dy])=>{line(tx,ty,tx+dx,ty+dy+2,'#3a8a3a',g);line(tx,ty+1,tx+dx,ty+dy+3,'#2a6a2a',g)})}
+function temple(g,cx0,w,h){for(let k=0;k<5;k++){const ww=w-k*w/6,yy=HZ-Math.round(h*(k+1)/5);R(g,cx0-ww/2,yy,ww,Math.round(h/5),k%2?'#6a7a5a':'#7a8a6a');R(g,cx0-ww/2,yy,ww,1,'#9aa888')}
+  R(g,cx0-3,HZ-Math.round(h/5)*2,6,Math.round(h/5)*2,'#1a2214');R(g,cx0-4,HZ-h-4,8,4,'#6a7a5a');for(let i=0;i<8;i++)R(g,cx0-w/2+Math.round(i*w/8),HZ-Math.round(h/2)+i%3,1,4,'#3a6a2a')}
+function baobab(g,x,h){for(let y=0;y<h;y++){const w=Math.round(6-y/h*2);R(g,x-w,HZ-y,w*2,1,y%4?'#9a7a5a':'#8a6a4a')}const ty=HZ-h;[[-6,-4],[-3,-6],[2,-6],[6,-4]].forEach(([dx,dy])=>{line(x,ty,x+dx,ty+dy,'#8a6a4a',g);disc(g,x+dx,ty+dy-1,2,'#5a8a3a')})}
+function termite(g,x,h){for(let y=0;y<h;y++){const w=Math.max(1,Math.round(3*(1-y/h))+1);R(g,x-w,HZ-y,w*2,1,y%3?'#b07a4a':'#9a6a3a')}}
+function grass(g,col,fnH){landG(g,col,fnH);for(let x=0;x<W;x+=2){const h=Math.round(fnH(x));R(g,x,HZ-h-1-(x%6===0?1:0),1,1,mix(col,'#ffe090',.3))}}
 function themeScenery(cls,zi,g,r){
+ if(cls==='fire'){
+  if(zi===0){volcano(g,70,34,80,true,true);volcano(g,200,22,50,false,true);blackGround(g,r,5,4)}
+  if(zi===1){volcano(g,60,30,70,true,true);for(let x=150;x<W;x++){const t=HZ-40+Math.round(Math.sin(x*.5)*1.5);for(let y=t;y<HZ;y++)R(g,x,y,1,1,(x+y)%5===0?'#2a2024':'#1a1214')}blackGround(g,r,4,3)}
+  if(zi===2){volcano(g,30,20,40,false,true);volcano(g,236,18,36,false,true);volcano(g,128,48,140,true,true);blackGround(g,r,3,3)}
+  if(zi===3){volcano(g,90,24,52,false,true);volcano(g,200,47,100,true,true);for(let y=HZ-20;y<HZ;y++)R(g,205+Math.round(Math.sin(y*.3)*2),y,2,1,'#ff5a1e');landG(g,'#1c1416',x=>x<60?Math.round(14-x*.2):0)}
+  if(zi===4){for(let i=0;i<16;i++){const x=Math.floor(r()*W),h=10+Math.floor(r()*26);for(let y=0;y<h;y++){const w=Math.max(1,Math.round(y/h*4));R(g,x-w,HZ-h+y,w*2,1,'#140a0c')}for(let y=4;y<h;y+=3)R(g,x+((y/3)%2?1:-1),HZ-h+y,1,2,'#ff4a1a')}for(let x=80;x<130;x++)R(g,x,HZ-30+Math.round(Math.abs(x-104)*.3),1,30-Math.round(Math.abs(x-104)*.3),'#140a0c')}
+  if(zi===5){volcano(g,60,40,100,true,true);volcano(g,180,31,90,true,true);blackGround(g,r,3,2)}}
+ else if(cls==='elec'){const greens=['#2e6a32','#3a7a3a','#245a2a','#4a8a44'];
+  if(zi===0){landG(g,'#2a5a34',x=>10+4*Math.sin(x*.04));jungleTrees(g,r,16,12,26,greens);vines(g,r,10,26,14);for(let x=0;x<W;x+=3)R(g,x,HZ-2-(x%9===0?2:0),2,2,'#3a7a3a')}
+  if(zi===1){jungleTrees(g,r,10,26,40,greens);vines(g,r,22,40,26);palm(g,40,22,1);palm(g,210,26,-1)}
+  if(zi===2){jungleTrees(g,r,12,10,22,greens);temple(g,128,60,34);vines(g,r,6,22,10)}
+  if(zi===3){landG(g,'#e0c890',x=>3+Math.sin(x*.1));[20,52,190,226].forEach((x,i)=>palm(g,x,18+i*3,i%2?-1:1));jungleTrees(g,r,5,8,14,greens)}
+  if(zi===4){cliff(g,0,64,HZ-48,'#1a2a1a','#142014');cliff(g,190,W-1,HZ-44,'#1a2a1a','#142014');vines(g,r,18,48,30)}
+  if(zi===5){jungleTrees(g,r,20,12,40,['#0e2014','#14281a','#0a1a10']);for(let i=0;i<16;i++){const x=Math.floor(r()*W);R(g,x,HZ-2,2,2,'#2a4a3a');R(g,x,HZ-3,2,1,'#4ae0d0')}}}
+ else if(cls==='leaf'){
+  if(zi===0){grass(g,'#d0a858',x=>5+2*Math.sin(x*.05));[30,92,150].forEach((x,i)=>acacia(g,x,12+i*2));termite(g,210,12);disc(g,236,HZ-3,6,'#8a7a6a')}
+  if(zi===1){peaks(g,[[180,34]],'#7a8098','#646a80','#ffffff','#d8e0ec');grass(g,'#c89a50',x=>6+3*Math.sin(x*.03+1));[40,110,236].forEach(x=>acacia(g,x,14))}
+  if(zi===2){grass(g,'#d8b060',x=>4+2*Math.sin(x*.06));[60,180].forEach((x,i)=>baobab(g,x,16+i*4));acacia(g,120,12);termite(g,226,9)}
+  if(zi===3){landG(g,'#e8c890',x=>4+3*Math.abs(Math.sin(x*.05)));acacia(g,200,14);acacia(g,236,10)}
+  if(zi===4){cliff(g,0,70,HZ-44,'#8a4a2a','#6a3a20');cliff(g,186,W-1,HZ-40,'#8a4a2a','#6a3a20')}
+  if(zi===5){disc(g,128,HZ-6,20,'#ff9a4a');for(let i=0;i<4;i++){const x=30+i*64;R(g,x,HZ-16,1,16,'#1a0a10');R(g,x-8,HZ-18,17,2,'#1a0a10');R(g,x-6,HZ-19,13,1,'#1a0a10')}landG(g,'#1a0a10',x=>2+Math.sin(x*.2))}}
  if(cls==='fire'){
   if(zi===0){volcano(g,215,16,30,false,false);landG(g,'#d0a858',x=>5+2*Math.sin(x*.05));landG(g,'#b08a3a',x=>2+Math.sin(x*.3));[30,92,150].forEach((x,i)=>acacia(g,x,12+i*2))}
   if(zi===1){volcano(g,190,27,60,true,false);landG(g,'#c89a50',x=>8+4*Math.sin(x*.03+1));landG(g,'#a87a38',x=>3+Math.sin(x*.2));[40,110].forEach(x=>acacia(g,x,14))}
@@ -1146,6 +1196,14 @@ function themeScenery(cls,zi,g,r){
   if(zi===4){cliff(g,0,52,HZ-54,'#1e2a3a','#162030');cliff(g,204,W-1,HZ-50,'#1e2a3a','#162030')}
   if(zi===5){[[58,24,18],[192,16,14]].forEach(([x,y,w])=>{for(let k=0;k<8;k++){const ww=Math.max(1,w-k*2);R(g,x-ww,y+k,ww*2,1,k<2?'#5a8a3a':'#4a4a5a')}})}}}
 function themeFx(cls,zi,dt,hl){
+ if(cls==='fire'){(STEAMV[zi]||[]).forEach(x=>{if(Math.random()<dt*1.2)themeParts.push({k:'steam',x:x+(Math.random()-.5)*4,y:HZ-1,t:0})});
+  (LAVAF[zi]||[]).forEach(([x,w,top])=>{for(let xx=x;xx<x+w;xx++)for(let y=top;y<HZ;y++){const v=(y-Math.floor(T*26)+xx*3)%6;R(cx,xx,y,1,1,v<2?'#ffe080':v<4?'#ff9a2e':'#e8501a')}glowAt(x+w/2,HZ,8,'#ff7a2e',.5);if(Math.random()<dt*6)themeParts.push({k:'steam',x:x+Math.random()*w,y:HZ,t:0})});
+  if(Math.random()<dt*.18){const v=(VOLC[zi]||[])[0];if(v)for(let k=0;k<14;k++)parts.push({x:v[0],y:v[1],vx:(Math.random()-.5)*50,vy:-30-Math.random()*40,t:.1,col:Math.random()<.5?'#ff8a2e':'#ffcd3c'})}}
+ if(cls==='elec'){if(Math.random()<dt*2)mote(Math.random()*W,HZ-30-Math.random()*20,Math.random()<.5?'#4a8a3a':'#6aaa4a',(Math.random()-.5)*6,8,3);
+  for(let i=0;i<2;i++){const y=HZ-6+i*7,a=.08+.04*Math.sin(T*.4+i);cx.fillStyle=`rgba(220,240,220,${a})`;cx.fillRect(Math.round(Math.sin(T*.25+i)*20)-20,y,W+40,3)}}
+ if(cls==='leaf'){if(!themeParts.some(p=>p.k==='birds')&&Math.random()<dt*.08)themeParts.push({k:'birds',x:-20,y:12+Math.random()*24,t:0});
+  for(let x=4;x<W;x+=11){const sw=Math.round(Math.sin(T*1.5+x*.2)*1);R(cx,x+sw,HZ-3,1,2,'#c8a050');R(cx,x+1+sw,HZ-4,1,2,'#d8b860')}}
+
  if(cls==='fire'){(VOLC[zi]||[]).forEach(([x,y])=>{if(Math.random()<dt*4)themeParts.push({k:'smoke',x:x+(Math.random()-.5)*2,y,t:0})});
   if(zi>=2&&Math.random()<dt*6)motes.length<500&&mote(Math.random()*W,HZ-2,Math.random()<.5?'#ff8a2e':'#ffcd3c',(Math.random()-.5)*6,-10-Math.random()*8,2);
   if(zi===3)for(let y=HZ+1;y<HZ+18;y+=2)if(((y+Math.floor(T*6))%4)<2)R(cx,203+Math.round(Math.sin(T*2+y)*2),y,4,1,'#ff7a2e')}
@@ -1156,6 +1214,8 @@ function themeFx(cls,zi,dt,hl){
  if(cls==='air')(FALLS[zi]||[]).forEach(([x,w,top])=>{for(let xx=x;xx<x+w;xx++)for(let y=top;y<HZ;y++){const v=(y-Math.floor(T*40)+xx*3)%6;R(cx,xx,y,1,1,v<2?'#ffffff':v<4?'#bfe8ff':'#8fd0f0')}
   R(cx,x-1,top,1,HZ-top,'#5a8ab0');const f=Math.round(Math.sin(T*8)*1.5);R(cx,x-3,HZ-1+f,w+6,2,'#ffffff');R(cx,x-1,HZ-2-f,w+2,1,'#e8f6ff');if(Math.random()<dt*10)mote(x+Math.random()*w,HZ-2,'#ffffff',(Math.random()-.5)*14,-6,.7)});
  for(let i=themeParts.length-1;i>=0;i--){const p=themeParts[i];if(p.k==='smoke'){p.t+=dt;p.y-=7*dt;p.x+=3*dt;const rr=Math.round(1+p.t*1.6);cx.globalAlpha=Math.max(0,.55-p.t*.11);disc(cx,Math.round(p.x),Math.round(p.y),rr,'#6a6064');cx.globalAlpha=1;if(p.t>5)themeParts.splice(i,1)}
+  else if(p.k==='steam'){p.t+=dt;p.y-=9*dt;p.x+=Math.sin(p.t*2+p.x)*3*dt;const rr=Math.round(1+p.t*1.4);cx.globalAlpha=Math.max(0,.5-p.t*.16);disc(cx,Math.round(p.x),Math.round(p.y),rr,'#e8e4e0');cx.globalAlpha=1;if(p.t>3)themeParts.splice(i,1)}
+  else if(p.k==='birds'){p.t+=dt;p.x+=16*dt;for(let b=0;b<5;b++){const bx=p.x-b*7,by=p.y+Math.abs(b-2)*3,f=Math.floor(T*6+b)%2;R(cx,bx-2,by-f,2,1,'#2a1a14');R(cx,bx,by,1,1,'#2a1a14');R(cx,bx+1,by-f,2,1,'#2a1a14')}if(p.x>W+40)themeParts.splice(i,1)}
   else if(p.k==='bub'){p.t+=dt;const rr=Math.round(p.t*3);if(p.t<.8){for(let a=0;a<8;a++)R(cx,p.x+Math.round(Math.cos(a*.8)*rr),p.y+Math.round(Math.sin(a*.8)*rr*.4),1,1,'#c8d8b0')}else themeParts.splice(i,1)}}}
 
 function buildScenery(zi){
@@ -1476,7 +1536,7 @@ function draw(dt){
   const hx=boatX+31,hy=deckY+1,bite=castLeft<.5&&!B;
   R(cx,hx-1,hy-2,3,4,'#0e0f17');R(cx,hx,hy-1,1,2,'#5a5a6a');
   let tx,ty;
-  if(!mage){tx=boatX+58;ty=deckY-24+(bite?2:0);line(hx+1,hy,tx+1,ty,'#0e0f17');line(hx,hy-1,tx,ty,RODS[S.rod].col);window.__gem=null}
+  if(!mage){tx=boatX+58;ty=deckY-24+(bite?2:0);line(hx+1,hy,tx+1,ty,'#0e0f17');line(hx,hy-1,tx,ty,mix(RODS[S.rod].col,'#c8d4e0',.5));window.__tip={x:tx,y:ty};window.__gem=null}
   else{tx=boatX+47;ty=deckY-21+Math.round(Math.sin(T*2));line(hx+1,hy,tx+1,ty,'#0e0f17');line(hx,hy-1,tx,ty,'#7a5230');
     R(cx,tx-2,ty-3,5,5,'#0e0f17');R(cx,tx-1,ty-2,3,3,mix(C.gem,'#ffffff',S.rod*.06));R(cx,tx-1,ty-2,1,1,'#ffffff');window.__gem={x:tx,y:ty-1}}
   const lx=B&&bossHead?bossHead.x:BOBX,ly=B&&bossHead?bossHead.y:BOBY+(bite?2:0)+Math.round(Math.sin(T*3));
@@ -1500,6 +1560,8 @@ function draw(dt){
     if(a.cls==='ice'){R(cx,x-2,y-2,sp.width+4,sp.height+4,'#bfeaff');R(cx,x-2,y-2,sp.width+4,1,'#ffffff');R(cx,x-2,y-2,1,sp.height+4,'#e8fbff');R(cx,x-2,y+sp.height+1,sp.width+4,1,'#7fc8e8')}
     blit(sp,x,y,1,a.cls==='air'&&a.t<delay&&Math.floor(a.t*16)%2===1);
     if(a.cls==='ice'){cx.globalAlpha=.35;R(cx,x-1,y-1,sp.width+2,sp.height+2,'#dff6ff');cx.globalAlpha=1}
+    if(a.cls==='elec'){let px2=x+sp.width,py2=y+sp.height/2;for(let k=0;k<6;k++){const nx=px2+3+Math.random()*3,ny=py2+(Math.random()-.5)*6;line(px2,py2,nx,ny,k%2?'#fff4a0':'#ffe040');px2=nx;py2=ny}}
+    if(a.cls==='leaf'&&Math.random()<.5)mote(x+sp.width,y+Math.random()*sp.height,Math.random()<.5?'#6ac04a':'#a8e070',(Math.random()-.5)*10,8,.9);
     if(a.cls==='fire'&&Math.floor(T*14)%2)R(cx,x+sp.width-1+Math.random()*3,y+Math.random()*sp.height,1,1,'#ffb050');
     if(a.c.tier>=3&&Math.floor(T*12)%2)R(cx,x+Math.random()*sp.width,y-2+Math.random()*(sp.height+4),1,1,FRAR[a.c.tier].c)}
   // ---- time-of-day + weather tint over the whole world
@@ -1534,7 +1596,7 @@ function draw(dt){
   if(S.cls==='fire')(VOLC[zi]||[]).forEach(([x,y])=>glowAt(x,y,7,'#ff7a2e',.35+.15*Math.sin(T*3)));
   if(zi===3&&!curTheme()){const a=(Math.sin(T*1.2)+1)/2,on=lightOn?1:.35;glowAt(228,HZ-46,8,'#fff0a0',on*.8);R(cx,226,HZ-47,4,2,lightOn?'#fffbe0':'#e8d890');
     cx.globalCompositeOperation='lighter';cx.fillStyle=`rgba(255,240,160,${(.06+.06*a)*on})`;cx.beginPath();cx.moveTo(228,HZ-46);cx.lineTo(228-70-a*50,HZ-60+a*12);cx.lineTo(228-70-a*50,HZ-36+a*12);cx.closePath();cx.fill();cx.globalCompositeOperation='source-over'}
-  if((zi===0||zi===1||S.cls==='earth')&&ts.n>.5&&!wet)flies.forEach(f=>{const v=Math.sin(T*2.2+f.p);if(v>.2){const x=f.x+Math.sin(T*.7+f.p)*8,y=f.y+Math.sin(T*1.1+f.p*2)*4;cx.globalCompositeOperation='lighter';cx.globalAlpha=v*.35;R(cx,x-1,y-1,3,3,'#c8ff6a');cx.globalAlpha=v;R(cx,x,y,1,1,'#f0ffb0');cx.globalAlpha=1;cx.globalCompositeOperation='source-over'}});
+  if((zi===0||zi===1||S.cls==='earth'||S.cls==='elec')&&ts.n>.5&&!wet)flies.forEach(f=>{const v=Math.sin(T*2.2+f.p);if(v>.2){const x=f.x+Math.sin(T*.7+f.p)*8,y=f.y+Math.sin(T*1.1+f.p*2)*4;cx.globalCompositeOperation='lighter';cx.globalAlpha=v*.35;R(cx,x-1,y-1,3,3,'#c8ff6a');cx.globalAlpha=v;R(cx,x,y,1,1,'#f0ffb0');cx.globalAlpha=1;cx.globalCompositeOperation='source-over'}});
   if(zi===4)glow.forEach(gl=>{const v=Math.sin(T*1.5+gl.p);if(v>0){R(cx,gl.x+Math.sin(T+gl.p)*3,gl.y,1,1,v>.7?'#bff7ff':'#4fa8c8')}});
   // ---- spells (mages)
   const sp_=window.__spell;window.__spell=null;
@@ -1554,6 +1616,14 @@ function draw(dt){
       else if(cl==='air'){const sp2=bite?14:6;glowAt(sx,sy-2,8,'#e8f4ff',.2);
         for(let k=0;k<3;k++)for(let st=0;st<9;st++){const an=T*sp2+k*2.1+st*.18;const r=3+k*3;R(cx,sx+Math.cos(an)*r,sy+1+Math.sin(an)*(1+k*.6),1,1,st>5?'#ffffff':'#c8e0f0')}
         const fy=sy-11+Math.round(Math.sin(T*1.5)*2),fx=sx+Math.round(Math.sin(T)*3);R(cx,fx,fy,1,5,'#f4f4f4');R(cx,fx-1,fy+1,1,3,'#d8e4ee');R(cx,fx+1,fy+1,1,2,'#ffffff')}
+      else if(cl==='elec'){glowAt(sx,sy,9,'#ffe040',bite?.55:.3);
+        for(let k=0;k<(bite?6:3);k++){const a0=Math.random()*Math.PI*2,r0=3+Math.random()*7;let x1=sx+Math.cos(a0)*2,y1=sy+1;const x2=sx+Math.cos(a0)*r0,y2=sy+1+Math.sin(a0)*r0*.35;line(x1,y1,(x1+x2)/2+(Math.random()-.5)*3,(y1+y2)/2-1,'#fff4a0');line((x1+x2)/2,(y1+y2)/2-1,x2,y2,'#ffe040')}
+        const fy=sy-11+Math.round(Math.sin(T*2)*2);R(cx,sx-1,fy,3,3,'#ffe040');R(cx,sx,fy+1,1,1,'#ffffff');
+        if(bite&&Math.floor(T*14)%3===0){let lx2=sx+(Math.random()-.5)*20,ly2=0;while(ly2<sy){const nx=lx2+(Math.random()-.5)*8+(sx-lx2)*.25,ny=Math.min(sy,ly2+5+Math.random()*6);line(lx2+1,ly2,nx+1,ny,'#9fb0ff');line(lx2,ly2,nx,ny,'#ffffff');lx2=nx;ly2=ny}glowAt(sx,sy,12,'#ffffff',.5)}}
+      else if(cl==='leaf'){for(let x=-6;x<=6;x++){const yy=Math.round(Math.sqrt(Math.max(0,1-x*x/36))*2);R(cx,sx+x,sy+1-yy,1,yy*2+1,(x+6)%5===0?'#3a8a2a':'#5ab04a')}R(cx,sx+2,sy,2,1,'#2a6a20');
+        R(cx,sx-2,sy-2,3,2,'#ffffff');R(cx,sx-1,sy-3,1,1,'#ffb0d0');R(cx,sx-1,sy-2,1,1,'#ffe040');
+        for(let k=0;k<14;k++){const u=k/14,vx=sx+6+Math.sin(u*9+T*(bite?8:2))*(bite?3:1.5),vy=sy+2+u*10;R(cx,vx,vy,1,1,'#3a8a2a');if(k%4===1)R(cx,vx+1,vy,2,1,'#6ac04a')}
+        if(bite&&Math.random()<dt*10)mote(sx+(Math.random()-.5)*10,sy,'#8ae070',(Math.random()-.5)*12,-10,.8)}
       if(bite)ptext('!',sx,sy-20,'#ffcd3c')}}
   else if(!B&&!avatarJob()&&castLeft<.5&&(S.cls||'std')==='std')ptext('!',BOBX,BOBY-12,'#ffcd3c');
   for(let i=fxs.length-1;i>=0;i--){const f=fxs[i];f.t+=dt;if(f.k==='tornado'){const h=Math.round(Math.min(1,f.t*4)*30);for(let y=0;y<h;y+=2){const r=2+y*.18,an=T*16+y*.5;R(cx,BOBX+Math.cos(an)*r,BOBY+2-y,2,1,'#f4f8ff');R(cx,BOBX-Math.cos(an)*r,BOBY+2-y,1,1,'#c8e0f0')}}if(f.t>.6)fxs.splice(i,1)}

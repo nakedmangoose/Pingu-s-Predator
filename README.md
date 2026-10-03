@@ -4,13 +4,15 @@ A pixel-art idle fishing game that runs in the browser. Open `index.html` to pla
 
 ## Features
 
-- **Five fishers**, each a separate save with their own level, coins, gear, pets and fish index, plus their own way of catching fish, boss attack and perk:
-  - Penguin · Angler: rod and bobber, +15% coins
-  - Fox · Pyromancer: boils the water with fire magic, +40% boss strike damage
-  - Polar Cub · Cryomancer: freezes fish in ice, +10% luck and longer boss fights
-  - Mole · Geomancer: raises stone pillars, fish weigh 25% more
-  - Duck · Aeromancer: whirlwinds, +20% catch speed
-- **A world per fisher**: the penguin's ponds and coast, the fox's volcanoes and savanna, the polar cub's Iceland and icebergs, the mole's swamps and hills, and the duck's waterfalls and national park, each with six zones and **600 catches** in six tiers (Junk, Common, Uncommon, Rare, Epic, Legendary, 100 each). Odds shift with rod, bait, zone and weather
+- **Seven fishers**, each a separate save with their own level, coins, gear, pets and fish index, their own way of catching fish, boss attack and perk:
+  - Armadillo · Ironclad (Steel): steel rod, fires steel spikes at bosses, +15% coins
+  - Fox · Pyromancer (Fire): boils the water, +40% boss strike damage
+  - Penguin · Cryomancer (Ice): freezes fish in ice, woolly hat, +10% luck and longer boss fights
+  - Mole · Geomancer (Earth): raises stone pillars, fish weigh and sell for 25% more
+  - Duck · Aeromancer (Air): whirlwinds, +20% catch speed
+  - Tiger · Stormcaller (Electric): sparks and lightning, bosses surface twice as often
+  - Giraffe · Druid (Leaf): lily pads and vines, eggs turn up 50% more often
+- **A world per fisher**: ponds and coast (armadillo), volcanoes and black stone (fox), Iceland and icebergs (penguin), swamps and hills (mole), waterfalls and national park (duck), jungle (tiger) and savanna (giraffe), each with six zones and **600 catches** in six tiers (Junk, Common, Uncommon, Rare, Epic, Legendary, 100 each). Odds shift with rod, bait, zone and weather
 - **Bosses** that surface at random while you fish and are fought automatically; beaten bosses are caught into your Net
 - **Shop** with rods/staffs, bait and timed supplies
 - **Seven crafts** (cooking, brewing, smithing, alchemy, engineering, tailoring, enchanting), each with levels, six recipes and a lasting bonus (crafting gives craft XP, not coins). Crafting yourself pauses fishing; a craft pet does it for you
