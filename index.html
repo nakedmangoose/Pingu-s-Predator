@@ -167,6 +167,22 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
 .pmate .st{font-size:11px;color:var(--brass);letter-spacing:1px}
 .petbar .empty{align-self:center;font-size:14px;color:var(--muted)}
 .psel{align-self:center;flex:none;max-width:240px}
+.hatch-in{max-width:620px;align-items:center;text-align:center}
+.reel{position:relative;width:100%;height:104px;overflow:hidden;background:var(--edge)}
+.reel-strip{position:absolute;left:0;top:8px;display:flex;gap:8px;will-change:transform}
+.reel-slot{flex:none;width:76px;height:88px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--panel2);box-shadow:inset 0 -4px 0 var(--rc)}
+.reel-slot img{image-rendering:pixelated;height:54px;width:auto}
+.reel-slot span{font-family:var(--display);font-size:6px;color:var(--rc)}
+.reel-slot.win{background:var(--hi);animation:win .4s steps(2) 3}
+@keyframes win{50%{transform:translateY(-4px)}}
+.reel-mark{position:absolute;left:50%;top:0;bottom:0;width:4px;margin-left:-2px;background:var(--brass);box-shadow:0 0 0 2px var(--edge)}
+.reel-mark::before,.reel-mark::after{content:"";position:absolute;left:-6px;border:8px solid transparent}
+.reel-mark::before{top:0;border-top-color:var(--brass)}.reel-mark::after{bottom:0;border-bottom-color:var(--brass)}
+#hatchcv{width:min(320px,100%);height:auto;image-rendering:pixelated;background:var(--edge)}
+.hatchres{font-size:18px;font-weight:600;min-height:1.4em}
+.hatchres small{display:block;font-size:14px;color:var(--muted);font-weight:400}
+.hatchbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+@media (prefers-reduced-motion:reduce){.reel-slot.win{animation:none}}
 #toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;align-items:center;z-index:10;pointer-events:none;width:min(92vw,440px)}
 .toast{background:var(--edge);color:var(--foam);font-weight:600;padding:9px 14px;text-align:center;animation:tin .2s steps(3);box-shadow:0 -3px 0 0 var(--brass),0 3px 0 0 var(--brass),-3px 0 0 0 var(--brass),3px 0 0 0 var(--brass)}
 @keyframes tin{from{transform:translateY(10px);opacity:0}}
@@ -214,6 +230,10 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
 </div>
 <div class="picker" id="picker" hidden><div class="pk-in px"><h2>Choose your fisher</h2><p class="hint">Each fisher catches fish their own way and has a perk. Every fisher is a separate save with their own level, coins, gear, pets, bosses and fish index. Switch any time from the bar at the top.</p><div class="pk-grid" id="pkgrid"></div></div></div>
 <div class="picker" id="eggdex" hidden><div class="pk-in px"><div class="dexhead"><h2 id="dextitle"></h2><button class="btn ghost" data-act="closedex">Close</button></div><p class="hint" id="dexsub"></p><div class="grid dexgrid" id="dexgrid"></div></div></div>
+<div class="picker" id="hatchbox" hidden><div class="pk-in px hatch-in"><h2 id="hatchtitle">Hatching</h2>
+<div class="reel" id="reel"><div class="reel-strip" id="reelstrip"></div><div class="reel-mark"></div></div>
+<canvas id="hatchcv" width="40" height="34" hidden></canvas><div class="hatchres" id="hatchres"></div>
+<div class="hatchbtns" id="hatchbtns" hidden><button class="btn" data-act="hatchequip" id="hatchequip">Take it out</button><button class="btn ghost" data-act="hatchagain" id="hatchagain">Hatch another</button><button class="btn ghost" data-act="hatchdone">Done</button></div></div></div>
 <div id="toasts" aria-live="polite"></div>
 
 <script>
@@ -519,7 +539,7 @@ MAPS.BP=["kkkkkkkkkkkk","kbbbbbbbbbbk","kbbbbwbbbbbk","kbbbwbwbbbbk","kbbwbbbwbb
 function url(c,scale){const k=c.toDataURL();return k}
 function imgTag(c,scale,alt){const key=(c._u||(c._u=c.toDataURL()));return`<img src="${key}" width="${c.width*scale}" height="${c.height*scale}" alt="${alt||''}">`}
 
-function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},
+function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},eggs:[1,0,0,0,0],
  buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
 let PROF={}; /* every fisher is a separate save: PROF[cls] holds their whole state; S is the active one */
 let S=fresh(), B=null, tab='shop', castLeft=4, castMax=4, logItems=[];
@@ -567,6 +587,7 @@ function catchFish(){
   const isNew=record(c,coins,xp);
   anims.push({t:0,c,coins,cls:S.cls||'std'});splash(BOBX,BOBY,c.tier>=3?14:8,curC().fx);if(S.cls==='fire')splash(BOBX,BOBY-4,8,'#ffffff');if(S.cls==='air')fxs.push({k:'tornado',t:0});if(pT<2.6)pT=2.6;
   logItems.unshift({c,coins,isNew});logItems.length=Math.min(logItems.length,6);renderLog();
+  rollEgg();
   if(isNew&&c.tier>=3)toast(`${RAR[c.tier].n}! ${c.f[0]} added to your index`);
   else if(isNew&&zonesCompleteJust())toast(`${ZONES[c.zi].name} index complete: +10% coins`);
   if(S.zc[c.zi]===15&&!S.beaten[c.zi])toast(`${ZONES[c.zi].boss.name} has noticed you. Check Bosses.`),markTabs();
@@ -642,18 +663,75 @@ function renderCrew(){$('crew').innerHTML=CLS_ORDER.map(k=>{const C=CLS[k],c=cha
   return`<button class="mate px" data-act="choose" data-arg="${k}" aria-pressed="${on}"><span class="pic">${imgTag(sitCanvas(k),2,C.animal)}</span><span class="info"><span class="nm">${C.animal}</span><span class="lv">${c.on?`Lv <span class="num" id="crewlv-${k}">${c.lvl}</span> · ${fmt(c.coins)} coins`:'New · Lv 1'}</span><span class="bar"><b id="crewxp-${k}" style="width:${c.xp/xpNeed(c.lvl)*100}%"></b></span></span></button>`}).join('')}
 function setLogo(){$('logo').src=avatarCanvas(S.cls||'std').toDataURL();$('hint').textContent=`Your ${curC().animal.toLowerCase()} fishes on its own. Tap the water to ${curC().verb} and land fish faster.`}
 let crSel='cooking',_dexIc=null;
+/* fished eggs, by rarity: chance per fish caught (luck raises it a little) */
+const EGGR=[{n:'Common Egg',c:'#c8d0dc',d:'#8a96a8',ch:.03},{n:'Uncommon Egg',c:'#5fd16a',d:'#2f8a3a',ch:.012},{n:'Rare Egg',c:'#4fa8ff',d:'#2a5ab0',ch:.004},{n:'Epic Egg',c:'#c07bff',d:'#6a3ab0',ch:.0012},{n:'Legendary Egg',c:'#ffcd3c',d:'#c07a10',ch:.0003}];
+const DUPE_COINS=[200,800,3000,12000,50000];
+function eggPal(r){const e=EGGR[r];return{b:e.c,l:mix(e.c,'#ffffff',.55),d:e.d}}
+function eggChance(r){return EGGR[r].ch*(1+luck()*.5)}
+function oneIn(r){return Math.round(1/eggChance(r))}
+function rollEgg(){for(let r=4;r>=0;r--){if(Math.random()<eggChance(r)){S.eggs[r]=(S.eggs[r]||0)+1;splash(BOBX,BOBY-4,14,EGGR[r].c);
+  logItems.unshift({egg:r});logItems.length=Math.min(logItems.length,6);renderLog();toast(`You fished up a ${EGGR[r].n}! Hatch it from your Bag`);if(tab==='bag'||tab==='pets')renderPanel();return}}}
 /* small pixel "pet book" icon */
 function DEX_IC(){return _dexIc||(_dexIc=mk(["kkkkkkkk.","kwwkwwwwk","kwwkwbbwk","kwwkwwwwk","kwwkwbbwk","kwwkwwwwk","kwwkwbbwk","kkkkkkkk."],{w:'#f4efe2',b:'#9aa6c4'}))}
-function openDex(i){const e=EGGS[i];if(!e)return;const tw=e.pets.reduce((a,p)=>a+p[5],0);
-  $('dextitle').textContent=e.n;$('dextitle').style.color=e.pal.b;
-  $('dexsub').textContent=e.skill?`Every pet in this egg wears ${SKILLS[e.skill].hats} and does ${SKILLS[e.skill].n.toLowerCase()} for you while you fish. Rarer pets craft faster and earn more. Duplicates add a star (up to 5★), and each star adds another 10%.`:'';
-  $('dexgrid').innerHTML=e.pets.map(pp=>{const p=PETS[pp[0]],st=S.pets[p.id]||0,pct=pp[5]/tw*100;
+/* ---- hatching: roulette spin, then the pet breaks out of its egg ---- */
+let HATCH=null;
+function pickHatch(r){const k=SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)];const list=Object.values(PETS).filter(p=>p.skill===k&&p.tier===r);return list[Math.floor(Math.random()*list.length)]}
+function reelSlot(p){const SK=SKILLS[p.skill];return`<div class="reel-slot" style="--rc:${RAR[p.tier].c};background:${mix('#2a3858',SK.col,.25)}">${imgTag(petSpr(p.id),3,p.n)}<span>${RAR[p.tier].n.toUpperCase()}</span></div>`}
+function openHatch(r){if(!(S.eggs[r]>0)||HATCH)return;S.eggs[r]--;const win=pickHatch(r);const all=Object.values(PETS);
+  const N=46,W=38,strip=[];for(let i=0;i<N;i++)strip.push(i===W?win:all[Math.floor(Math.random()*all.length)]);
+  $('hatchtitle').textContent=`Hatching a ${EGGR[r].n}`;$('hatchtitle').style.color=EGGR[r].c;
+  $('reelstrip').innerHTML=strip.map(reelSlot).join('');$('reel').hidden=false;$('hatchcv').hidden=true;$('hatchbtns').hidden=true;$('hatchres').innerHTML='Spinning…';
+  $('hatchbox').hidden=false;HATCH={r,win,t0:performance.now(),phase:'spin',W};
+  const box=$('reel').clientWidth||560,slot=84,target=W*slot+38-box/2+(Math.random()-.5)*44;HATCH.target=target;
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;HATCH.dur=reduce?300:4200;
+  requestAnimationFrame(hatchStep);if(tab==='bag'||tab==='pets')renderPanel()}
+function hatchStep(now2){const H=HATCH;if(!H)return;const e=(now2-H.t0)/H.dur;
+  if(H.phase==='spin'){const q=Math.min(1,e),x=H.target*(1-Math.pow(1-q,4));$('reelstrip').style.transform=`translateX(${-x}px)`;
+    if(q>=1){H.phase='land';H.t0=now2;const sl=$('reelstrip').children[H.W];if(sl)sl.classList.add('win');$('hatchres').innerHTML=`<span style="color:${RAR[H.win.tier].c}">${RAR[H.win.tier].n}</span> ${SKILLS[H.win.skill].n} pet!`}
+    requestAnimationFrame(hatchStep);return}
+  if(H.phase==='land'){if(now2-H.t0>1100){H.phase='egg';H.t0=now2;$('reel').hidden=true;$('hatchcv').hidden=false;$('hatchres').textContent='…'}requestAnimationFrame(hatchStep);return}
+  if(H.phase==='egg'){const t=(now2-H.t0)/1000;drawHatch(t,H);if(t<3.2){requestAnimationFrame(hatchStep);return}finishHatch()}}
+function drawHatch(t,H){const c=$('hatchcv'),g=c.getContext('2d');g.imageSmoothingEnabled=false;const W2=40,H2=34;g.clearRect(0,0,W2,H2);
+  const P=H.win,er=EGGR[H.r],K='#0e0f17',ecx=20,ecy=21;
+  const px=(x,y,col)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),1,1)};
+  /* glow behind */const gl=Math.min(1,t/1.2);g.globalAlpha=.25*gl;g.fillStyle=er.c;for(let y=-14;y<=14;y++)for(let x=-14;x<=14;x++)if(x*x+y*y<196&&(x+y)%2===0)g.fillRect(ecx+x,ecy-2+y,1,1);g.globalAlpha=1;
+  const inEgg=(x,y)=>{const yy=y/(y<0?10.5:9),xx=x/8;return xx*xx+yy*yy<=1};
+  const crackY=x=>Math.round(-1+((x+20)%4<2?-1:1));
+  const wob=t<1.3?Math.round(Math.sin(t*(8+t*14))*(t>.4?1:0)):0;
+  const broken=t>=1.45,lift=broken?Math.min(1,(t-1.45)/.6):0;
+  /* pet rises out once the shell breaks, arms up */
+  if(broken){const rise=Math.min(1,(t-1.45)/.5),bob=t>2?Math.round(Math.sin((t-2)*10)):0;const ppx=ecx-8,ppy=ecy-15+Math.round((1-rise)*9);
+    g.drawImage(petBody(P.id,false),ppx,ppy);const pu=PAW.up;g.drawImage(pawCv(P.id,'up'),ppx+pu.x,ppy+pu.y-1+bob);g.drawImage(pawCv(P.id,'up'),ppx+pu.x-6,ppy+pu.y-2-bob);
+    const HH=HAT2[SKILLS[P.skill].hat],[ox,oy]=hatOff(HH,HH.gog?0:1);g.drawImage(hatCv(P.skill),ppx+HH.x+ox,ppy+HH.y+oy)}
+  /* egg: whole, then the bottom cup stays and the top flies off */
+  for(let y=-11;y<=9;y++)for(let x=-9;x<=9;x++){if(!inEgg(x,y))continue;const cy=crackY(x);const top=y<cy;
+    if(broken&&top)continue;const edge=!inEgg(x-1,y)||!inEgg(x+1,y)||!inEgg(x,y-1)||!inEgg(x,y+1);
+    let col=edge?K:(x+y<-8?mix(er.c,'#ffffff',.45):x+y>8?er.d:er.c);if(!edge&&((x*7+y*13)%11===0))col=er.d;
+    if(!edge&&t>.5&&!broken&&y===cy&&Math.abs(x)<=Math.floor((t-.5)/.9*9))col=K;
+    if(broken&&y===cy)col=K;px(ecx+x+wob,ecy+y,col)}
+  if(broken&&lift<1){const ox=Math.round(lift*14),oy=Math.round(-lift*16+lift*lift*8);g.globalAlpha=1-lift*.7;
+    for(let y=-11;y<=1;y++)for(let x=-9;x<=9;x++){if(!inEgg(x,y)||y>=crackY(x))continue;const edge=!inEgg(x-1,y)||!inEgg(x,y-1)||y===crackY(x)-1;px(ecx+x+(x<0?-ox:ox),ecy+y+oy,edge?K:(x+y<-8?mix(er.c,'#ffffff',.45):er.c))}g.globalAlpha=1}
+  /* sparkles */if(broken)for(let n=0;n<10;n++){const an=n*.63+t*2,rd=6+((t-1.45)*14+n*3)%12;if(Math.floor(t*10+n)%3)px(ecx+Math.cos(an)*rd,ecy-6+Math.sin(an)*rd*.7,n%2?'#ffffff':RAR[P.tier].c)}}
+function finishHatch(){const H=HATCH;const p=H.win,cur=S.pets[p.id]||0;let msg;
+  if(cur>=5){S.coins+=DUPE_COINS[p.tier];msg=`${p.n} is already 5★, so you get ${fmt(DUPE_COINS[p.tier])} coins instead.`}
+  else{S.pets[p.id]=cur+1;msg=cur?`${p.n} ranked up to ${cur+1}★!`:`A new pet for your collection!`;if(!cur&&!S.eq.length)S.eq=[p.id]}
+  $('hatchres').innerHTML=`<span style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span> ${p.n}<small>${SKILLS[p.skill].n} pet · ${msg}</small>`;
+  $('hatchbtns').hidden=false;$('hatchequip').hidden=S.eq[0]===p.id||!S.pets[p.id];$('hatchagain').hidden=!(S.eggs[H.r]>0);$('hatchagain').textContent=`Hatch another ${EGGR[H.r].n}`;
+  H.phase='done';renderPetBar();if(tab==='bag'||tab==='pets')renderPanel();save()}
+function openDex(i){const e=EGGS[i];if(!e)return;const nT=t=>e.pets.filter(pp=>pp[2]===t).length;
+  $('dextitle').textContent=SKILLS[e.skill].n+' pets';$('dextitle').style.color=e.pal.b;
+  $('dexsub').textContent=e.skill?`Every ${SKILLS[e.skill].n.toLowerCase()} pet wears ${SKILLS[e.skill].hats} and does ${SKILLS[e.skill].n.toLowerCase()} for you while you fish. The chance shown is how often a hatch of that rarity of egg gives this pet. Duplicates add a star (up to 5★), and each star adds another 10%.`:'';
+  $('dexgrid').innerHTML=e.pets.map(pp=>{const p=PETS[pp[0]],st=S.pets[p.id]||0,pct=100/SK_ORDER.length/nT(p.tier);
     const perk=p.skill?`${(PET_SPEED[p.tier]).toFixed(2)}× speed · +${Math.round(PET_VAL[p.tier]*100)}% value`:'';
-    return`<div class="card px"><div class="pic">${imgTag(petSpr(p.id),3,p.n)}</div><span class="rar" style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span><div class="nm">${p.n}</div><div class="chance">${pct<1?pct.toFixed(1):Math.round(pct)}%</div><div class="ds">${perk}</div>${st?`<div class="own">Owned ${'★'.repeat(st)}</div>`:'<div class="notyet">Not hatched yet</div>'}</div>`}).join('');
+    return`<div class="card px"><div class="pic">${imgTag(petSpr(p.id),3,p.n)}</div><span class="rar" style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span><div class="nm">${p.n}</div><div class="chance">${pct.toFixed(1)}%</div><div class="ds" style="color:${EGGR[p.tier].c}">of ${EGGR[p.tier].n} hatches</div><div class="ds">${perk}</div>${st?`<div class="own">Owned ${'★'.repeat(st)}</div>`:'<div class="notyet">Not hatched yet</div>'}</div>`}).join('');
   $('eggdex').hidden=false}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('eggdex').hidden)$('eggdex').hidden=true});
 function craftArgs(a){const [k,i]=String(a).split(':');return[k,+i]}
 const act={
+  hatchegg(r){openHatch(+r)},
+  hatchequip(){if(HATCH&&HATCH.win&&S.pets[HATCH.win.id]){S.eq=[HATCH.win.id];toast(`${HATCH.win.n} hops into the dinghy`);$('hatchequip').hidden=true;renderPetBar();renderPanel()}},
+  hatchagain(){if(!HATCH||HATCH.phase!=='done')return;const r=HATCH.r;HATCH=null;openHatch(r)},
+  hatchdone(){if(HATCH&&HATCH.phase!=='done')return;HATCH=null;$('hatchbox').hidden=true},
   setpet(id){if(!id){if(S.eq.length){S.eq=[];toast('Pet put away')}}else if(PETS[id]&&S.pets[id]&&S.eq[0]!==id){S.eq=[id];toast(`${PETS[id].n} hops into the dinghy`)}renderPetBar();renderPanel()},
   eggdex(i){openDex(+i)},
   closedex(){$('eggdex').hidden=true},
@@ -679,13 +757,6 @@ const act={
   use(k){if(!S.bag[k])return;const it=ITEMS[k];S.bag[k]--;
     if(k==='harpoon'){S.harpoon=true;toast('Harpoon loaded for your next boss')}
     else{S.buffs[it.buff]=Math.max(S.buffs[it.buff],now())+it.dur*1000;toast(`${it.n} active`)}renderPanel();renderBuffs()},
-  hatch(ei){ei=+ei;const e=EGGS[ei];if(S.coins<e.p||S.lvl<e.lvl)return;S.coins-=e.p;
-    let r=Math.random()*100,pick;for(const p of e.pets){r-=p[5];if(r<0){pick=p;break}}pick=pick||e.pets[0];
-    const id=pick[0],cur=S.pets[id]||0;
-    if(cur>=5){const ref=Math.floor(e.p*.25);S.coins+=ref;toast(`${pick[1]} is already 5★. Refunded ${fmt(ref)} coins`)}
-    else{S.pets[id]=cur+1;toast(cur?`${pick[1]} ranked up to ${cur+1}★`:`You hatched a ${RAR[pick[2]].n} ${pick[1]}!`);
-      if(!cur&&!S.eq.length)S.eq=[id]}
-    renderPetBar();renderPanel()},
   equip(id){if(!PETS[id]||!S.pets[id])return;if(S.eq[0]===id)S.eq=[];else{S.eq=[id];toast(`${PETS[id].n} hops into the dinghy`)}renderPetBar();renderPanel()},
   boss(i){startBoss(+i)},
   strike(){hitBoss();refreshPanel()},
@@ -700,7 +771,7 @@ function renderZones(){
   $('zlabel').textContent=ZONES[S.zone].name;
 }
 function renderLog(){
-  $('log').innerHTML=logItems.map(l=>`<li class="px">${imgTag(fishSpr(l.c.f),2)}<span style="color:${RAR[l.c.tier].c};font-weight:600">${l.c.f[0]}</span>${l.isNew?'<span class="new">NEW</span>':''}<span class="w num">${kg(l.c.weight)}</span><span class="v num">+${fmt(l.coins)}</span></li>`).join('')||'<li class="px"><span class="w">Your first catch will show up here.</span></li>';
+  $('log').innerHTML=logItems.map(l=>l.egg!==undefined?`<li class="px">${imgTag(mk(MAPS.EGG,eggPal(l.egg)),2)}<span style="color:${EGGR[l.egg].c};font-weight:600">${EGGR[l.egg].n}</span><span class="new" style="background:${EGGR[l.egg].d}">EGG</span><span class="w">added to your Bag</span></li>`:`<li class="px">${imgTag(fishSpr(l.c.f),2)}<span style="color:${RAR[l.c.tier].c};font-weight:600">${l.c.f[0]}</span>${l.isNew?'<span class="new">NEW</span>':''}<span class="w num">${kg(l.c.weight)}</span><span class="v num">+${fmt(l.coins)}</span></li>`).join('')||'<li class="px"><span class="w">Your first catch will show up here.</span></li>';
 }
 function renderBuffs(){
   const out=[];const t=now();
@@ -743,7 +814,7 @@ function renderPanel(){
   }
   else if(tab==='pets'){
     const tot=['coin','speed','xp','luck'].map(t=>`<span>${BTYPE[t][0].toUpperCase()+BTYPE[t].slice(1)}</span><span class="num">+${Math.round(petBonus(t)*100)}%</span>`).join('');
-    const eggCard=(e,i)=>{const lock=S.lvl<e.lvl;return`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">${e.skill?`10 pets in ${SKILLS[e.skill].hats}. They do ${SKILLS[e.skill].n.toLowerCase()} while you fish.`:e.pets.map(p=>p[1]).join(', ')}</div><div class="eggbtns">${lock?`<button class="btn" disabled>Level ${e.lvl}</button>`:`<button class="btn" data-act="hatch" data-arg="${i}" data-cost="${e.p}">${money(e.p)}</button>`}<button class="btn ghost dexbtn" data-act="eggdex" data-arg="${i}" title="See the pets in the ${e.n}" aria-label="See the pets in the ${e.n}">${imgTag(DEX_IC(),2)}</button></div></div>`};
+    const eggCard=r=>`<div class="egg px">${imgTag(mk(MAPS.EGG,eggPal(r)),5)}<div style="font-weight:600;color:${EGGR[r].c}">${EGGR[r].n}</div><div class="ds">About 1 in ${fmt(oneIn(r))} catches. Hatches a ${RAR[r].n.toLowerCase()} pet from any craft.</div><div class="num" style="font-size:20px">×${S.eggs[r]||0}</div><button class="btn" data-act="hatchegg" data-arg="${r}" ${(S.eggs[r]||0)?'':'disabled'}>Hatch</button></div>`;
     const crew=S.eq.filter(id=>CPET[id]);
     h+=`<div class="sect"><h3>Equipped pet</h3><p>You can have one pet out at a time. It rides in a dinghy behind your boat. Pick what it makes and press Start, and it keeps working while you fish. Swap pets here or from the pet bar at the top.</p>${Object.keys(S.pets).length?`<label class="hint" for="petsel-tab">Equipped pet</label>${petSelect('petsel-tab')}`:''}`+
       (crew.length?crew.map(id=>{const P=PETS[id],k=P.skill,SK=SKILLS[k],j=skJ(k),boss=craftPetFor(k);
@@ -751,9 +822,10 @@ function renderPanel(){
         const run=j.on;return`<div class="job px"><div class="top"><div class="worker">${imgTag(petSpr(id),2)}<span><b style="color:var(--foam)">${P.n}</b><br><span style="color:${SK.col}">${SK.n} · Lv ${j.lvl}</span></span></div>${run?`<button class="btn ghost" data-act="craftstop" data-arg="${k}">Stop</button>`:`<button class="btn" data-act="craftgo" data-arg="${k}" ${S.coins<REC_COST[j.rec]?'disabled':''}>Start</button>`}</div>
           <label class="hint" for="crew-${k}">Making</label><select id="crew-${k}" class="rsel" data-chg="recipe" data-skill="${k}">${SK.recipes.map((rn,i)=>`<option value="${i}" ${i===j.rec?'selected':''} ${j.lvl<REC_LVL[i]?'disabled':''}>${rn}${j.lvl<REC_LVL[i]?` (Lv ${REC_LVL[i]})`:` · ${fmt(REC_COST[i])} → ${fmt(recValue(k,i,id))}`}</option>`).join('')}</select>
           <div class="bar"><b id="cpb-${k}" style="width:${j.p/REC_TIME[j.rec]*100}%"></b></div><div class="hint">${run?'Working':'Not started'} · ${petSpeedOf(id).toFixed(2)}× speed · +${Math.round(petValOf(id)*100)}% value</div></div>`}).join('')
-      :`<p class="hint">No pet equipped. Hatch an egg below, then tap the pet in the pet bar at the top or press Equip in your collection.</p>`)+`</div>`;
-    h+=`<div class="sect"><h3>Hatchery</h3><p>Pets ride behind your boat in rubber dinghies the colour of their egg. Each pet does its craft for you, so you can fish and craft at the same time. Rarer pets are better. Duplicates add a star, up to 5★.</p>
-      <div class="eggs">${EGGS.map((e,i)=>e.skill?eggCard(e,i):'').join('')}</div></div>`;
+      :`<p class="hint">No pet equipped. Hatch an egg, then tap the pet in the pet bar at the top or press Equip in your collection.</p>`)+`</div>`;
+    h+=`<div class="sect"><h3>Eggs</h3><p>Eggs can't be bought. Every fish you catch has a small chance to bring up an egg, and rarer eggs are rarer catches. Luck makes eggs a little more likely. Hatched eggs go to your collection; duplicates add a star, up to 5★.</p>
+      <div class="eggs">${[0,1,2,3,4].map(eggCard).join('')}</div></div>`;
+    h+=`<div class="sect"><h3>Pet index</h3><p>See every pet each craft has, from common to legendary. Pets ride in dinghies the colour of their craft.</p><div class="sk-row">${EGGS.map((e,i)=>`<button class="skc px" data-act="eggdex" data-arg="${i}"><i style="background:${e.pal.b}"></i>${SKILLS[e.skill].n} ${imgTag(DEX_IC(),1)}</button>`).join('')}</div></div>`;
     h+=`<div class="sect"><div class="kv"><span>Pet boss bite</span><span class="num">${fmt(petDps())}/s</span></div></div>`;
     const owned=Object.keys(S.pets);
     const petCard=p=>{
@@ -761,7 +833,7 @@ function renderPanel(){
       const desc=p.skill?`${SKILLS[p.skill].n}: ${petSpeedOf(p.id).toFixed(2)}× speed, +${Math.round(petValOf(p.id)*100)}% value`:`+${Math.round(p.val*petStarMult(p.id)*100)}% ${BTYPE[p.type]}`;
       const eq=S.eq.includes(p.id);return`<div class="card px ${eq?'eq':''}"><div class="pic">${imgTag(petSpr(p.id),3)}</div><span class="rar" style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span><div class="nm">${p.n}</div><div class="stars">${'★'.repeat(st)}<span style="opacity:.25">${'★'.repeat(5-st)}</span></div><div class="ds">${desc}</div><button class="btn ${eq?'ghost':''}" data-act="equip" data-arg="${p.id}">${eq?'Unequip':'Equip'}</button></div>`};
     h+=`<div class="sect"><h3>Collection</h3>`+(owned.length?EGGS.map(e=>{const list=Object.values(PETS).filter(p=>EGGS[p.egg]===e);const got=list.filter(p=>S.pets[p.id]).length;
-      return`<div class="egghead" style="color:${e.pal.b}">${e.n} · ${got}/${list.length}</div><div class="grid">${list.map(petCard).join('')}</div>`}).join(''):`<p>No pets yet. Each craft egg costs 1,500 coins.</p>`)+`</div>`;
+      return`<div class="egghead" style="color:${e.pal.b}">${e.n} · ${got}/${list.length}</div><div class="grid">${list.map(petCard).join('')}</div>`}).join(''):`<p>No pets yet. Keep fishing: eggs turn up by chance, and you hatch them from the Bag.</p>`)+`</div>`;
   }
   else if(tab==='craft'){
     const k=crSel,SK=SKILLS[k],j=skJ(k),pet=craftPetFor(k),aj=avatarJob();
@@ -771,7 +843,7 @@ function renderPanel(){
     const bonusNow={cooking:`+${j.lvl-1}% coins`,brewing:`+${j.lvl-1}% XP`,smithing:`+${(j.lvl-1)*2}% boss strike`,alchemy:`+${j.lvl-1}% luck`,engineering:`+${((j.lvl-1)*.5).toFixed(1)}% catch speed`,tailoring:`+${j.lvl-1}% crafting speed`,enchanting:`+${j.lvl-1}% crafted goods value`}[k];
     h+=`<div class="sect"><h3 style="color:${SK.col}">${SK.n} · Lv ${j.lvl}${j.lvl>=SK_MAX?' (max)':''}</h3><div class="prog"><div class="bar"><b style="width:${lvPct}%"></b></div><span class="num">${j.lvl>=SK_MAX?'MAX':fmt(j.xp)+'/'+fmt(skNeed(j.lvl))}</span></div><p>${SK.perk}. Now: ${bonusNow}.</p>`;
     const worker=pet?`<div class="worker">${imgTag(petSpr(pet),2)}<span><b style="color:var(--foam)">${PETS[pet].n}</b> works this for you at ${petSpeedOf(pet).toFixed(2)}× speed and +${Math.round(petValOf(pet)*100)}% value. You keep fishing.</span></div>`
-      :`<div class="worker"><span>No ${SK.n} pet equipped, so your ${curC().animal.toLowerCase()} does this and stops fishing. Hatch a ${SK.n} Egg in Pets to do both.</span></div>`;
+      :`<div class="worker"><span>No ${SK.n} pet equipped, so your ${curC().animal.toLowerCase()} does this and stops fishing. Hatch eggs you fish up until you get a ${SK.n.toLowerCase()} pet, then take it out to do both.</span></div>`;
     const running=j.on&&(pet||S.craft===k);
     h+=`<div class="job px"><div class="top"><div><div style="font-weight:600">${SK.recipes[j.rec]}</div><div class="hint" id="cps-${k}">${running?'Crafting…':j.on?'Waiting':'Not started'}</div></div>${j.on?`<button class="btn ghost" data-act="craftstop" data-arg="${k}">Stop</button>`:`<button class="btn" data-act="craftgo" data-arg="${k}" ${S.coins<REC_COST[j.rec]?'disabled':''}>Start</button>`}</div><div class="bar"><b id="cpb-${k}" style="width:${j.p/REC_TIME[j.rec]*100}%"></b></div>${worker}${aj&&aj!==k&&!pet?`<div class="hint">Starting this stops ${SKILLS[aj].n}.</div>`:''}</div>`;
     h+=SK.recipes.map((rn,i)=>{const lock=j.lvl<REC_LVL[i],sel=j.rec===i;const v=recValue(k,i,pet);
@@ -799,6 +871,7 @@ function renderPanel(){
         :`<div class="card px locked"><div class="pic">${imgTag(fishSpr(f,'#3a4a72'),f[4]==='B'?2:3)}</div><span class="rar" style="color:${RAR[f[1]].c};opacity:.6">${RAR[f[1]].n}</span><div class="nm">???</div><div class="ds">Not caught yet</div></div>`}).join('')+`</div></div>`});
   }
   else if(tab==='bag'){
+    h+=`<div class="sect"><h3>Eggs</h3><p>Fished up by chance. Tap Hatch to see what's inside.</p>${[0,1,2,3,4].map(r=>`<div class="row px"><div class="ic">${imgTag(mk(MAPS.EGG,eggPal(r)),3)}</div><div class="info"><div class="nm" style="color:${EGGR[r].c}">${EGGR[r].n} <span class="num ds">×${S.eggs[r]||0}</span></div><div class="ds">About 1 in ${fmt(oneIn(r))} catches</div></div><button class="btn" data-act="hatchegg" data-arg="${r}" ${(S.eggs[r]||0)?'':'disabled'}>Hatch</button></div>`).join('')}</div>`;
     h+=`<div class="sect"><h3>Bag</h3><p>Use supplies whenever you like. Timed effects stack their duration.</p>`+Object.keys(ITEMS).map(k=>`<div class="row px"><div class="ic">${imgTag(mk(ITEM_MAP[k],ITEM_PAL[k]),3)}</div><div class="info"><div class="nm">${ITEMS[k].n} <span class="num ds">×${S.bag[k]}</span></div><div class="ds">${ITEMS[k].d}</div></div><button class="btn" data-act="use" data-arg="${k}" ${S.bag[k]?'':'disabled'}>Use</button></div>`).join('')+`</div>`;
     h+=`<div class="sect"><h3>Fisher</h3><div class="row px"><div class="ic" style="width:84px">${imgTag(avatarCanvas(S.cls||'std'),1.5)}</div><div class="info"><div class="nm">${curC().animal} · ${curC().title}</div><div class="ds">${curC().perk}</div></div><button class="btn ghost" data-act="pick">Change</button></div></div>`;
     h+=`<div class="sect"><h3>Stats</h3><div class="kv">
@@ -1229,7 +1302,8 @@ function offline(){
   for(let i=0;i<sim;i++){const c=rollFish(S.zone,luck());const cc=c.value*coinMult()*scale,xx=RAR[c.tier].xp*(1+S.zone*1.5)*xpMult()*scale;
     const id=c.zi+'-'+c.fi;if(!S.idx[id]){S.idx[id]={n:0,best:0};news++}S.idx[id].n+=Math.round(scale);S.idx[id].best=Math.max(S.idx[id].best,c.weight);coins+=cc;xp+=xx}
   S.coins+=coins;S.total+=n;S.zc[S.zone]+=n;S.last=now();gainXp(xp);
-  toast(`While you were away: ${fmt(n)} fish, +${fmt(coins+cc0)} coins${news?`, ${news} new in the index`:''}`);
+  let eggsGot=0;for(let r=0;r<5;r++){const ex=n*eggChance(r),k=Math.floor(ex)+(Math.random()<ex%1?1:0);if(k){S.eggs[r]=(S.eggs[r]||0)+k;eggsGot+=k}}
+  toast(`While you were away: ${fmt(n)} fish, +${fmt(coins+cc0)} coins${eggsGot?`, ${eggsGot} egg${eggsGot>1?'s':''}`:''}${news?`, ${news} new in the index`:''}`);
 }
 
 /* ---------- input ---------- */
