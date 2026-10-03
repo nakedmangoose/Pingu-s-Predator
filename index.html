@@ -315,7 +315,7 @@ const BAITS=[
  {n:'Tiger Shrimp',p:25000,luck:.6,col:'#ff8a5a'},{n:'Glow Squid',p:200000,luck:1.0,col:'#7ff0ff'},{n:'Stardust',p:1.5e6,luck:1.6,col:'#ffcd3c'}];
 const ITEMS={
  chum:{n:'Chum Bucket',d:'Fish bite twice as fast for 60s',buff:'speed',dur:60,base:80},
- lure:{n:'Golden Lure',d:'Double coins from fish for 60s',buff:'coin',dur:60,base:100},
+ lure:{n:'Golden Lure',d:'Double coins from selling fish and the aquarium for 60s',buff:'coin',dur:60,base:100},
  charm:{n:'Lucky Charm',d:'+100% luck for 60s',buff:'luck',dur:60,base:120},
  tonic:{n:'Sea Salt Tonic',d:'Double XP for 120s',buff:'xp',dur:120,base:80},
  harpoon:{n:'Harpoon',d:'+50% strike damage in your next boss fight',buff:null,dur:0,base:250}};
@@ -426,7 +426,7 @@ const HATS={
  air:{map:["...kkkkk....","..khhhhhk...",".khhhhhhhk..",".kggkggkhk..","kkhhhhhhhhkk",".kkkhhhhhhhk",".....kkkkk.."],brim:4,pal:{h:'#7a4a2a',g:'#9fe0ff'}}};
 for(const k in HATS)HATS[k].up=upHat(HATS[k].map,HATS[k].brim);
 const CLS={
- std:{animal:'Penguin',title:'Angler',el:'Standard',col:'#4fa8ff',gem:'#4fa8ff',perk:'+15% coins from every catch',desc:'A classic rod-and-bobber fisher. Patient, reliable, never without the bucket hat.',
+ std:{animal:'Penguin',title:'Angler',el:'Standard',col:'#4fa8ff',gem:'#4fa8ff',perk:'+15% coins from selling fish and the aquarium',desc:'A classic rod-and-bobber fisher. Patient, reliable, never without the bucket hat.',
    pal:{b:'#2a3150',w:'#f4f1e8',o:'#ff9a2e',q:'#0e0f17'},snout:'kbbbbbwwwwook...........',gear:'Rods',verb:'tug the line',fx:'#e8f6ff'},
  fire:{animal:'Fox',title:'Pyromancer',el:'Fire',col:'#ff7a2e',gem:'#ff7a2e',perk:'+40% boss strike damage',desc:'Boils the water with alchemy and flame until the fish leap out to escape.',
    pal:{b:'#e8742a',w:'#fbf1e4',o:'#3a2420',q:'#1a1010'},snout:'kbbbbbwwwwwqk...........',tail:{b:'#e8742a',w:'#fbf1e4'},gear:'Fire foci',verb:'stoke the flames',fx:'#ffb050',
@@ -434,7 +434,7 @@ const CLS={
  ice:{animal:'Polar Cub',title:'Cryomancer',el:'Ice',col:'#9fe8ff',gem:'#9fe8ff',perk:'+10% luck, boss fights last 30% longer',desc:'Freezes fish solid in blocks of ice and floats them back to the boat.',
    pal:{b:'#dfe6ee',w:'#ffffff',o:'#aab6c4',q:'#1a1c2c'},snout:'kbbbbbwwwwwqk...........',gear:'Frost staffs',verb:'chill the water',fx:'#d8f6ff',
    names:['Icicle Twig','Frostbark Wand','Rime Staff','Glacier Shard','Blizzard Rod','Permafrost Scepter','Starfrost Crown']},
- earth:{animal:'Mole',title:'Geomancer',el:'Earth',col:'#c8a060',gem:'#a8e05a',perk:'Fish weigh 25% more, so they sell for more',desc:'Raises stone pillars from the lakebed to lift fish clean out of the water.',
+ earth:{animal:'Mole',title:'Geomancer',el:'Earth',col:'#c8a060',gem:'#a8e05a',perk:'Fish weigh 25% more and sell for 25% more',desc:'Raises stone pillars from the lakebed to lift fish clean out of the water.',
    pal:{b:'#5a4a5e',w:'#8a7a90',o:'#f0a0b0',q:'#f0a0b0'},snout:'kbbbbbwwwwqqk...........',gear:'Stone tomes',verb:'shake the lakebed',fx:'#b89a6a',
    names:['Pebble Charm','Clay Wand','Granite Staff','Geode Tome','Obsidian Rod','Mountain Heart','Worldroot Scepter']},
  air:{animal:'Duck',title:'Aeromancer',el:'Air',col:'#e8f4ff',gem:'#e8f4ff',perk:'+20% catch speed',desc:'Whips up little whirlwinds that spin fish straight up into the boat.',
@@ -654,10 +654,10 @@ function record(c,coins,xp){
 }
 function catchFish(){
   const c=rollFish(S.zone,luck());
-  const coins=c.value*coinMult();const xp=FRAR[c.tier].xp*(1+S.zone*1.5)*xpMult();
+  const coins=0;const xp=FRAR[c.tier].xp*(1+S.zone*1.5)*xpMult();
   const isNew=record(c,coins,xp);
-  anims.push({t:0,c,coins,cls:S.cls||'std'});splash(BOBX,BOBY,c.tier>=4?14:8,curC().fx);if(S.cls==='fire')splash(BOBX,BOBY-4,8,'#ffffff');if(S.cls==='air')fxs.push({k:'tornado',t:0});if(pT<2.6)pT=2.6;
-  logItems.unshift({c,coins,isNew});logItems.length=Math.min(logItems.length,6);renderLog();
+  anims.push({t:0,c,coins,xp,cls:S.cls||'std'});splash(BOBX,BOBY,c.tier>=4?14:8,curC().fx);if(S.cls==='fire')splash(BOBX,BOBY-4,8,'#ffffff');if(S.cls==='air')fxs.push({k:'tornado',t:0});if(pT<2.6)pT=2.6;
+  logItems.unshift({c,coins,xp,isNew});logItems.length=Math.min(logItems.length,6);renderLog();
   rollEgg();
   if(tab==='bag')renderPanel();
   if(isNew&&c.tier>=4)toast(`${FRAR[c.tier].n}! ${c.f[0]} added to your index`);
@@ -806,6 +806,10 @@ const act={
   tankput(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id],have=netN(id,L);if(!e||e.f[1]===0||!(have>0))return;const n=all?have:1;
     netAdd(id,L,-n);if(!S.tank[id])S.tank[id]={};S.tank[id][L]=(S.tank[id][L]||0)+n;aqVer++;
     toast(`${n>1?n+' ':''}${L?'level '+L+' ':''}${e.f[0]} moved into the aquarium`);renderPanel()},
+  netsell(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id],have=netN(id,L);if(!e||!(have>0))return;const n=all?have:1,v=sellPrice(id,L)*n;
+    netAdd(id,L,-n);S.coins+=v;toast(`Sold ${n>1?n+' ':''}${L?'level '+L+' ':''}${e.f[0]} for ${fmt(v)} coins`);renderPanel()},
+  selljunk(){let v=0,n=0;netItems().forEach(it=>{if(FISHBY[it.id].f[1]!==0)return;v+=sellPrice(it.id,it.L)*it.n;n+=it.n;netAdd(it.id,it.L,-it.n)});S.coins+=v;
+    toast(n?`Sold ${n} bits of junk for ${fmt(v)} coins`:'No junk to sell');renderPanel()},
   netbreedall(){let k=0;for(let pass=0;pass<=MAX_FLVL;pass++){let any=false;netItems().forEach(it=>{if(FISHBY[it.id].f[1]===0||it.L>=MAX_FLVL)return;while(netN(it.id,it.L)>=2){netAdd(it.id,it.L,-2);netAdd(it.id,it.L+1,1);k++;any=true}});if(!any)break}
     netSel=null;toast(k?`Bred ${k} pair${k>1?'s':''} in your Net`:'Nothing to breed. You need two of the same fish at the same level');renderPanel()},
   netbreed(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id];if(!e||e.f[1]===0||L>=MAX_FLVL||netN(id,L)<2)return;
@@ -863,7 +867,7 @@ function renderZones(){
   $('zlabel').textContent=ZONES[S.zone].name;
 }
 function renderLog(){
-  $('log').innerHTML=logItems.map(l=>l.egg!==undefined?`<li class="px">${imgTag(mk(MAPS.EGG,eggPal(l.egg)),2)}<span style="color:${EGGR[l.egg].c};font-weight:600">${EGGR[l.egg].n}</span><span class="new" style="background:${EGGR[l.egg].d}">EGG</span><span class="w">added to your Bag</span></li>`:`<li class="px">${imgTag(fishSpr(l.c.f),2)}<span style="color:${FRAR[l.c.tier].c};font-weight:600">${l.c.f[0]}</span>${l.isNew?'<span class="new">NEW</span>':''}<span class="w num">${kg(l.c.weight)}</span><span class="v num">+${fmt(l.coins)}</span></li>`).join('')||'<li class="px"><span class="w">Your first catch will show up here.</span></li>';
+  $('log').innerHTML=logItems.map(l=>l.egg!==undefined?`<li class="px">${imgTag(mk(MAPS.EGG,eggPal(l.egg)),2)}<span style="color:${EGGR[l.egg].c};font-weight:600">${EGGR[l.egg].n}</span><span class="new" style="background:${EGGR[l.egg].d}">EGG</span><span class="w">added to your Bag</span></li>`:`<li class="px">${imgTag(fishSpr(l.c.f),2)}<span style="color:${FRAR[l.c.tier].c};font-weight:600">${l.c.f[0]}</span>${l.isNew?'<span class="new">NEW</span>':''}<span class="w num">${kg(l.c.weight)}</span><span class="v num">+${fmtR(l.xp||0)} XP</span></li>`).join('')||'<li class="px"><span class="w">Your first catch will show up here.</span></li>';
 }
 function renderBuffs(){
   const out=[];const t=now();
@@ -988,13 +992,17 @@ function renderPanel(){
     const nkey=it=>it.id+'|'+it.L;if(!shown.find(it=>nkey(it)===netSel))netSel=shown[0]?nkey(shown[0]):null;
     const netPairs=items.reduce((a,it)=>a+(FISHBY[it.id].f[1]>0&&it.L<MAX_FLVL?Math.floor(it.n/2):0),0);
     h+=`<div class="sect"><h3>Net</h3><div class="invsum"><span>Catches <b class="num">${fmt(netTot)}</b></span><span>Kinds <b class="num">${kinds}</b></span></div>
-      <div><button class="btn" data-act="netbreedall" ${netPairs?'':'disabled'}>Breed all (${fmt(netPairs)} pair${netPairs===1?'':'s'})</button> <span class="hint">Pairs up every fish at the same level, again and again, until nothing is left to pair. Junk is skipped.</span></div>
+      <p class="hint" style="margin:0">Catches don't pay coins any more. Sell them here, breed them, or put them in the aquarium.</p>
+      <div class="eggbtns" style="justify-content:flex-start"><button class="btn" data-act="netbreedall" ${netPairs?'':'disabled'}>Breed all (${fmt(netPairs)} pair${netPairs===1?'':'s'})</button>${(()=>{const jv=items.filter(it=>FISHBY[it.id].f[1]===0).reduce((a,it)=>a+sellPrice(it.id,it.L)*it.n,0),jn=items.filter(it=>FISHBY[it.id].f[1]===0).reduce((a,it)=>a+it.n,0);return`<button class="btn ghost" data-act="selljunk" ${jn?'':'disabled'}>Sell all junk (${fmt(jv)})</button>`})()}</div>
+      <p class="hint" style="margin:0">Breed all pairs up every fish at the same level, again and again, until nothing is left to pair. Junk is skipped.</p>
       <div class="sk-row"><button class="skc px" data-act="nett" data-arg="-1" aria-pressed="${netT<0}">All</button>${FRAR.map((r,t)=>`<button class="skc px" data-act="nett" data-arg="${t}" aria-pressed="${netT===t}"><i style="background:${r.c}"></i>${r.n} <span class="num">${new Set(items.filter(it=>FISHBY[it.id].f[1]===t).map(it=>it.id)).size}</span></button>`).join('')}</div>
       <div class="inv">${shown.map(it=>{const e=FISHBY[it.id];return`<button class="slot px" data-act="netsel" data-arg="${nkey(it)}" aria-pressed="${nkey(it)===netSel}" title="${e.f[0]}${it.L?' level '+it.L:''}" aria-label="${e.f[0]}${it.L?' level '+it.L:''}, ${it.n}" style="--rc:${FRAR[e.f[1]].c}">${imgTag(fishSpr(e.f),3)}${it.L?`<span class="slv">Lv${it.L}</span>`:''}<span class="cnt">${fmt(it.n)}</span></button>`}).join('')}${Array.from({length:Math.max(0,10-shown.length)},()=>'<div class="slot empty px"></div>').join('')}</div>`;
     const nsel=shown.find(it=>nkey(it)===netSel);
     if(nsel){const sel=nsel;const e=FISHBY[sel.id],fishy=e.f[1]>0,canBreed=fishy&&sel.n>=2&&sel.L<MAX_FLVL,arg=nkey(sel);
       h+=`<div class="row px"><div class="ic">${imgTag(fishSpr(e.f),2)}</div><div class="info"><div class="nm" style="color:${FRAR[e.f[1]].c}">${e.f[0]} ${sel.L?`<span class="lvtag">Lv ${sel.L}</span> `:''}<span class="num ds">×${fmt(sel.n)}</span></div>
         <div class="ds">${FRAR[e.f[1]].n} · ${ZONES[e.zi].name} · best ${kg((S.idx[sel.id]||{}).best||0)}${fishy?` · in the aquarium each earns ${fmtR(fishEarnL(sel.id,sel.L))}/s`:' · junk can\'t go in the aquarium or be bred'}</div>
+        <div class="ds">Sells for ${fmt(sellPrice(sel.id,sel.L))} each</div>
+        <div class="eggbtns" style="justify-content:flex-start;margin-top:6px"><button class="btn ghost" data-act="netsell" data-arg="${arg}">Sell 1 · ${fmt(sellPrice(sel.id,sel.L))}</button>${sel.n>1?`<button class="btn ghost" data-act="netsell" data-arg="${arg}|all">Sell all ${fmt(sel.n)} · ${fmt(sellPrice(sel.id,sel.L)*sel.n)}</button>`:''}</div>
         ${fishy?`<div class="eggbtns" style="justify-content:flex-start;margin-top:6px"><button class="btn" data-act="tankput" data-arg="${arg}">Put in aquarium</button>${sel.n>1?`<button class="btn ghost" data-act="tankput" data-arg="${arg}|all">Put all ${fmt(sel.n)} in</button>`:''}${canBreed?`<button class="btn" data-act="netbreed" data-arg="${arg}">Breed 2 → Lv ${sel.L+1}</button>`:''}${canBreed&&sel.n>=4?`<button class="btn ghost" data-act="netbreed" data-arg="${arg}|all">Breed all pairs</button>`:''}</div>`:''}</div></div>`}
     else h+=`<p class="hint">Your net is empty. Everything you catch is kept here. Pick a fish and press Put in aquarium to put it on show.</p>`;
     h+=`</div>`;
@@ -1211,9 +1219,10 @@ function line(x0,y0,x1,y1,col,ctx){ctx=ctx||cx;x0=Math.round(x0);y0=Math.round(y
 function splash(x,y,n,col){for(let k=0;k<n;k++)parts.push({x,y,vx:(Math.random()-.5)*60,vy:-20-Math.random()*50,t:0,col})}
 function glowAt(x,y,r,col,a){cx.globalCompositeOperation='lighter';for(let k=3;k>=1;k--){cx.globalAlpha=a*(.5/k);disc(cx,Math.round(x),Math.round(y),Math.round(r*k/3),col)}cx.globalAlpha=1;cx.globalCompositeOperation='source-over'}
 /* 3×5 bitmap font */
+const FONT2={A:'010101111101101',B:'110101110101110',D:'110101101101110',E:'111100110100111',F:'111100110100100',G:'011100101101011',H:'101101111101101',J:'001001001101010',L:'100100100100111',N:'110101101101101',O:'010101101101010',P:'110101110100100',S:'011100010001110',U:'101101101101111',V:'101101101101010',W:'101101111111101',X:'101101010101101',Y:'101101010010010',Z:'111001010100111',"'":'010010000000000',',':'000000000010100','&':'010101010101011','(':'010100100100010',')':'010001001001010'};
 const FONT={'0':'111101101101111','1':'010110010010111','2':'111001111100111','3':'111001111001111','4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001010010010','8':'111101111101111','9':'111101111001111','+':'000010111010000','-':'000000111000000','.':'000000000000010','K':'101101110101101','M':'101111111101101','B':'110101110101110','T':'111010010010010','C':'111100100100111','R':'110101110101101','I':'111010010010111','Q':'111101101111001','a':'010101111101101','!':'010010010000010','?':'111001011000010',' ':'000000000000000'};
-function ptext(s,x,y,col){const w=s.length*4-1;x=Math.round(x-w/2);y=Math.round(y);
-  const draw=(ox,oy,c)=>{cx.fillStyle=c;for(let i=0;i<s.length;i++){const g=FONT[s[i]]||FONT[' '];for(let p=0;p<15;p++)if(g[p]==='1')cx.fillRect(x+i*4+(p%3)+ox,y+Math.floor(p/3)+oy,1,1)}};
+function ptext(s,x,y,col){const w=s.length*4-1;x=Math.round(Math.max(2,Math.min(W-w-2,x-w/2)));y=Math.round(y);
+  const draw=(ox,oy,c)=>{cx.fillStyle=c;for(let i=0;i<s.length;i++){const g=FONT[s[i]]||FONT2[s[i]]||FONT[' '];for(let p=0;p<15;p++)if(g[p]==='1')cx.fillRect(x+i*4+(p%3)+ox,y+Math.floor(p/3)+oy,1,1)}};
   draw(1,0,'#0e0f17');draw(-1,0,'#0e0f17');draw(0,1,'#0e0f17');draw(0,-1,'#0e0f17');draw(1,1,'#0e0f17');draw(0,0,col)}
 
 /* ---- crafting animations (5s loops) ---- */
@@ -1298,6 +1307,7 @@ function aqLabel(){const n=tankCount();return n?`Aquarium · ${n} fish`:'Aquariu
 function aqTick(dt){if(!S.cls)return;S.aqPend=(S.aqPend||0)+aqRate()*dt;const vis=tab==='aqua'&&!document.hidden;aqPayT+=dt;
   if((!vis&&aqPayT>1)||(vis&&S.aqPend>aqRate()*12)){aqPayT=0;if(S.aqPend>0){S.coins+=S.aqPend;S.aqPend=0}}}
 /* the Net: level 0 fish are in S.net, bred ones in S.netLv[id][level] */
+function sellPrice(id,L){const e=FISHBY[id];return e?e.f[2]*Math.pow(LVL_MULT,L)*coinMult()*(S.cls==='earth'?1.25:1):0}
 function netN(id,L){return L?((S.netLv||{})[id]||{})[L]||0:(S.net||{})[id]||0}
 function netAdd(id,L,n){if(L){if(!S.netLv)S.netLv={};if(!S.netLv[id])S.netLv[id]={};S.netLv[id][L]=(S.netLv[id][L]||0)+n;if(S.netLv[id][L]<=0)delete S.netLv[id][L]}else{S.net[id]=(S.net[id]||0)+n}}
 function netItems(){const out=[];for(const id in S.net||{})if(FISHBY[id]&&S.net[id]>0)out.push({id,L:0,n:S.net[id]});for(const id in S.netLv||{}){if(!FISHBY[id])continue;for(const L in S.netLv[id]){const n=S.netLv[id][L];if(n>0)out.push({id,L:+L,n})}}return out}
@@ -1486,7 +1496,7 @@ function draw(dt){
     let x,y;
     if(a.t<delay){const q=a.t/delay;x=BOBX-sp.width/2;y=a.cls==='earth'?BOBY+2-Math.round(q*16)-sp.height:BOBY-4-q*16}
     else{const p2=Math.min((a.t-delay)/.8,1);x=sx0+(pengX+14-sx0)*p2-sp.width/2;y=sy0+(pengY-sy0)*p2-Math.sin(p2*Math.PI)*30;
-      if(p2>=1){floats.push({x:pengX+6,y:pengY-8,t:0,txt:'+'+fmt(a.coins),col:'#ffcd3c'});if(a.c.tier>=4)splash(pengX+6,pengY,12,FRAR[a.c.tier].c);if(a.cls==='ice')splash(pengX+12,pengY+2,8,'#d8f6ff');anims.splice(i,1);continue}}
+      if(p2>=1){floats.push({x:pengX+6,y:pengY-16,t:0,txt:a.c.f[0].toUpperCase(),col:FRAR[a.c.tier].c,sub:'+'+fmtR(a.xp||0)+' XP',life:1.8});if(a.c.tier>=4)splash(pengX+6,pengY,12,FRAR[a.c.tier].c);if(a.cls==='ice')splash(pengX+12,pengY+2,8,'#d8f6ff');anims.splice(i,1);continue}}
     if(a.cls==='ice'){R(cx,x-2,y-2,sp.width+4,sp.height+4,'#bfeaff');R(cx,x-2,y-2,sp.width+4,1,'#ffffff');R(cx,x-2,y-2,1,sp.height+4,'#e8fbff');R(cx,x-2,y+sp.height+1,sp.width+4,1,'#7fc8e8')}
     blit(sp,x,y,1,a.cls==='air'&&a.t<delay&&Math.floor(a.t*16)%2===1);
     if(a.cls==='ice'){cx.globalAlpha=.35;R(cx,x-1,y-1,sp.width+2,sp.height+2,'#dff6ff');cx.globalAlpha=1}
@@ -1565,7 +1575,7 @@ function draw(dt){
   if(wk==='storm'&&wi>.5){boltWait-=dt;if(boltWait<=0){boltWait=4+Math.random()*7;flash=1;const pts=[[30+Math.random()*196,0]];while(pts[pts.length-1][1]<HZ-4){const l=pts[pts.length-1];pts.push([l[0]+(Math.random()-.5)*16,l[1]+5+Math.random()*7])}bolt=pts}}
   if(flash>0){cx.fillStyle=`rgba(230,236,255,${flash*.45})`;cx.fillRect(0,0,W,H);if(bolt&&flash>.55)for(let i=1;i<bolt.length;i++){line(bolt[i-1][0]+1,bolt[i-1][1],bolt[i][0]+1,bolt[i][1],'#9fb0ff');line(bolt[i-1][0],bolt[i-1][1],bolt[i][0],bolt[i][1],'#ffffff')}flash=Math.max(0,flash-dt*2.6)}
   for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.t+=dt;p.vy+=120*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.t<.8)R(cx,p.x,p.y,1,1,p.col);if(p.t>1||p.y>H)parts.splice(i,1)}
-  for(let i=floats.length-1;i>=0;i--){const f=floats[i];f.t+=dt;if(f.t>=0&&(f.t<.9||Math.floor(f.t*16)%2))ptext(f.txt,f.x,f.y-f.t*16,f.col);if(f.t>1.2)floats.splice(i,1)}
+  for(let i=floats.length-1;i>=0;i--){const f=floats[i],life=f.life||1.2;f.t+=dt;const yy=f.y-f.t*(f.sub?8:16);if(f.t>=0&&(f.t<life-.3||Math.floor(f.t*16)%2)){ptext(f.txt,f.x,yy,f.col);if(f.sub)ptext(f.sub,f.x,yy+7,'#8fe0ff')}if(f.t>life)floats.splice(i,1)}
 }
 
 /* ---------- loop ---------- */
@@ -1597,9 +1607,9 @@ function offline(){
   const n=Math.floor(away/castTime()*0.5);if(n<1){if(cc0>0)toast(`While you were away: crafting earned +${fmt(cc0)} coins`);return}const sim=Math.min(n,400),scale=n/sim;let coins=0,xp=0,news=0;
   for(let i=0;i<sim;i++){const c=rollFish(S.zone,luck());const cc=c.value*coinMult()*scale,xx=FRAR[c.tier].xp*(1+S.zone*1.5)*xpMult()*scale;
     const id=c.f[6];if(!S.idx[id]){S.idx[id]={n:0,best:0};news++}S.idx[id].n+=Math.round(scale);if(!S.net)S.net={};S.net[id]=(S.net[id]||0)+Math.round(scale);aqVer++;S.idx[id].best=Math.max(S.idx[id].best,c.weight);coins+=cc;xp+=xx}
-  S.coins+=coins;S.total+=n;S.zc[S.zone]+=n;S.last=now();gainXp(xp);
+  S.total+=n;S.zc[S.zone]+=n;S.last=now();gainXp(xp);
   let eggsGot=0;for(const r of SK_ORDER){const ex=n*eggChance(r),k=Math.floor(ex)+(Math.random()<ex%1?1:0);if(k){S.eggs[r]=(S.eggs[r]||0)+k;eggsGot+=k}}
-  toast(`While you were away: ${fmt(n)} fish, +${fmt(coins+cc0)} coins${eggsGot?`, ${eggsGot} egg${eggsGot>1?'s':''}`:''}${news?`, ${news} new in the index`:''}`);
+  toast(`While you were away: caught ${fmt(n)} (now in your Net), +${fmt(xp)} XP${cc0>0?`, +${fmt(cc0)} coins from crafting`:''}${eggsGot?`, ${eggsGot} egg${eggsGot>1?'s':''}`:''}${news?`, ${news} new in the index`:''}`);
 }
 
 /* ---------- input ---------- */

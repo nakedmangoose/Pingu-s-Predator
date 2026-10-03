@@ -16,6 +16,6 @@ A pixel-art idle fishing game that runs in the browser. Open `index.html` to pla
 - **Seven crafts** (cooking, brewing, smithing, alchemy, engineering, tailoring, enchanting), each with levels, six recipes and a lasting bonus. Crafting yourself pauses fishing; a craft pet does it for you
 - **Pets**: craft eggs are fished up by chance and hatched from the Bag; a roulette spin decides the pet and its rarity. 70 hat-wearing pets across the seven crafts; one rides behind the boat in a rubber dinghy
 - **Fish index** with catch counts and best weights
-- **Net and Aquarium**: every catch is kept in the Net (in the Bag); fish you move in from the Net go on show in an aquarium, where you can breed pairs into higher-level fish and visitors stroll by, point and take photos, earning coins based on how many fish you have and how rare they are
+- **Net and Aquarium**: catches give XP only and are kept in the Net (in the Bag), where you can sell or breed them; fish you move in from the Net go on show in an aquarium, where you can breed pairs into higher-level fish and visitors stroll by, point and take photos, earning coins based on how many fish you have and how rare they are
 - **Day and night cycle** (20 minutes per full day) and **random weather** (rain, storms, fog, snow, meteor showers, aurora) with small bonuses
 - Saves in the browser and keeps fishing at half speed while you're away (up to 8 hours)
