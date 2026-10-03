@@ -806,6 +806,8 @@ const act={
   tankput(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id],have=netN(id,L);if(!e||e.f[1]===0||!(have>0))return;const n=all?have:1;
     netAdd(id,L,-n);if(!S.tank[id])S.tank[id]={};S.tank[id][L]=(S.tank[id][L]||0)+n;aqVer++;
     toast(`${n>1?n+' ':''}${L?'level '+L+' ':''}${e.f[0]} moved into the aquarium`);renderPanel()},
+  netbreedall(){let k=0;for(let pass=0;pass<=MAX_FLVL;pass++){let any=false;netItems().forEach(it=>{if(FISHBY[it.id].f[1]===0||it.L>=MAX_FLVL)return;while(netN(it.id,it.L)>=2){netAdd(it.id,it.L,-2);netAdd(it.id,it.L+1,1);k++;any=true}});if(!any)break}
+    netSel=null;toast(k?`Bred ${k} pair${k>1?'s':''} in your Net`:'Nothing to breed. You need two of the same fish at the same level');renderPanel()},
   netbreed(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id];if(!e||e.f[1]===0||L>=MAX_FLVL||netN(id,L)<2)return;
     let k=0;do{netAdd(id,L,-2);netAdd(id,L+1,1);k++}while(all&&netN(id,L)>=2);
     if(netN(id,L)<1)netSel=id+'|'+(L+1);
@@ -984,7 +986,9 @@ function renderPanel(){
     const items=netItems(),netTot=items.reduce((a,it)=>a+it.n,0),kinds=new Set(items.map(it=>it.id)).size;
     const shown=items.filter(it=>netT<0||FISHBY[it.id].f[1]===netT).sort((a,b)=>FISHBY[b.id].f[1]-FISHBY[a.id].f[1]||b.L-a.L||FISHBY[b.id].zi-FISHBY[a.id].zi||FISHBY[a.id].f[0].localeCompare(FISHBY[b.id].f[0]));
     const nkey=it=>it.id+'|'+it.L;if(!shown.find(it=>nkey(it)===netSel))netSel=shown[0]?nkey(shown[0]):null;
+    const netPairs=items.reduce((a,it)=>a+(FISHBY[it.id].f[1]>0&&it.L<MAX_FLVL?Math.floor(it.n/2):0),0);
     h+=`<div class="sect"><h3>Net</h3><div class="invsum"><span>Catches <b class="num">${fmt(netTot)}</b></span><span>Kinds <b class="num">${kinds}</b></span></div>
+      <div><button class="btn" data-act="netbreedall" ${netPairs?'':'disabled'}>Breed all (${fmt(netPairs)} pair${netPairs===1?'':'s'})</button> <span class="hint">Pairs up every fish at the same level, again and again, until nothing is left to pair. Junk is skipped.</span></div>
       <div class="sk-row"><button class="skc px" data-act="nett" data-arg="-1" aria-pressed="${netT<0}">All</button>${FRAR.map((r,t)=>`<button class="skc px" data-act="nett" data-arg="${t}" aria-pressed="${netT===t}"><i style="background:${r.c}"></i>${r.n} <span class="num">${new Set(items.filter(it=>FISHBY[it.id].f[1]===t).map(it=>it.id)).size}</span></button>`).join('')}</div>
       <div class="inv">${shown.map(it=>{const e=FISHBY[it.id];return`<button class="slot px" data-act="netsel" data-arg="${nkey(it)}" aria-pressed="${nkey(it)===netSel}" title="${e.f[0]}${it.L?' level '+it.L:''}" aria-label="${e.f[0]}${it.L?' level '+it.L:''}, ${it.n}" style="--rc:${FRAR[e.f[1]].c}">${imgTag(fishSpr(e.f),3)}${it.L?`<span class="slv">Lv${it.L}</span>`:''}<span class="cnt">${fmt(it.n)}</span></button>`}).join('')}${Array.from({length:Math.max(0,10-shown.length)},()=>'<div class="slot empty px"></div>').join('')}</div>`;
     const nsel=shown.find(it=>nkey(it)===netSel);
