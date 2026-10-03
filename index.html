@@ -191,6 +191,8 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
 .slot img{image-rendering:pixelated;max-width:70%;height:auto}
 .slot[aria-pressed="true"]{background:var(--panel2);box-shadow:inset 0 -4px 0 var(--rc,transparent),0 -3px 0 0 var(--brass),0 3px 0 0 var(--brass),-3px 0 0 0 var(--brass),3px 0 0 0 var(--brass)}
 .slot .cnt{position:absolute;right:4px;bottom:3px;font-family:var(--mono);font-size:20px;line-height:1;color:#fff;text-shadow:2px 0 0 #0b0f1c,-2px 0 0 #0b0f1c,0 2px 0 #0b0f1c,0 -2px 0 #0b0f1c}
+.odds{background:var(--panel2);padding:10px 12px;display:flex;flex-direction:column;gap:6px;margin:3px}
+.oddrow{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
 #toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;align-items:center;z-index:10;pointer-events:none;width:min(92vw,440px)}
 .toast{background:var(--edge);color:var(--foam);font-weight:600;padding:9px 14px;text-align:center;animation:tin .2s steps(3);box-shadow:0 -3px 0 0 var(--brass),0 3px 0 0 var(--brass),-3px 0 0 0 var(--brass),3px 0 0 0 var(--brass)}
 @keyframes tin{from{transform:translateY(10px);opacity:0}}
@@ -268,6 +270,38 @@ const ZONES=[
   fish:[['Comet Tetra',0,3000,0.05,'A',['#4ad0ff','#ffffff','#ff5ad0']],['Nebula Ray',0,3500,30,'C',['#7a4ad0','#d0a0ff','#ff9ad5']],['Void Angler',1,8000,5,'C',['#2a1a44','#4a2a7a','#c08aff']],['Starhide Shark',1,9000,400,'B',['#2a2a6a','#8a8ad0','#ffffff']],['Eclipse Koi',2,20000,8,'A',['#22222a','#ffcd3c','#ffffff']],['Cosmic Whale',3,60000,30000,'B',['#3a3aa0','#a0a0ff','#ffcd3c']],['Celestial Leviathan',4,200000,99999,'B',['#f0e0ff','#ffffff','#ffcd3c']]],
   boss:{name:'Leviathan Prime',desc:'The thing the stars fell into.',hp:3e6,reward:4e7,spr:'B',pal:['#2a1a66','#7a5ae0','#140a33'],sc:6,eye:'#ff3d5a'}},
 ];
+
+/* ---- catch catalogue: 6 tiers × 100 catches, split across the six zones ---- */
+const CATALOG=[[["Old Boot","Rusty Tin Can","Soggy Sock","Plastic Bag","Broken Bobber","Tangled Line","Pond Weed","Lily Pad","Muddy Stick","Bent Hook","Rubber Duck","Lost Mitten","Bottle Cap","Snapped Twig","Soggy Bread","Tadpole Jar","Garden Gnome"],["Shopping Cart Wheel","Traffic Cone","Waterlogged Log","River Stone","Leaky Bucket","Broken Paddle","Net Scrap","Kayak Seat","Lost Sandal","Rusty Bike Chain","Glass Jar","Flip-Flop","Wet Map","Snapped Oar","Tangled Rope","Old Kettle","Cracked Mug"],["Frozen Glove","Ice Skate","Broken Ski Pole","Lost Keys","Sunglasses","Toy Boat","Deflated Ball","Picnic Plate","Lake Algae","Driftwood","Old Lantern","Cracked Phone","Lure Box","Bent Spoon","Lost Watch","Rusty Padlock","Waterlogged Book"],["Message in a Bottle","Seaweed Clump","Broken Shell","Old Tire","Sea Glass","Buoy Fragment","Crab Trap","Torn Sail","Anchor Chain","Sand Dollar","Beach Spade","Beach Towel","Plank of Wood","Barnacled Bottle","Pirate Hat","Sandcastle Bucket","Cork Float"],["Rusted Gear","Sunken Pot","Shipwreck Plank","Iron Chain","Diver's Glove","Cracked Porthole","Dented Diving Helmet","Barnacle Lump","Whale Bone","Corroded Pipe","Broken Sonar","Lost Flashlight","Crate Lid","Ghost Net","Rusted Cannonball","Old Ship Bell"],["Space Junk","Meteor Fragment","Satellite Dish","Astronaut Glove","Stardust Clump","Alien Sock","Cosmic Debris","Burnt-out Comet","Asteroid Pebble","Rocket Bolt","Moon Rock","Dented Probe","Void Crystal Shard","Solar Panel Scrap","Lost Space Helmet","Floating Wrench"]],[["Minnow","Bluegill","Pumpkinseed","Golden Shiner","Fathead Minnow","Creek Chub","Mosquitofish","Green Sunfish","Bullhead","Crucian Carp","Tench","Rudd","Roach","Common Carp","Goldfish","Stickleback","Mudminnow"],["Dace","Gudgeon","Bleak","Chub","Brown Trout","Brook Trout","Rainbow Trout","Grayling","Barbel","Stone Loach","Sculpin","White Sucker","Redhorse","Fallfish","Minnow Darter","River Darter","Logperch"],["Yellow Perch","Walleye","Smallmouth Bass","Largemouth Bass","Rock Bass","White Crappie","Black Crappie","Lake Whitefish","Cisco","Burbot","Freshwater Drum","White Bass","Alewife","Rainbow Smelt","Lake Chub","Spottail Shiner","Bowfin"],["Mackerel","Sea Bream","Herring","Sardine","Anchovy","Pollock","Whiting","Pouting","Grey Mullet","Garfish","Sand Eel","Pilchard","Sprat","Dab","Plaice","Flounder","Ballan Wrasse"],["Lanternfish","Hatchetfish","Bristlemouth","Rattail","Slickhead","Deep-sea Smelt","Barreleye","Snailfish","Cusk-eel","Grenadier","Pearlside","Lightfish","Deep Dragonet","Bigscale","Whalefish","Spinyfin"],["Comet Tetra","Star Guppy","Nebula Minnow","Moon Danio","Dust Molly","Twinkle Rasbora","Orbit Platy","Comet Shiner","Meteor Dace","Halo Barb","Ion Goby","Quasar Darter","Pulsar Loach","Photon Chub","Void Smelt","Cosmo Killifish"]],[["Koi","Orfe","Ide","Bitterling","Weatherfish","Paradise Fish","Mirror Carp","Leather Carp","Grass Carp","Silver Carp","Bighead Carp","Black Bullhead","Warmouth","Redear Sunfish","Longear Sunfish","Spotted Gar","Dollar Sunfish"],["Northern Pike","Zander","Chain Pickerel","Asp","Vimba","Nase","Huchen","Taimen","Lenok","Arctic Char","Cutthroat Trout","Golden Trout","Sea Trout","Shad","Mooneye","Goldeye","Sauger"],["Channel Catfish","Blue Catfish","Flathead Catfish","Wels Catfish","Peacock Bass","Tilapia","Oscar","Lake Herring","Coho Salmon","Chinook Salmon","Pink Salmon","Sockeye Salmon","Chum Salmon","Atlantic Salmon","Brook Lamprey","American Eel","Muskellunge"],["Red Snapper","Sea Bass","Cod","Haddock","Ling","Conger Eel","Gurnard","John Dory","Black Bream","Red Mullet","Scad","Bonito","Bluefish","Tautog","Sheepshead","Spotted Seatrout","Red Drum"],["Viperfish","Gulper Eel","Fangtooth","Black Dragonfish","Loosejaw","Sabertooth Fish","Telescopefish","Tripod Fish","Hagfish","Ratfish","Lancetfish","Snipe Eel","Sawtooth Eel","Pelican Eel","Footballfish","Coffinfish"],["Void Angler","Starhide Shark","Nebula Skate","Aurora Eel","Comet Pike","Galaxy Koi","Stardust Trout","Rocket Perch","Eclipse Bass","Moonbeam Carp","Solar Snapper","Plasma Gar","Gravity Grouper","Orion Wrasse","Zenith Catfish","Lunar Pufferfish"]],[["Golden Koi","Ghost Koi","Butterfly Koi","Albino Catfish","Golden Tench","Blue Crayfish","Axolotl","Painted Turtle","Snapping Turtle","Mudskipper","Golden Orfe","Bronze Carp","Ruby Rudd","Platinum Goldfish","Calico Goldfish","Spotted Bowfin","Alligator Gar"],["Atlantic Sturgeon","Golden Mahseer","Tiger Trout","Marble Trout","Bull Trout","Apache Trout","Steelhead","Piranha","Payara","Arapaima","Pacu","Electric Eel","Redtail Catfish","Tigerfish","Siberian Taimen","Golden Dorado","Peacock Cichlid"],["Lake Sturgeon","Paddlefish","Silver Arowana","Asian Arowana","Albino Pike","Tiger Muskie","Longnose Gar","Florida Gar","Nile Perch","Giant Gourami","Snakehead","Bichir","Lungfish","Freshwater Stingray","Golden Perch","Murray Cod","Australian Bass"],["Barracuda","Mahi-Mahi","Yellowtail","Amberjack","Cobia","Tarpon","Bonefish","Permit","Roosterfish","Wahoo","Kingfish","Goliath Grouper","Lionfish","Moray Eel","Octopus","Cuttlefish","Spiny Lobster"],["Anglerfish","Giant Isopod","Vampire Squid","Dumbo Octopus","Frilled Shark","Goblin Shark","Cookiecutter Shark","Coelacanth","Oarfish","Ribbonfish","Opah","Black Swallower","Blobfish","Glass Squid","Firefly Squid","Spookfish"],["Eclipse Koi","Supernova Betta","Pulsar Puffer","Comet Swordfish","Starfall Salmon","Nebula Jelly","Meteor Manta","Gravity Eel","Cosmic Lionfish","Quasar Tang","Nova Angelfish","Halo Shark","Prism Arowana","Astral Octopus","Orbit Ray","Twin Star Carp"]],[["Mossback Carp","Lilyfin Carp","Willowtail Carp","Mossback Pike","Lilyfin Pike","Willowtail Pike","Mossback Catfish","Lilyfin Catfish","Willowtail Catfish","Mossback Koi","Lilyfin Koi","Willowtail Koi","Mossback Gar","Lilyfin Gar","Willowtail Gar","Mossback Snapping Turtle","Lilyfin Snapping Turtle"],["Rapids Trout","Riverking Trout","Silverstream Trout","Rapids Salmon","Riverking Salmon","Silverstream Salmon","Rapids Sturgeon","Riverking Sturgeon","Silverstream Sturgeon","Rapids Pike","Riverking Pike","Silverstream Pike","Rapids Eel","Riverking Eel","Silverstream Eel","Rapids Mahseer","Riverking Mahseer"],["Glasswater Muskie","Frostfin Muskie","Mirror Muskie","Glasswater Sturgeon","Frostfin Sturgeon","Mirror Sturgeon","Glasswater Arowana","Frostfin Arowana","Mirror Arowana","Glasswater Pike","Frostfin Pike","Mirror Pike","Glasswater Bass","Frostfin Bass","Mirror Bass","Glasswater Char","Frostfin Char"],["Coral Marlin","Tidecaller Marlin","Reefking Marlin","Coral Swordfish","Tidecaller Swordfish","Reefking Swordfish","Coral Grouper","Tidecaller Grouper","Reefking Grouper","Coral Manta Ray","Tidecaller Manta Ray","Reefking Manta Ray","Coral Tuna","Tidecaller Tuna","Reefking Tuna","Coral Sailfish","Tidecaller Sailfish"],["Abyssal Angler","Lantern Angler","Drowned Angler","Abyssal Squid","Lantern Squid","Drowned Squid","Abyssal Shark","Lantern Shark","Drowned Shark","Abyssal Oarfish","Lantern Oarfish","Drowned Oarfish","Abyssal Viperfish","Lantern Viperfish","Drowned Viperfish","Abyssal Gulper Eel"],["Starfall Whale","Void Whale","Nebula Whale","Starfall Leviathan Pup","Void Leviathan Pup","Nebula Leviathan Pup","Starfall Ray","Void Ray","Nebula Ray","Starfall Shark","Void Shark","Nebula Shark","Starfall Serpent","Void Serpent","Nebula Serpent","Starfall Koi"]],[["Ancient Moon Carp","Moonlit Moon Carp","Golden Lotus Moon Carp","Ancient Koi Dragon","Moonlit Koi Dragon","Golden Lotus Koi Dragon","Ancient Bog Serpent","Moonlit Bog Serpent","Golden Lotus Bog Serpent","Ancient Elder Catfish","Moonlit Elder Catfish","Golden Lotus Elder Catfish","Ancient Lotus Turtle","Moonlit Lotus Turtle","Golden Lotus Lotus Turtle","Ancient Pond Spirit","Moonlit Pond Spirit"],["Spirit Salmon","Thunder Salmon","Emerald Salmon","Spirit Sturgeon","Thunder Sturgeon","Emerald Sturgeon","Spirit River Serpent","Thunder River Serpent","Emerald River Serpent","Spirit Dragon Trout","Thunder Dragon Trout","Emerald Dragon Trout","Spirit Mahseer King","Thunder Mahseer King","Emerald Mahseer King","Spirit Water Horse","Thunder Water Horse"],["Crystal Glass Pike","Phantom Glass Pike","Glacier Glass Pike","Crystal Lake Monster","Phantom Lake Monster","Glacier Lake Monster","Crystal Ice Sturgeon","Phantom Ice Sturgeon","Glacier Ice Sturgeon","Crystal Kelpie","Phantom Kelpie","Glacier Kelpie","Crystal Frost Leviathan","Phantom Frost Leviathan","Glacier Frost Leviathan","Crystal Mirror Eel","Phantom Mirror Eel"],["Sunken Coral Dragonet","Storm Coral Dragonet","Kraken-touched Coral Dragonet","Sunken Sea Serpent","Storm Sea Serpent","Kraken-touched Sea Serpent","Sunken Golden Marlin","Storm Golden Marlin","Kraken-touched Golden Marlin","Sunken Tsunami Shark","Storm Tsunami Shark","Kraken-touched Tsunami Shark","Sunken Pearl Whale","Storm Pearl Whale","Kraken-touched Pearl Whale","Sunken Siren Fish","Storm Siren Fish"],["Eldritch Leviathan","Bioluminous Leviathan","Primordial Leviathan","Eldritch Megalodon","Bioluminous Megalodon","Primordial Megalodon","Eldritch Colossal Squid","Bioluminous Colossal Squid","Primordial Colossal Squid","Eldritch Deep One","Bioluminous Deep One","Primordial Deep One","Eldritch Lantern Wyrm","Bioluminous Lantern Wyrm","Primordial Lantern Wyrm","Eldritch Trench King"],["Celestial Leviathan","Cosmic Leviathan","Eternal Leviathan","Celestial Whale","Cosmic Whale","Eternal Whale","Celestial Star Serpent","Cosmic Star Serpent","Eternal Star Serpent","Celestial Galaxy Koi","Cosmic Galaxy Koi","Eternal Galaxy Koi","Celestial Nova Dragon","Cosmic Nova Dragon","Eternal Nova Dragon","Celestial Void Kraken"]]];
+const FRAR=[{n:'Junk',c:'#a89a88',xp:.5,base:.3},{n:'Common',c:'#c8d0dc',xp:1,base:1.5},{n:'Uncommon',c:'#5fd16a',xp:3,base:6},{n:'Rare',c:'#4fa8ff',xp:10,base:25},{n:'Epic',c:'#c07bff',xp:30,base:80},{n:'Legendary',c:'#ffcd3c',xp:100,base:300}];
+const ZVAL=[1,5,25,120,500,2500];
+function hsh(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function hsl2hex(h,s,l){s/=100;l/=100;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return'#'+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('')}
+const has=(n,list)=>list.some(w=>n.includes(w));
+function tplFor(n,t){
+  if(t===0){if(has(n,['Boot','Sock','Sandal','Flip-Flop','Mitten','Glove','Skate']))return'J_BOOT';if(has(n,['Can','Bucket','Kettle','Pot','Mug','Jar','Bell','Trap']))return'J_CAN';
+    if(has(n,['Bottle','Glass'])&&!n.includes('Sunglasses'))return'J_BOTTLE';if(has(n,['Tire','Wheel','Float','Buoy','Ball','Porthole','Dish']))return'J_TIRE';
+    if(has(n,['Plank','Log','Stick','Twig','Driftwood','Oar','Paddle','Pole','Lid','Pipe']))return'J_PLANK';if(has(n,['Weed','Algae','Lily','Seaweed','Net','Line','Rope']))return'J_WEED';
+    if(has(n,['Key','Padlock','Chain','Hook','Spoon','Wrench','Bolt','Gear','Watch']))return'J_KEY';if(has(n,['Duck','Gnome','Boat']))return'J_DUCK';
+    if(has(n,['Rock','Stone','Pebble','Fragment','Shard','Meteor','Lump','Crystal','Cannonball','Bone','Comet','Stardust','Debris','Junk']))return'J_ROCK';
+    if(has(n,['Shell','Dollar']))return'J_SHELL';if(has(n,['Hat','Helmet','Cone']))return'J_HAT';return'J_SCRAP'}
+  if(has(n,['Eel','Serpent','Wyrm','Lamprey','Hagfish','Oarfish','Ribbonfish','Snakehead','Cusk']))return'E';
+  if(has(n,['Ray','Skate','Flounder','Plaice','Dab','Sole','Halibut','Turbot','Manta','Stingray']))return'D';
+  if(has(n,['Puffer','Fugu','Blobfish']))return'F';if(has(n,['Shark','Megalodon']))return'G';
+  if(has(n,['Squid','Octopus','Jelly','Cuttlefish','Kraken','Nautilus','Isopod','Deep One']))return'H';
+  if(has(n,['Crab','Lobster','Crayfish','Shrimp','Prawn']))return'I';
+  if(has(n,['Angelfish','Discus','Tang','Opah','Dory','Betta','Butterfly']))return'J';
+  if(has(n,['Pike','Gar','Barracuda','Muskie','Muskellunge','Sturgeon','Marlin','Swordfish','Sailfish','Wahoo','Lancet','Pickerel','Whale','Leviathan','Monster','Kelpie','Water Horse','Dragon','Arowana','Arapaima','Paddlefish','Tarpon','Kingfish','Coelacanth','Taimen','Huchen','Tuna']))return'B';
+  if(has(n,['Carp','Bluegill','Sunfish','Pumpkinseed','Bream','Grouper','Snapper','Crappie','Piranha','Pacu','Goldfish','Tilapia','Oscar','Gourami','Sheepshead','Drum','Tautog','Cichlid','Turtle','Tench','Rudd','Koi','Warmouth','Spirit','King','Perch']))return'C';
+  return'A'}
+const TPL_KG={A:1,B:8,C:2,D:3,E:2,F:1,G:40,H:5,I:.8,J:1};
+CATALOG.forEach((byZone,t)=>byZone.forEach((names,zi)=>{if(!ZONES[zi].f2)ZONES[zi].f2=[];names.forEach((n,k)=>{const h=hsh(n),h01=(h%1000)/1000,tpl=tplFor(n,t);
+  const sat=[18,32,46,66,78,88][t],lig=[46,56,56,58,60,68][t]-(zi>=4&&t<5?8:0),hue=t===0?(20+h%40):(h%360);
+  const b=hsl2hex(hue,sat,lig),l=hsl2hex(hue,Math.max(10,sat-20),Math.min(92,lig+28)),d=t>=3?hsl2hex((hue+180)%360,Math.min(95,sat+10),Math.max(30,lig-6)):hsl2hex(hue,sat,Math.max(18,lig-22));
+  const kg=t===0?(.3+h01*2.5):(TPL_KG[tpl]||1)*(1+zi*.6)*(1+(t-1)*.5)*(.6+h01*.8);
+  const val=FRAR[t].base*ZVAL[zi]*(.75+h01*.5);
+  ZONES[zi].f2.push([n,t,val,kg,tpl,t===5?[b,l,'#ffcd3c']:[b,l,d],'f'+zi+'_'+t+'_'+k])})}));
+ZONES.forEach(z=>{z.fish=z.f2;delete z.f2});
 const RODS=[
  {n:'Twig Rod',p:0,pow:1,cast:4.0,col:'#8a5a2a'},{n:'Bamboo Rod',p:150,pow:3,cast:3.5,col:'#d8c070'},{n:'Fiberglass Rod',p:1200,pow:10,cast:3.0,col:'#e8e8e8'},
  {n:'Carbon Rod',p:9000,pow:35,cast:2.6,col:'#4a4a5a'},{n:'Titanium Rod',p:60000,pow:120,cast:2.2,col:'#a8c8e0'},{n:'Abyssal Rod',p:400000,pow:450,cast:1.9,col:'#7a4ad0'},
@@ -357,6 +391,26 @@ const PSPR={duck:['bird',{b:'#ffcd3c',l:'#fff3b0',o:'#ff8c2e',d:'#e0a020'}],hero
  fox:['crit',{b:'#ff7a30',l:'#fff1e0',o:'#1a1c2c'}],starcat:['crit',{b:'#7a5cff',l:'#c9b8ff',o:'#ff9ad5',e:'#fff3b0'}],dragon:['crit',{b:'#3d1d6e',l:'#8a5cd8',o:'#ff3d5a',e:'#ffcd3c'}],
  crab:['crab',{b:'#e04a3a'}],narwhal:['narw',{b:'#6f8fb0',l:'#dfe8f0',d:'#4a6a8a',w:'#fff6d8'}],jelly:['jelly',{b:'#9fd8ff',l:'#e0f6ff',d:'#c9a8ff'}]};
 const PENG_SHUT=MAPS.PENG.map((r,i)=>i===4?r.replace('e','k'):r);const LANT=['.k.','kyk','kyk','kkk'];
+Object.assign(MAPS,{
+ D:["....kkkk....","..kkbbbbkk..",".kbbbbbbbbk.","kebbbbdbbbbk",".kbbbbbbbbkk","..kkllllkk.k","....kkkk...."],
+ E:["..kkkkkkkkkkkkk...",".kbbbbbbdbbbbbbkk.","kebbbbbbbbbbbbbbbk",".kllllllllllllkkk.","..kkkkkkkkkkkk...."],
+ F:[".k.k.k.k...","kbkbkbkbk..","kbbbbbbbbk.","kebbbbbbbkk","kbbbdbbbbkdk","kllbbbbbbkk.",".kllllllk...","..kkkkkk...."],
+ G:["......k.........",".....kbk........","...kkkbbkkkk....","..kbbbbbbbbbkk.k",".kebbbbbbbbbbbkdk","kwwbbbbbbbbbbbkkk",".kllllllllllkk...","..kkkkkkkkkk....."],
+ H:["..kkkk..",".kbbbbk.","kbbbbbbk","kbebbebk","kbbbbbbk",".kbbbbk.",".kdkdkd.","kd.kd.kd","k..k..k."],
+ I:["kk......kk","kbk.kk.kbk",".kbkbbkbk.","..kbbbbk..",".kbebbebk.","kbbbbbbbbk",".kkkkkkkk.","k.k....k.k"],
+ J:["....kk......","...kddk.....","..kbbbbk....",".kbbbbbbk.kk","kebbbbbbbkdk","kbbbbbbbbkdk",".kbbbbbbk.kk","..kllllk....","...kddk.....","....kk......"],
+ J_BOOT:["..kkk.....","..kbbk....","..kbbk....","..kbbk....",".kbbbkkk..","kbbbbbbbk.","kbbbbbbbbk","kddddddddk","kkkkkkkkkk"],
+ J_CAN:["..kkkkk..",".kdddddk.",".kbbbbbk.",".klllllk.",".kbbbbbk.",".kbbbbbk.",".kdddddk.","..kkkkk.."],
+ J_BOTTLE:["...kk....","...kk....","..kbbk...","..kbbk...",".kbbbbk..",".kblbbk..",".kbbbbk..",".kbbbbk..","..kkkk..."],
+ J_TIRE:["..kkkkk..",".kbbbbbk.","kbbkkkbbk","kbk...kbk","kbbkkkbbk",".kbbbbbk.","..kkkkk.."],
+ J_PLANK:["kkkkkkkkkkk","kbbdbbbbdbk","kbbbbdbbbbk","kkkkkkkkkkk"],
+ J_WEED:[".k...k..",".kb.kb..","..kbkb.k",".kbkbbkb","kbkbkbk.",".kbbkb..","..kbk..."],
+ J_KEY:[".kkk......","kb.bk.....","kb.bkkkkkk",".kkk.kbkbk","......k.k."],
+ J_DUCK:["...kkk...","..kbbbk..","..kbebkoo","...kbbk..",".kkbbbbk.","kbbbbbbbk","kbbbbbbbk",".kkkkkkk."],
+ J_ROCK:["..kkkk..",".kbbbbk.","kbblbbbk","kbbbbdbk","kbdbbbbk",".kkkkkk."],
+ J_SHELL:["...kk...","..kbbk..",".kbdbdk.","kbdbdbdk","kbdbdbdk",".kkkkkk."],
+ J_SCRAP:["kkkkkkkk","kbbbbbbk","kblllldk","kbbbbbbk","kblldlbk","kkkkkkkk"],
+ J_HAT:["..kkkk...",".kbbbbk..",".kbbbbk..",".kddddk..","kkbbbbkk.","kbbbbbbbk","kkkkkkkkk"]});
 MAPS.TAIL=["..kkk.","kbbbbk","kbbbbk",".kbbbk",".kwwk.","..kk.."];
 MAPS.ROCK=["..kkk..",".kbbbk.","kbbbbbk","kbbdbbk",".kkbbk.","...kk.."];
 const upHat=(m,b)=>m.slice(0,b+1).concat(['.kkkkkkkkkk.']);
@@ -389,12 +443,12 @@ function bodyMap(cls,closed){const C=CLS[cls];return MAPS.PENG.map((r,i)=>i===5?
 /* picker portrait: sitting up, no hat, holding a fish */
 const SIT=["....kkkkk.......","...kbbbbbk......","..kbbbbwwwk.....","..kbbbwwewk.....","SNOUT","..kbbbwwwwk.....","...kbbbwwk......","..kbbbbwwwk.....",".kbbbwwwwwwk....",".kbbwwwwwwwwk...","kbbbwwwwwwwwk...","kbbwwwwwwwwwwk..","kbbwwwwwwwwwwk..","kbbwwwwwwwwwwk..","kbbbwwwwwwwwwk..",".kbbwwwwwwwwk...",".kbbbwwwwwwbk...","..kkbbbbbbkk....","..okkkkkkko.....",".ooo.....ooo...."];
 const SIT_SNOUT={std:"..kbbbwwwwook...",fire:"..kbbbwwwwwqk...",ice:"..kbbbwwwwwqk...",earth:"..kbbbwwwwqqk...",air:"..kbbbwwwwoook.."};
-const SIT_FISH={std:[0,4],fire:[3,2],ice:[2,3],earth:[0,3],air:[3,0]};
+const SIT_FISH={std:['A',['#ff8a1e','#fff1d8','#e83a2a']],fire:['A',['#e04a4a','#ffc0b0','#a02a3a']],ice:['A',['#5a6a7a','#dfe4ea','#a8b8c8']],earth:['C',['#b08a4a','#e8d39a','#7a5a2a']],air:['A',['#3a8aa8','#e8f0f0','#1a3a5a']]};
 const EARS={fire:{map:[".k.","kbk","kwk"],at:[[3,-2],[7,-2]]},ice:{map:[".kk.","kbbk"],at:[[2,-1],[7,-1]]}};
 function sitCanvas(cls){const C=CLS[cls];const c=document.createElement('canvas');c.width=24;c.height=26;const g=c.getContext('2d');const ox=5,oy=4;
   if(C.tail)g.drawImage(mk(["..kkk","kkbbk","kbbbk","kbwwk",".kkk."],C.tail),ox-4,oy+13);
   g.drawImage(mk(SIT.map(r=>r==='SNOUT'?SIT_SNOUT[cls]:r),C.pal),ox,oy);
-  const [zi,fi]=SIT_FISH[cls],fs=fishSpr(ZONES[zi].fish[fi]);g.save();g.translate(ox+2+fs.width,oy+10);g.scale(-1,1);g.drawImage(fs,0,0);g.restore();
+  const [tp,cl]=SIT_FISH[cls],fs=fishSpr(['',1,0,1,tp,cl]);g.save();g.translate(ox+2+fs.width,oy+10);g.scale(-1,1);g.drawImage(fs,0,0);g.restore();
   g.drawImage(mk(["kk..","kbk.",".kbk",".kbk","..kk"],C.pal),ox+9,oy+9);
   const E=EARS[cls];if(E)E.at.forEach(([x,y])=>g.drawImage(mk(E.map,C.pal),ox+x,oy+y));
   return c}
@@ -430,7 +484,7 @@ function mk(map,pal,mono){
     x.fillStyle=col;x.fillRect(i,y,1,1)}});
   return sprCache[key]=c;
 }
-function fishPal(f){const [b,l,d]=f[5];return{b,l,d,e:lum(b)<.35?'#f4f4f4':'#0e0f17'}}
+function fishPal(f){const [b,l,d]=f[5];return{b,l,d,e:lum(b)<.35?'#f4f4f4':'#0e0f17',o:'#ff9a2e',w:'#f4f4f4'}}
 function fishSpr(f,mono){return mk(MAPS[f[4]],fishPal(f),mono)}
 function bossSpr(z,mono){const b=z.boss,[bb,l,d]=b.pal;return mk(MAPS[b.spr],{b:bb,l,d,e:b.eye||'#ffcd3c',g:'#bff7ff'},mono)}
 function petSpr(id,mono){if(CPET[id])return craftPetCanvas(id,mono);const [m,p]=PSPR[id];return mk(MAPS[m],p,mono)}
@@ -562,7 +616,7 @@ function petStarMult(id){return 1+0.5*((S.pets[id]||1)-1)}
 function petBonus(type){return petBonus0(type)}
 function petBonus0(type){let s=0;S.eq.forEach(id=>{const p=PETS[id];if(!p)return;if(p.type===type||(p.type==='all'&&type!=='speed'))s+=p.val*petStarMult(id)});return s}
 function petDps(){let s=0;S.eq.forEach(id=>{const p=PETS[id];if(p)s+=DPSBASE[p.tier]*EGGS[p.egg].mult*petStarMult(id)});return s}
-function zonesComplete(){return ZONES.filter((z,zi)=>z.fish.every((f,fi)=>S.idx[zi+'-'+fi])).length}
+function zonesComplete(){return ZONES.filter(z=>z.fish.every(f=>S.idx[f[6]])).length}
 function castTime(){return RODS[S.rod].cast/(1+petBonus('speed')+envMods().speed+(S.cls==='air'?.2:0)+.005*(skL('engineering')-1))/(buffOn('speed')?2:1)}
 function luck(){return BAITS[S.bait].luck+petBonus('luck')+envMods().luck+(S.cls==='ice'?.1:0)+.01*(skL('alchemy')-1)+(buffOn('luck')?1:0)}
 function coinMult(){return(1+petBonus('coin'))*(buffOn('coin')?2:1)*(1+0.1*zonesComplete())*(1+0.05*S.beaten.filter(Boolean).length)*(1+envMods().coin)*(S.cls==='std'?1.15:1)*(1+.01*(skL('cooking')-1))}
@@ -574,9 +628,14 @@ function strikeDmg(){return RODS[S.rod].pow*(1+S.lvl*0.05)*(B&&B.harpoon?1.5:1)*
 function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;$('toasts').appendChild(t);setTimeout(()=>t.remove(),2600);while($('toasts').children.length>3)$('toasts').firstChild.remove()}
 
 /* ---------- fishing ---------- */
+function tierGate(zi){const wx=S.wx?S.wx.k:'clear';return{rare:S.rod>=2||zi>=2,epic:zi>=3,leg:S.rod>=5||zi>=4||wx==='storm'||wx==='meteor'||wx==='aurora'}}
+function tierWeights(zi,lk){const rod=S.rod,bait=S.bait,P=Math.min(1,rod/6*.4+bait/5*.3+zi/5*.3),g=tierGate(zi);
+  const w=[bait===0?3+25*(1-rod/6):1+8*(1-P),80-30*P,20+10*P,g.rare?4+8*P:0,g.epic?.8+2.2*P:0,g.leg?.08+.5*P:0];
+  return w.map((v,t)=>t>=3?v*(1+lk*.25*(t-2)):v)}
+function tierOdds(zi){const w=tierWeights(zi,luck()),s2=w.reduce((a,b)=>a+b,0);return w.map(v=>v/s2*100)}
 function rollFish(zi,lk){
-  const w=[60,25,10,4,1].map((v,i)=>i>=2?v*Math.pow(1+lk,i-1):v);
-  let r=Math.random()*w.reduce((a,b)=>a+b),tier=0;for(;tier<4;tier++){r-=w[tier];if(r<0)break}
+  const w=tierWeights(zi,lk);
+  let r=Math.random()*w.reduce((a,b)=>a+b),tier=0;for(;tier<5;tier++){r-=w[tier];if(r<0)break}
   const opts=ZONES[zi].fish.map((f,i)=>[f,i]).filter(x=>x[0][1]===tier);
   const [f,fi]=opts[Math.floor(Math.random()*opts.length)];
   const big=Math.random()<0.05?1.8:1;
@@ -584,18 +643,18 @@ function rollFish(zi,lk){
   return{zi,fi,f,tier,weight,value:f[2]*weight/f[3]};
 }
 function record(c,coins,xp){
-  const id=c.zi+'-'+c.fi;const e=S.idx[id];const isNew=!e;
+  const id=c.f[6];const e=S.idx[id];const isNew=!e;
   if(!e)S.idx[id]={n:1,best:c.weight};else{e.n++;if(c.weight>e.best)e.best=c.weight}
   S.coins+=coins;S.total++;S.zc[c.zi]++;gainXp(xp);return isNew;
 }
 function catchFish(){
   const c=rollFish(S.zone,luck());
-  const coins=c.value*coinMult();const xp=RAR[c.tier].xp*(1+S.zone*1.5)*xpMult();
+  const coins=c.value*coinMult();const xp=FRAR[c.tier].xp*(1+S.zone*1.5)*xpMult();
   const isNew=record(c,coins,xp);
-  anims.push({t:0,c,coins,cls:S.cls||'std'});splash(BOBX,BOBY,c.tier>=3?14:8,curC().fx);if(S.cls==='fire')splash(BOBX,BOBY-4,8,'#ffffff');if(S.cls==='air')fxs.push({k:'tornado',t:0});if(pT<2.6)pT=2.6;
+  anims.push({t:0,c,coins,cls:S.cls||'std'});splash(BOBX,BOBY,c.tier>=4?14:8,curC().fx);if(S.cls==='fire')splash(BOBX,BOBY-4,8,'#ffffff');if(S.cls==='air')fxs.push({k:'tornado',t:0});if(pT<2.6)pT=2.6;
   logItems.unshift({c,coins,isNew});logItems.length=Math.min(logItems.length,6);renderLog();
   rollEgg();
-  if(isNew&&c.tier>=3)toast(`${RAR[c.tier].n}! ${c.f[0]} added to your index`);
+  if(isNew&&c.tier>=4)toast(`${FRAR[c.tier].n}! ${c.f[0]} added to your index`);
   else if(isNew&&zonesCompleteJust())toast(`${ZONES[c.zi].name} index complete: +10% coins`);
   if(!B&&now()>(S.bossCd||0)&&Math.random()<BOSS_CHANCE)startBoss(c.zi);
   if(tab==='index')renderPanel();
@@ -671,7 +730,7 @@ function charLv(k){const o=k===S.cls?S:PROF[k];return o?{lvl:o.lvl,xp:o.xp,coins
 function renderCrew(){$('crew').innerHTML=CLS_ORDER.map(k=>{const C=CLS[k],c=charLv(k),on=S.cls===k;
   return`<button class="mate px" data-act="choose" data-arg="${k}" aria-pressed="${on}"><span class="pic">${imgTag(sitCanvas(k),2,C.animal)}</span><span class="info"><span class="nm">${C.animal}</span><span class="lv">${c.on?`Lv <span class="num" id="crewlv-${k}">${c.lvl}</span> · ${fmt(c.coins)} coins`:'New · Lv 1'}</span><span class="bar"><b id="crewxp-${k}" style="width:${c.xp/xpNeed(c.lvl)*100}%"></b></span></span></button>`}).join('')}
 function setLogo(){$('logo').src=avatarCanvas(S.cls||'std').toDataURL();$('hint').textContent=`Your ${curC().animal.toLowerCase()} fishes on its own. Tap the water to ${curC().verb} and land fish faster.`}
-let crSel='cooking',_dexIc=null,bagSel=null;
+let crSel='cooking',_dexIc=null,bagSel=null,idxZ=null,idxT=1;
 /* fished eggs, by rarity: chance per fish caught (luck raises it a little) */
 /* one egg per craft; each is an equal, rare catch. The roulette decides the pet's rarity */
 const EGGR=Object.fromEntries(SK_ORDER.map(k=>[k,{n:SKILLS[k].n+' Egg',c:SKILLS[k].col,d:mix(SKILLS[k].col,'#05060c',.35),ch:.006}]));
@@ -738,6 +797,8 @@ function openDex(i){const e=EGGS[i];if(!e)return;const tw=e.pets.reduce((a,p)=>a
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('eggdex').hidden)$('eggdex').hidden=true});
 function craftArgs(a){const [k,i]=String(a).split(':');return[k,+i]}
 const act={
+  idxz(z){idxZ=+z;renderPanel()},
+  idxt(t){idxT=+t;renderPanel()},
   bagsel(k){bagSel=k;renderPanel()},
   hatchegg(r){openHatch(r)},
   hatchequip(){if(HATCH&&HATCH.win&&S.pets[HATCH.win.id]){S.eq=[HATCH.win.id];toast(`${HATCH.win.n} hops into the dinghy`);$('hatchequip').hidden=true;renderPetBar();renderPanel()}},
@@ -782,7 +843,7 @@ function renderZones(){
   $('zlabel').textContent=ZONES[S.zone].name;
 }
 function renderLog(){
-  $('log').innerHTML=logItems.map(l=>l.egg!==undefined?`<li class="px">${imgTag(mk(MAPS.EGG,eggPal(l.egg)),2)}<span style="color:${EGGR[l.egg].c};font-weight:600">${EGGR[l.egg].n}</span><span class="new" style="background:${EGGR[l.egg].d}">EGG</span><span class="w">added to your Bag</span></li>`:`<li class="px">${imgTag(fishSpr(l.c.f),2)}<span style="color:${RAR[l.c.tier].c};font-weight:600">${l.c.f[0]}</span>${l.isNew?'<span class="new">NEW</span>':''}<span class="w num">${kg(l.c.weight)}</span><span class="v num">+${fmt(l.coins)}</span></li>`).join('')||'<li class="px"><span class="w">Your first catch will show up here.</span></li>';
+  $('log').innerHTML=logItems.map(l=>l.egg!==undefined?`<li class="px">${imgTag(mk(MAPS.EGG,eggPal(l.egg)),2)}<span style="color:${EGGR[l.egg].c};font-weight:600">${EGGR[l.egg].n}</span><span class="new" style="background:${EGGR[l.egg].d}">EGG</span><span class="w">added to your Bag</span></li>`:`<li class="px">${imgTag(fishSpr(l.c.f),2)}<span style="color:${FRAR[l.c.tier].c};font-weight:600">${l.c.f[0]}</span>${l.isNew?'<span class="new">NEW</span>':''}<span class="w num">${kg(l.c.weight)}</span><span class="v num">+${fmt(l.coins)}</span></li>`).join('')||'<li class="px"><span class="w">Your first catch will show up here.</span></li>';
 }
 function renderBuffs(){
   const out=[];const t=now();
@@ -818,7 +879,7 @@ function renderPanel(){
     h+=`<div class="sect"><h3>${curC().gear}</h3><p>${S.cls&&S.cls!=='std'?'Faster spells and harder boss strikes.':'Faster casts and harder boss strikes.'}</p>`+RODS.map((r,i)=>{
       const own=S.rods.includes(i);const btn=S.rod===i?'<button class="btn ok" disabled>Equipped</button>':own?`<button class="btn ghost" data-act="rod" data-arg="${i}">Equip</button>`:`<button class="btn" data-act="rod" data-arg="${i}" data-cost="${r.p}">${money(r.p)}</button>`;
       return`<div class="row px"><div class="ic">${imgTag(gearIcon(i),3)}</div><div class="info"><div class="nm">${gearName(i)}</div><div class="ds">${S.cls&&S.cls!=='std'?'Channel':'Cast'} ${r.cast}s · Strike ${fmt(r.pow)}</div></div>${btn}</div>`}).join('')+`</div>`;
-    h+=`<div class="sect"><h3>Bait</h3><p>Luck makes rare, epic and legendary fish bite more often.</p>`+BAITS.map((b,i)=>{
+    h+=`<div class="sect"><h3>Bait</h3><p>Any bait cuts down on junk, and better bait shifts the odds towards rarer catches. Luck makes rare, epic and legendary fish bite more often.</p>`+BAITS.map((b,i)=>{
       const own=S.baits.includes(i);const btn=S.bait===i?'<button class="btn ok" disabled>Using</button>':own?`<button class="btn ghost" data-act="bait" data-arg="${i}">Use</button>`:`<button class="btn" data-act="bait" data-arg="${i}" data-cost="${b.p}">${money(b.p)}</button>`;
       return`<div class="row px"><div class="ic">${imgTag(BAIT_IC[i],3)}</div><div class="info"><div class="nm">${b.n}</div><div class="ds">+${Math.round(b.luck*100)}% luck</div></div>${btn}</div>`}).join('')+`</div>`;
     h+=`<div class="sect"><h3>Supplies</h3><p>Bought supplies go to your Bag. Prices rise as you reach new waters.</p>`+Object.keys(ITEMS).map(k=>{const p=itemPrice(k);
@@ -862,12 +923,17 @@ function renderPanel(){
       return`<div class="row px"><div class="info"><div class="nm">${rn}</div><div class="ds">${REC_TIME[i]}s · costs ${fmt(REC_COST[i])} · sells for ${fmt(v)} · +${REC_XP[i]} XP</div></div>${lock?`<button class="btn" disabled>Lv ${REC_LVL[i]}</button>`:sel?'<button class="btn ok" disabled>Selected</button>':`<button class="btn ghost" data-act="recipe" data-arg="${k}:${i}">Select</button>`}</div>`}).join('')+`</div>`;
   }
   else if(tab==='index'){
-    const all=ZONES.reduce((a,z)=>a+z.fish.length,0),got=Object.keys(S.idx).length;
-    h+=`<div class="sect"><h3>Fish index</h3><div class="prog"><span class="num">${got}/${all}</span><div class="bar"><b style="width:${got/all*100}%"></b></div><span class="num">${Math.round(got/all*100)}%</span></div><p>Finish every fish in a zone for +10% coins. Completed: ${zonesComplete()}/${ZONES.length}.</p></div>`;
-    ZONES.forEach((z,zi)=>{const n=z.fish.filter((f,fi)=>S.idx[zi+'-'+fi]).length;
-      h+=`<div class="sect"><h3>${unlocked(zi)||n?z.name:'Unknown waters'} <span class="hint num">${n}/${z.fish.length}</span></h3><div class="grid">`+z.fish.map((f,fi)=>{const e=S.idx[zi+'-'+fi];
-        return e?`<div class="card px"><div class="pic">${imgTag(fishSpr(f),f[4]==='B'?2:3)}</div><span class="rar" style="color:${RAR[f[1]].c}">${RAR[f[1]].n}</span><div class="nm">${f[0]}</div><div class="ds num">×${fmt(e.n)} · best ${kg(e.best)}</div></div>`
-        :`<div class="card px locked"><div class="pic">${imgTag(fishSpr(f,'#3a4a72'),f[4]==='B'?2:3)}</div><span class="rar" style="color:${RAR[f[1]].c};opacity:.6">${RAR[f[1]].n}</span><div class="nm">???</div><div class="ds">Not caught yet</div></div>`}).join('')+`</div></div>`});
+    const all=ZONES.reduce((a,z)=>a+z.fish.length,0),got=ZONES.reduce((a,z)=>a+z.fish.filter(f=>S.idx[f[6]]).length,0);
+    if(idxZ===null)idxZ=S.zone;const Z=ZONES[idxZ],od=tierOdds(idxZ),g=tierGate(idxZ);
+    h+=`<div class="sect"><h3>Catch index</h3><div class="prog"><span class="num">${got}/${all}</span><div class="bar"><b style="width:${got/all*100}%"></b></div><span class="num">${Math.round(got/all*100)}%</span></div><p>Six tiers with 100 catches each, spread over the six zones. Finish every catch in a zone for +10% coins. Completed: ${zonesComplete()}/${ZONES.length}.</p>
+      <div class="sk-row">${ZONES.map((z,zi)=>{const n=z.fish.filter(f=>S.idx[f[6]]).length;return`<button class="skc px" data-act="idxz" data-arg="${zi}" aria-pressed="${zi===idxZ}">${unlocked(zi)||n?z.name:'???'} <span class="num">${n}/${z.fish.length}</span></button>`}).join('')}</div>
+      <div class="sk-row">${FRAR.map((r,t)=>{const list=Z.fish.filter(f=>f[1]===t),n=list.filter(f=>S.idx[f[6]]).length;return`<button class="skc px" data-act="idxt" data-arg="${t}" aria-pressed="${t===idxT}"><i style="background:${r.c}"></i>${r.n} <span class="num">${n}/${list.length}</span></button>`}).join('')}</div>
+      <div class="odds px"><div class="hint">Your odds in ${Z.name} right now</div><div class="oddrow">${FRAR.map((r,t)=>`<span><b style="color:${r.c}">${r.n}</b> <span class="num">${od[t]<1&&od[t]>0?od[t].toFixed(2):Math.round(od[t])}%</span></span>`).join('')}</div>
+      <div class="hint">${!g.rare?'Rare needs a Fiberglass Rod or better, or Glasswater Lake and beyond. ':''}${!g.epic?'Epic is found from Saltreef Coast onwards. ':''}${!g.leg?'Legendary needs an Abyssal Rod or better, the Midnight Trench and beyond, or a storm, meteor shower or aurora. ':''}${S.bait===0?'No bait means lots of junk. ':''}</div></div></div>`;
+    const sel=Z.fish.filter(f=>f[1]===idxT);
+    h+=`<div class="sect"><h3 style="color:${FRAR[idxT].c}">${FRAR[idxT].n} · ${Z.name}</h3><div class="grid">`+sel.map(f=>{const e=S.idx[f[6]],sp=fishSpr(f,e?null:'#3a4a72'),sc=sp.width>13?2:3;
+      return e?`<div class="card px"><div class="pic">${imgTag(sp,sc)}</div><span class="rar" style="color:${FRAR[f[1]].c}">${FRAR[f[1]].n}</span><div class="nm">${f[0]}</div><div class="ds num">×${fmt(e.n)} · best ${kg(e.best)}</div></div>`
+        :`<div class="card px locked"><div class="pic">${imgTag(sp,sc)}</div><span class="rar" style="color:${FRAR[f[1]].c};opacity:.6">${FRAR[f[1]].n}</span><div class="nm">???</div><div class="ds">Not caught yet</div></div>`}).join('')+`</div></div>`;
     const bb=S.beaten.filter(Boolean).length;
     h+=`<div class="sect"><h3>Bosses <span class="hint num">${bb}/${ZONES.length}</span></h3><p>Each zone's boss surfaces at random while you fish there, about once every ${Math.round(1/BOSS_CHANCE)} catches. Fights play out on their own: your fisher strikes ${AUTO_HITS} times a second and your pet bites too. Tap the boss to strike harder. Beating a boss opens the next zone and gives +5% coins forever.</p>`+ZONES.map((z,i)=>{const b=z.boss,seen=(S.bseen&&S.bseen[i])||S.beaten[i];
       const tag=S.beaten[i]?`<span class="tag done">Beaten ×${S.beaten[i]}</span>`:seen?'<span class="tag">Escaped</span>':!unlocked(i)?'<span class="tag">Locked</span>':'<span class="tag">Not seen yet</span>';
@@ -1015,7 +1081,7 @@ const flies=Array.from({length:14},()=>({x:Math.random()*W,y:HZ-16+Math.random()
 const drops=[],flakes=[],meteors=[],wisps=Array.from({length:7},()=>({x:Math.random()*W,y:HZ-24+Math.random()*60,w:40+Math.random()*50,s:2+Math.random()*4}));
 let bolt=null,flash=0,boltWait=4;const fxs=[],projs=[],motes=[];let cT=0,lastStep=-1;
 function mote(x,y,col,vx,vy,life){if(motes.length<500)motes.push({x,y,col,vx,vy,t:0,life})}
-function spawnAmbient(){const z=ZONES[S.zone];ambient=Array.from({length:3},()=>{const f=z.fish[Math.floor(Math.random()*4)];return{f,x:Math.random()*W,y:HZ+44+Math.floor(Math.random()*(H-HZ-56)),d:Math.random()<.5?-1:1,s:5+Math.random()*8}})}
+function spawnAmbient(){const z=ZONES[S.zone];ambient=Array.from({length:3},()=>{const cm=z.fish.filter(f=>f[1]===1),f=cm[Math.floor(Math.random()*cm.length)];return{f,x:Math.random()*W,y:HZ+44+Math.floor(Math.random()*(H-HZ-56)),d:Math.random()<.5?-1:1,s:5+Math.random()*8}})}
 function blit(c,x,y,s,flip){s=s||1;x=Math.round(x);y=Math.round(y);if(flip){cx.save();cx.translate(x+c.width*s,y);cx.scale(-1,1);cx.drawImage(c,0,0,c.width*s,c.height*s);cx.restore()}else cx.drawImage(c,x,y,c.width*s,c.height*s)}
 function line(x0,y0,x1,y1,col,ctx){ctx=ctx||cx;x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;let e=dx+dy;ctx.fillStyle=col;for(let n=0;n<600;n++){ctx.fillRect(x0,y0,1,1);if(x0===x1&&y0===y1)break;const e2=2*e;if(e2>=dy){e+=dy;x0+=sx}if(e2<=dx){e+=dx;y0+=sy}}}
 function splash(x,y,n,col){for(let k=0;k<n;k++)parts.push({x,y,vx:(Math.random()-.5)*60,vy:-20-Math.random()*50,t:0,col})}
@@ -1207,12 +1273,12 @@ function draw(dt){
     let x,y;
     if(a.t<delay){const q=a.t/delay;x=BOBX-sp.width/2;y=a.cls==='earth'?BOBY+2-Math.round(q*16)-sp.height:BOBY-4-q*16}
     else{const p2=Math.min((a.t-delay)/.8,1);x=sx0+(pengX+14-sx0)*p2-sp.width/2;y=sy0+(pengY-sy0)*p2-Math.sin(p2*Math.PI)*30;
-      if(p2>=1){floats.push({x:pengX+6,y:pengY-8,t:0,txt:'+'+fmt(a.coins),col:'#ffcd3c'});if(a.c.tier>=3)splash(pengX+6,pengY,12,RAR[a.c.tier].c);if(a.cls==='ice')splash(pengX+12,pengY+2,8,'#d8f6ff');anims.splice(i,1);continue}}
+      if(p2>=1){floats.push({x:pengX+6,y:pengY-8,t:0,txt:'+'+fmt(a.coins),col:'#ffcd3c'});if(a.c.tier>=4)splash(pengX+6,pengY,12,FRAR[a.c.tier].c);if(a.cls==='ice')splash(pengX+12,pengY+2,8,'#d8f6ff');anims.splice(i,1);continue}}
     if(a.cls==='ice'){R(cx,x-2,y-2,sp.width+4,sp.height+4,'#bfeaff');R(cx,x-2,y-2,sp.width+4,1,'#ffffff');R(cx,x-2,y-2,1,sp.height+4,'#e8fbff');R(cx,x-2,y+sp.height+1,sp.width+4,1,'#7fc8e8')}
     blit(sp,x,y,1,a.cls==='air'&&a.t<delay&&Math.floor(a.t*16)%2===1);
     if(a.cls==='ice'){cx.globalAlpha=.35;R(cx,x-1,y-1,sp.width+2,sp.height+2,'#dff6ff');cx.globalAlpha=1}
     if(a.cls==='fire'&&Math.floor(T*14)%2)R(cx,x+sp.width-1+Math.random()*3,y+Math.random()*sp.height,1,1,'#ffb050');
-    if(a.c.tier>=2&&Math.floor(T*12)%2)R(cx,x+Math.random()*sp.width,y-2+Math.random()*(sp.height+4),1,1,RAR[a.c.tier].c)}
+    if(a.c.tier>=3&&Math.floor(T*12)%2)R(cx,x+Math.random()*sp.width,y-2+Math.random()*(sp.height+4),1,1,FRAR[a.c.tier].c)}
   // ---- time-of-day + weather tint over the whole world
   let tint=ts.tint;if(z.night)tint=mix(tint,'#8a94c8',.35);if(wd.tint)tint=mulC(tint,mix('#ffffff',wd.tint,wi));
   if(tint!=='#ffffff'){cx.globalCompositeOperation='multiply';cx.fillStyle=tint;cx.fillRect(0,0,W,H);cx.globalCompositeOperation='source-over'}
@@ -1301,7 +1367,7 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 function save(){S.last=now();if(S.cls)PROF[S.cls]=S;try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:2,active:S.cls,profiles:PROF}))}catch(e){}}
-function cleanPets(o){if(!o)return o;if(Array.isArray(o.eggs)){const n=o.eggs.reduce((a,b)=>a+(b||0),0);o.eggs={};for(let i=0;i<n;i++){const k=SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)];o.eggs[k]=(o.eggs[k]||0)+1}}if(!o.eggs)o.eggs={};for(const id in o.pets||{})if(!PETS[id])delete o.pets[id];o.eq=(o.eq||[]).filter(id=>PETS[id]).slice(0,1);return o}
+function cleanPets(o){if(!o)return o;if(o.idx)for(const k in o.idx)if(k[0]!=='f')delete o.idx[k];if(Array.isArray(o.eggs)){const n=o.eggs.reduce((a,b)=>a+(b||0),0);o.eggs={};for(let i=0;i<n;i++){const k=SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)];o.eggs[k]=(o.eggs[k]||0)+1}}if(!o.eggs)o.eggs={};for(const id in o.pets||{})if(!PETS[id])delete o.pets[id];o.eq=(o.eq||[]).filter(id=>PETS[id]).slice(0,1);return o}
 function fromData(d){const r0=fromData0(d);if(r0){for(const k in r0.P)cleanPets(r0.P[k]);cleanPets(r0.pending)}return r0}
 function fromData0(d){/* v2: separate profiles. v1 (older single save): becomes the chosen fisher's save; other fishers keep only their level */
   const P={};if(d&&d.profiles){for(const k in d.profiles)if(CLS[k])P[k]=Object.assign(fresh(),d.profiles[k],{cls:k});return{P,active:CLS[d.active]?d.active:null}}
@@ -1313,8 +1379,8 @@ function offline(){
   const away=Math.min((now()-S.last)/1000,8*3600);if(away<30)return;
   const cc0=craftOffline(away);if(avatarJob()){S.last=now();if(cc0>0)toast(`While you were away: crafted goods worth +${fmt(cc0)} coins`);return}
   const n=Math.floor(away/castTime()*0.5);if(n<1){if(cc0>0)toast(`While you were away: crafting earned +${fmt(cc0)} coins`);return}const sim=Math.min(n,400),scale=n/sim;let coins=0,xp=0,news=0;
-  for(let i=0;i<sim;i++){const c=rollFish(S.zone,luck());const cc=c.value*coinMult()*scale,xx=RAR[c.tier].xp*(1+S.zone*1.5)*xpMult()*scale;
-    const id=c.zi+'-'+c.fi;if(!S.idx[id]){S.idx[id]={n:0,best:0};news++}S.idx[id].n+=Math.round(scale);S.idx[id].best=Math.max(S.idx[id].best,c.weight);coins+=cc;xp+=xx}
+  for(let i=0;i<sim;i++){const c=rollFish(S.zone,luck());const cc=c.value*coinMult()*scale,xx=FRAR[c.tier].xp*(1+S.zone*1.5)*xpMult()*scale;
+    const id=c.f[6];if(!S.idx[id]){S.idx[id]={n:0,best:0};news++}S.idx[id].n+=Math.round(scale);S.idx[id].best=Math.max(S.idx[id].best,c.weight);coins+=cc;xp+=xx}
   S.coins+=coins;S.total+=n;S.zc[S.zone]+=n;S.last=now();gainXp(xp);
   let eggsGot=0;for(const r of SK_ORDER){const ex=n*eggChance(r),k=Math.floor(ex)+(Math.random()<ex%1?1:0);if(k){S.eggs[r]=(S.eggs[r]||0)+k;eggsGot+=k}}
   toast(`While you were away: ${fmt(n)} fish, +${fmt(coins+cc0)} coins${eggsGot?`, ${eggsGot} egg${eggsGot>1?'s':''}`:''}${news?`, ${news} new in the index`:''}`);
