@@ -62,6 +62,7 @@ canvas{display:block;width:100%;aspect-ratio:16/10;image-rendering:pixelated;ima
 .new{font-family:var(--display);font-size:7px;background:var(--buoy);color:#fff;padding:3px 4px}
 .side{background:var(--panel);min-width:0;display:flex;flex-direction:column;margin:3px}
 .tabs{display:flex;background:var(--edge);gap:3px;overflow-x:auto;padding-bottom:3px}
+.dtag{font-size:11px;padding:1px 5px;border-radius:3px;background:var(--panel2);color:var(--muted);font-weight:600;white-space:nowrap}.dtag.up{color:var(--mint)}.dtag.dn{color:var(--buoy)}.dtag.hot{color:#1a1206;background:#ffb03a}
 .tab{flex:1;background:var(--panel2);border:0;padding:11px 8px;font-weight:600;color:var(--muted);white-space:nowrap}
 .tab[aria-selected="true"]{background:var(--panel);color:var(--brass)}
 .tab .dot{display:inline-block;width:6px;height:6px;background:var(--buoy);margin-left:6px;vertical-align:3px}
@@ -231,6 +232,7 @@ h3{font-family:var(--display);font-weight:400;font-size:12px;line-height:1.5;mar
     <aside class="side px">
       <div class="tabs" role="tablist" id="tabs">
         <button class="tab" role="tab" data-tab="shop">Shop</button>
+        <button class="tab" role="tab" data-tab="market">Market</button>
         <button class="tab" role="tab" data-tab="pets">Pets</button>
         <button class="tab" role="tab" data-tab="craft">Crafts</button>
         <button class="tab" role="tab" data-tab="index">Index</button>
@@ -854,7 +856,7 @@ function url(c,scale){const k=c.toDataURL();return k}
 function imgTag(c,scale,alt){const key=(c._u||(c._u=c.toDataURL()));return`<img src="${key}" width="${c.width*scale}" height="${c.height*scale}" alt="${alt||''}">`}
 
 function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},eggs:{[SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)]]:1},
- buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,net:{},netLv:{},tank:{},aqd:null,tankLv:0,water:'fresh',netRule:{swap:true,sell:{0:true}},waterOwn:{fresh:1},clean:100,filter:0,aqPend:0,visitors:0,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
+ buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,net:{},netLv:{},tank:{},aqd:null,tankLv:0,water:'fresh',netRule:{swap:true,sell:{0:true}},waterOwn:{fresh:1},clean:100,filter:0,aqPend:0,visitors:0,goods:{},cb:{},netPlus:0,smithB:0,mkt:null,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
 let PROF={}; /* every fisher is a separate save: PROF[cls] holds their whole state; S is the active one */
 let S=fresh(), B=null, tab='shop', castLeft=4, castMax=4, logItems=[];
 
@@ -870,14 +872,14 @@ function petBonus(type){return petBonus0(type)}
 function petBonus0(type){let s=0;S.eq.forEach(id=>{const p=PETS[id];if(!p)return;if(p.type===type||(p.type==='all'&&type!=='speed'))s+=p.val*petStarMult(id)});return s}
 function petDps(){let s=0;S.eq.forEach(id=>{const p=PETS[id];if(p)s+=DPSBASE[p.tier]*EGGS[p.egg].mult*petStarMult(id)});return s}
 function zonesComplete(){return ZONES.filter(z=>z.fish.every(f=>S.idx[f[6]])).length}
-function castTime(){return RODS[S.rod].cast/(1+petBonus('speed')+envMods().speed+(S.cls==='air'?.2:0)+.005*(skL('engineering')-1))/(buffOn('speed')?2:1)}
-function luck(){return BAITS[S.bait].luck+petBonus('luck')+envMods().luck+(S.cls==='ice'?.1:0)+.01*(skL('alchemy')-1)+(buffOn('luck')?1:0)}
-function coinMult(){return(1+petBonus('coin'))*(buffOn('coin')?2:1)*(1+0.1*zonesComplete())*(1+0.05*S.beaten.filter(Boolean).length)*(1+envMods().coin)*(S.cls==='std'?1.15:1)*(1+.01*(skL('cooking')-1))}
-function xpMult(){return(1+petBonus('xp')+envMods().xp)*(buffOn('xp')?2:1)*(1+.01*(skL('brewing')-1))}
+function castTime(){return RODS[S.rod].cast/(1+petBonus('speed')+envMods().speed+(S.cls==='air'?.2:0)+.005*(skL('engineering')-1)+cbOn('speed'))/(buffOn('speed')?2:1)}
+function luck(){return BAITS[S.bait].luck+petBonus('luck')+envMods().luck+(S.cls==='ice'?.1:0)+.01*(skL('alchemy')-1)+(buffOn('luck')?1:0)+cbOn('luck')}
+function coinMult(){return(1+petBonus('coin'))*(buffOn('coin')?2:1)*(1+0.1*zonesComplete())*(1+0.05*S.beaten.filter(Boolean).length)*(1+envMods().coin)*(S.cls==='std'?1.15:1)*(1+.01*(skL('cooking')-1))*(1+cbOn('coin'))}
+function xpMult(){return(1+petBonus('xp')+envMods().xp)*(buffOn('xp')?2:1)*(1+.01*(skL('brewing')-1))*(1+cbOn('xp'))}
 function unlocked(i){return S.lvl>=ZONES[i].lvl&&(i===0||S.beaten[i-1]>0)}
 function maxZone(){let m=0;ZONES.forEach((z,i)=>{if(unlocked(i))m=i});return m}
 function itemPrice(k){return ITEMS[k].base*ZMULT[maxZone()]}
-function strikeDmg(){return RODS[S.rod].pow*(1+S.lvl*0.02)*(B&&B.harpoon?1.5:1)*(S.cls==='fire'?1.4:1)*(1+.02*(skL('smithing')-1))}
+function strikeDmg(){return RODS[S.rod].pow*(1+S.lvl*0.02)*(B&&B.harpoon?1.5:1)*(S.cls==='fire'?1.4:1)*(1+.02*(skL('smithing')-1))*(1+(B&&B.smith||0))}
 function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;$('toasts').appendChild(t);setTimeout(()=>t.remove(),2600);while($('toasts').children.length>3)$('toasts').firstChild.remove()}
 
 /* ---------- fishing ---------- */
@@ -895,18 +897,18 @@ function rollFish(zi,lk){
   const weight=f[3]*(0.6+Math.random()*0.8)*big*(S.cls==='earth'?1.25:1);
   return{zi,fi,f,tier,weight,value:f[2]*weight/f[3]};
 }
-function netCap(){return 30+5*S.lvl}
+function netCap(){return 30+5*S.lvl+(S.netPlus||0)}
 function netTotal(){let t=0;for(const id in S.net||{})t+=S.net[id]||0;for(const id in S.netLv||{})for(const L in S.netLv[id])t+=S.netLv[id][L]||0;return t}
 let _netFullT=0;
 function netRule(){if(!S.netRule)S.netRule={swap:true,sell:{0:true}};if(!S.netRule.sell)S.netRule.sell={};return S.netRule}
 /* stores n of a catch following the Net rules: auto-sell tiers, keep rarer catches by selling the least valuable fish when full */
 function netStore(id,n){const e=FISHBY[id],t=e?e.f[1]:0,Rr=netRule();let kept=0,coins=0,released=0;
-  if(Rr.sell[t]){coins=sellPrice(id,0)*n;S.coins+=coins;return{kept,coins,released,sold:n}}
+  if(Rr.sell[t]){coins=sellPrice(id,0)*n;S.coins+=coins;fishSold(id,n);return{kept,coins,released,sold:n}}
   for(let k=0;k<n;k++){
     if(netTotal()<netCap()){S.net[id]=(S.net[id]||0)+1;kept++;continue}
     if(Rr.swap){let worst=null;for(const vid in S.net){if(!(S.net[vid]>0)||vid[0]==='b')continue;const ve=FISHBY[vid];if(!ve)continue;
         const key=ve.f[1]*1e12+ve.f[2];if(ve.f[1]<t||(ve.f[1]===t&&ve.f[2]<e.f[2]&&vid!==id)){if(!worst||key<worst.key)worst={vid,key}}}
-      if(worst){S.net[worst.vid]--;if(!S.net[worst.vid])delete S.net[worst.vid];const c=sellPrice(worst.vid,0);S.coins+=c;coins+=c;S.net[id]=(S.net[id]||0)+1;kept++;continue}}
+      if(worst){S.net[worst.vid]--;if(!S.net[worst.vid])delete S.net[worst.vid];const c=sellPrice(worst.vid,0);S.coins+=c;coins+=c;fishSold(worst.vid,1);S.net[id]=(S.net[id]||0)+1;kept++;continue}}
     released+=n-k;break}
   aqVer++;return{kept,coins,released,sold:0}}
 function record(c,coins,xp){
@@ -944,7 +946,7 @@ function cpStar(id){return 1+.1*((S.pets[id]||1)-1)}
 function craftPetFor(k){let best=null;S.eq.forEach(id=>{const p=PETS[id];if(p&&p.skill===k&&(!best||p.tier>PETS[best].tier))best=id});return best}
 function petSpeedOf(id){return PET_SPEED[PETS[id].tier]*cpStar(id)}
 function petValOf(id){return PET_VAL[PETS[id].tier]*cpStar(id)}
-function avatarJob(){const k=S.craft;if(!k||!S.sk||!S.sk[k]||!S.sk[k].on||craftPetFor(k))return null;return k}
+function avatarJob(){const k=S.craft;if(!k||!S.sk||!S.sk[k]||!S.sk[k].on||craftPetFor(k)||S.sk[k].wait)return null;return k}
 function recValue(k,i,pet){return REC_COST[i]*1.7*(1+.01*(skL('enchanting')-1))*(1+(pet?petValOf(pet):0))}
 function skGain(k,x){const j=skJ(k);if(j.lvl>=SK_MAX)return;j.xp+=x;let up=false;while(j.lvl<SK_MAX&&j.xp>=skNeed(j.lvl)){j.xp-=skNeed(j.lvl);j.lvl++;up=true;
   const ni=REC_LVL.indexOf(j.lvl);toast(`${SKILLS[k].n} level ${j.lvl}!`+(ni>=0?` New recipe: ${SKILLS[k].recipes[ni]}`:''))}
@@ -952,14 +954,121 @@ function skGain(k,x){const j=skJ(k);if(j.lvl>=SK_MAX)return;j.xp+=x;let up=false
 function craftTick(dt){
   if(S.craft&&craftPetFor(S.craft))S.craft=null;
   SK_ORDER.forEach(k=>{const j=skJ(k);if(!j.on)return;const pet=craftPetFor(k);if(!pet&&(S.craft!==k||B))return;
-    j.p+=dt*(pet?petSpeedOf(pet):1)*(1+.01*(skL('tailoring')-1));
-    if(j.p>=REC_TIME[j.rec]){j.p=0;const xg=craftXp(k,j.rec,pet);
-      const pos=pet&&window.__petPos&&window.__petPos[pet]?window.__petPos[pet]:{x:76,y:HZ-2};floats.push({x:pos.x,y:pos.y-4,t:0,txt:'+'+fmtR(xg)+' XP',col:SKILLS[k].col});
-      skGain(k,xg)}})}
+    const need=REC_TIME[j.rec];if(j.p<need)j.p+=dt*(pet?petSpeedOf(pet):1)*(1+.01*(skL('tailoring')-1));
+    if(j.p>=need){j.p=need;if(j.wait&&j.wv===aqVer)return;j.wv=aqVer;
+      if(!craftMake(k,j.rec,pet)){if(!j.wait){j.wait=true;if(tab==='craft'||tab==='pets')renderPanel()}return}
+      const was=j.wait;j.wait=false;j.p=0;const xg=craftXp(k,j.rec,pet);
+      const pos=pet&&window.__petPos&&window.__petPos[pet]?window.__petPos[pet]:{x:76,y:HZ-2};floats.push({x:pos.x,y:pos.y-4,t:0,txt:'+'+fmtR(xg)+' XP',sub:'+1 '+SKILLS[k].recipes[j.rec],col:SKILLS[k].col});
+      skGain(k,xg);if(was||tab==='craft'||tab==='market'||tab==='bag')renderPanel()}})}
 function craftXp(k,i,pet){return REC_XP[i]*(1+(pet?petValOf(pet):0))}
 function craftOffline(away){let total=0;SK_ORDER.forEach(k=>{const j=skJ(k);if(!j.on)return;const pet=craftPetFor(k);if(!pet&&S.craft!==k)return;
   const cyc=Math.min(2000,Math.floor(away*.5*(pet?petSpeedOf(pet):1)*(1+.01*(skL('tailoring')-1))/REC_TIME[j.rec]));if(cyc<1)return;
-  for(let i=0;i<cyc&&skL(k)<SK_MAX;i++)skGain(k,craftXp(k,j.rec,pet))});return total}
+  for(let i=0;i<cyc;i++){if(!craftMake(k,j.rec,pet)){j.wait=true;j.p=REC_TIME[j.rec];break}total++;skGain(k,craftXp(k,j.rec,pet))}});return total}
+/* ---------- crafted goods: recipes turn Net fish into goods you can use or sell ---------- */
+const MAT=[[1,2],[1,4],[2,3],[3,2],[4,2],[5,1]]; /* [fish rarity, how many] each recipe tier uses */
+const GOOD_MARKUP=2.5;
+const CB_TYPE={cooking:'speed',brewing:'xp',alchemy:'luck',enchanting:'coin'};
+const CB_V={cooking:[.1,.15,.25,.35,.5,.75],brewing:[.15,.25,.4,.6,.9,1.25],alchemy:[.1,.2,.3,.45,.65,.9],enchanting:[.1,.2,.3,.45,.65,1]};
+const CB_DUR=[180,240,300,360,480,600],CB_NAME={speed:'Well fed',xp:'Brewed up',luck:'Potion luck',coin:'Rune of riches'};
+const NET_ADD=[3,5,8,12,20,35],SMITH_BOSS=[.25,.5,.75,1,1.5,2],ENG_CLEAN=[15,25,40,60,80,100];
+const ROD_PART=[null,null,{k:'smithing',i:0,n:2},{k:'smithing',i:1,n:2},{k:'smithing',i:2,n:2},{k:'smithing',i:3,n:2},{k:'smithing',i:4,n:2}];
+const TANK_PART=[null,null,{k:'engineering',i:0,n:1},{k:'engineering',i:0,n:2},{k:'engineering',i:1,n:2},{k:'engineering',i:1,n:3},{k:'engineering',i:2,n:2},{k:'engineering',i:2,n:4},{k:'engineering',i:3,n:2},{k:'engineering',i:3,n:4}];
+const FILTER_PART=[null,{k:'engineering',i:0,n:2},{k:'engineering',i:1,n:2},{k:'engineering',i:3,n:1}];
+const USE_BTN={cooking:'Eat',brewing:'Drink',alchemy:'Drink',enchanting:'Activate',tailoring:'Stitch into Net',smithing:'Fit for next boss',engineering:'Scrub the tank'};
+const TAVG=ZONES.map(z=>[0,1,2,3,4,5].map(t=>{const l=z.fish.filter(f=>f[1]===t);return l.reduce((a,f)=>a+f[2],0)/Math.max(1,l.length)}));
+function gk(k,i){return k+':'+i}
+function gsplit(key){const [k,i]=String(key).split(':');return[k,+i]}
+function gName(key){const [k,i]=gsplit(key);return SKILLS[k]?SKILLS[k].recipes[i]:key}
+function goods(){if(!S.goods)S.goods={};return S.goods}
+function gN(key){const g=goods()[key];return g?g.n:0}
+function addGood(key,n,v){const G=goods();if(!G[key])G[key]={n:0,v:0};G[key].n+=n;G[key].v+=v}
+function takeGood(key,n){const g=goods()[key];if(!g||g.n<n)return 0;const v=g.v/g.n*n;g.n-=n;g.v-=v;if(g.n<=0)delete goods()[key];return v}
+function goodEst(k,i){const [t,n]=MAT[i];return n*TAVG[maxZone()][t]*.6*GOOD_MARKUP}
+function goodUnit(key){const g=goods()[key];if(g&&g.n)return g.v/g.n;const [k,i]=gsplit(key);return goodEst(k,i)}
+function matPool(t,z){return Object.keys(S.net||{}).filter(id=>id[0]==='f'&&S.net[id]>0&&FISHBY[id]&&FISHBY[id].f[1]===t&&(z==null||FISHBY[id].zi===z))}
+function matHave(t,z){let n=0;matPool(t,z).forEach(id=>n+=S.net[id]);return n}
+function matTake(t,n,z){const list=matPool(t,z).sort((a,b)=>FISHBY[a].f[2]-FISHBY[b].f[2]);let v=0;
+  for(const id of list){while(n>0&&S.net[id]>0){S.net[id]--;v+=FISHBY[id].f[2]*.6;n--}if(!S.net[id])delete S.net[id];if(!n)break}aqVer++;return v}
+function craftMake(k,i,pet){const [t,n]=MAT[i];if(matHave(t)<n)return false;const v=matTake(t,n);
+  addGood(gk(k,i),1,v*GOOD_MARKUP*(1+.02*(skL(k)-1))*(1+(pet?petValOf(pet)*.5:0)));return true}
+function cbOn(ty){const c=S.cb&&S.cb[ty];return c&&c.t>now()?c.v:0}
+function partTxt(p){return p?`${p.n}× ${SKILLS[p.k].recipes[p.i]}`:''}
+function partOk(p){return!p||gN(gk(p.k,p.i))>=p.n}
+function partTake(p){if(p)takeGood(gk(p.k,p.i),p.n)}
+function goodEffect(k,i){if(CB_TYPE[k]){const ty=CB_TYPE[k],nm={speed:'catch speed',xp:'XP',luck:'luck',coin:'coins'}[ty];return`+${Math.round(CB_V[k][i]*100)}% ${nm} for ${CB_DUR[i]/60} min`}
+  if(k==='tailoring')return`+${NET_ADD[i]} Net space for good`;
+  if(k==='smithing')return`+${Math.round(SMITH_BOSS[i]*100)}% strike in your next boss fight${i<5?`. Also a part for the ${gearName(i+2)}`:''}`;
+  if(k==='engineering')return`cleans ${ENG_CLEAN[i]}% of the tank. Also a part for tank and filter upgrades`;return''}
+const GOOD_MAP={cooking:["..........","...a..a...","..aaaaaa..",".kkkkkkkk.","kwwwwwwwwk",".kwwwwwwk.","..kwwwwk..","...kkkk..."],
+ brewing:["...kk...","...kk...","..kwwk..",".kaaaak.","kaawaaak","kaawaaak","kaaaaaak",".kkkkkk."],
+ smithing:["....kkk.","....kak.","....kak.","....kak.","k...kak.","kak.kak.","kaakkak.",".kaaaak.","..kkkk.."],
+ alchemy:["...kk...","...ww...","..kwwk..",".kaaaak.","kaawaaak","kaaaaaak",".kaaaak.","..kkkk.."],
+ engineering:["...kk...",".kkaakk.",".kaaaak.","kaakkaak","kaakkaak",".kaaaak.",".kkaakk.","...kk..."],
+ tailoring:["kkkkkkkk",".kwwwwk.","..kaak..","..kaak..","..kaak..","..kaak..",".kwwwwk.","kkkkkkkk"],
+ enchanting:["..kkkk..",".kaaaak.","kaawwaak","kawaawak","kaawwaak","kaaaaaak",".kaaaak.","..kkkk.."]};
+function goodCol(i){return FRAR[MAT[i][0]].c}
+function goodIcon(key){const [k,i]=gsplit(key);return mk(GOOD_MAP[k],{a:mix(SKILLS[k].col,goodCol(i),.25+i*.08),w:'#f4f4f8'})}
+function useGood(key){const [k,i]=gsplit(key);if(!(gN(key)>0))return;let msg='';
+  if(CB_TYPE[k]){const ty=CB_TYPE[k],v=CB_V[k][i],dur=CB_DUR[i]*1000;if(!S.cb)S.cb={};const c=S.cb[ty],t0=now();
+    if(c&&c.t>t0&&c.v>v)c.t+=dur*v/c.v;else if(c&&c.t>t0&&c.v===v)c.t+=dur;else S.cb[ty]={v,t:t0+dur};S.cb[ty].t=Math.min(S.cb[ty].t,t0+3600e3);
+    msg=`${CB_NAME[ty]}: ${goodEffect(k,i)}`;if(ty==='speed')castMax=castLeft=Math.min(castLeft,castTime())}
+  else if(k==='tailoring'){S.netPlus=(S.netPlus||0)+NET_ADD[i];msg=`${gName(key)} stitched in: your Net now holds ${netCap()}`}
+  else if(k==='smithing'){if((S.smithB||0)>=SMITH_BOSS[i]){toast('A stronger fitting is already waiting for your next boss');return}S.smithB=SMITH_BOSS[i];msg=`${gName(key)} fitted: +${Math.round(SMITH_BOSS[i]*100)}% strike in your next boss fight`}
+  else if(k==='engineering'){if((S.clean==null?100:S.clean)>=99.5){toast('The tank is already spotless');return}S.clean=Math.min(100,(S.clean==null?100:S.clean)+ENG_CLEAN[i]);msg=`${gName(key)} cleaned the tank: ${Math.round(S.clean)}%`}
+  takeGood(key,1);toast(msg);renderBuffs();renderPanel()}
+
+/* ---------- market ---------- */
+const RANK_N=['Dockside Stall','Fish Cart','Market Stand','Corner Shop','Harbour Store','Trading Post','Merchant Hall','Guild House','Trade Empire','Market Tycoon'];
+const RANK_REP=[0,10,30,70,150,300,600,1100,2000,3500],RANK_LVL=[1,3,6,10,15,20,26,32,38,45];
+const ORDER_LIFE=30*60e3,ORDER_GAP=60e3,STOCK_EVERY=10*60e3,HOT_EVERY=10*60e3;
+function mkt(){if(!S.mkt)S.mkt={dem:{},rep:0,orders:[],oid:1,ordT:0,stock:[],stockT:0,driftT:0,hot:[],hotT:0,done:0};return S.mkt}
+function rankNow(){const M=mkt();let r=0;for(let i=1;i<RANK_N.length;i++)if(M.rep>=RANK_REP[i]&&S.lvl>=RANK_LVL[i])r=i;else break;return r}
+function rankMult(){return 1+.04*rankNow()}
+function orderSlots(){return Math.min(5,2+Math.floor(rankNow()/3))}
+function stockSlots(){return Math.min(7,3+Math.floor(rankNow()/2))}
+function isHot(key){return mkt().hot.includes(key)&&now()<mkt().hotT}
+function dem(key){const d=mkt().dem[key];return(d==null?1:d)*(isHot(key)?1.5:1)}
+function bump(key,f,lo){const M=mkt();M.dem[key]=Math.max(lo,(M.dem[key]==null?1:M.dem[key])*f)}
+function goodSell(key){return goodUnit(key)*dem(key)*rankMult()*coinMult()}
+function demTag(key){const d=dem(key);if(isHot(key))return'<span class="dtag hot">HOT</span>';const p=Math.round((d-1)*100);return p>=5?`<span class="dtag up">▲${p}%</span>`:p<=-5?`<span class="dtag dn">▼${-p}%</span>`:'<span class="dtag">steady</span>'}
+function allGoodKeys(){const out=[];SK_ORDER.forEach(k=>{for(let i=0;i<6;i++)out.push(gk(k,i))});return out}
+function rnd(a,b){return a+Math.random()*(b-a)}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function newOrder(){const M=mkt(),mz=maxZone(),r=rankNow(),need=xpNeed(S.lvl);
+  const gopts=[];SK_ORDER.forEach(k=>{const L=skL(k);for(let i=0;i<6;i++)if(REC_LVL[i]<=L+6&&i<=mz+1)gopts.push([k,i])});
+  let o;
+  if(gopts.length&&Math.random()<.55){const [k,i]=pick(gopts),n=1+Math.floor(Math.random()*3)+Math.floor(r/4);
+    o={kind:'g',key:gk(k,i),n,c:goodEst(k,i)*n*rnd(1.6,2.4),xp:need*(.1+.05*i)*Math.sqrt(n)*rnd(1,1.4),rep:1+i+(n>2?1:0)}}
+  else{const zs=ZONES.map((z,zi)=>zi).filter(unlocked),z=Math.random()<.65?mz:pick(zs),g=tierGate(z),top=g.epic?4:g.rare?3:2,t=1+Math.floor(Math.random()*top);
+    const n=[0,rnd(8,20),rnd(5,12),rnd(3,6),rnd(1,3)][t]|0||1;
+    o={kind:'f',t,z,n,c:n*TAVG[z][t]*.6*rnd(1.8,2.5),xp:need*(.08+.04*t)*rnd(1,1.4),rep:1+Math.floor(t/2)}}
+  o.id=M.oid++;o.exp=now()+ORDER_LIFE;o.xp=Math.max(1,Math.round(o.xp));M.orders.push(o);return o}
+function orderHave(o){return o.kind==='g'?gN(o.key):matHave(o.t,o.z)}
+function orderName(o){return o.kind==='g'?gName(o.key):`${FRAR[o.t].n} fish from ${ZONES[o.z].name}`}
+function orderIc(o){return o.kind==='g'?goodIcon(o.key):fishSpr(ZONES[o.z].fish.find(f=>f[1]===o.t))}
+function newStock(){const M=mkt(),mz=maxZone(),keys=[];SK_ORDER.forEach(k=>{for(let i=0;i<=Math.min(5,mz);i++)keys.push([k,i])});
+  M.stock=[];const n=stockSlots();for(let s=0;s<n&&keys.length;s++){const j=Math.floor(Math.random()*keys.length),[k,i]=keys.splice(j,1)[0];M.stock.push({key:gk(k,i),n:1+Math.floor(Math.random()*3),base:goodEst(k,i)})}
+  /* make sure a part for the next upgrade is often on sale */
+  const nr=S.rods.length?Math.max(...S.rods)+1:1,p=ROD_PART[nr]||TANK_PART[(S.tankLv||0)+1];if(p&&Math.random()<.7&&!M.stock.find(x=>x.key===gk(p.k,p.i)))M.stock[0]={key:gk(p.k,p.i),n:p.n,base:goodEst(p.k,p.i)};
+  M.stockT=now()+STOCK_EVERY}
+function stockPrice(s){return s.base*3*(1-.03*rankNow())}
+function restockCost(){return Math.round(40*ZMULT[maxZone()])}
+function mktTick(){if(!S.cls)return false;const M=mkt(),t=now();let ch=false;
+  if(t>=M.driftT){const steps=Math.min(30,M.driftT?Math.floor((t-M.driftT)/60e3)+1:1);
+    for(let s=0;s<steps;s++){const keys=allGoodKeys().concat(['f0','f1','f2','f3','f4','f5']);keys.forEach(k=>{const d=M.dem[k]==null?1:M.dem[k];M.dem[k]=Math.min(1.8,Math.max(.5,d+(1-d)*.15+rnd(-.07,.07)))})}
+    M.driftT=t+60e3;ch=true}
+  if(t>=M.hotT){const ks=allGoodKeys().filter(k=>{const [s,i]=gsplit(k);return i<=Math.min(5,maxZone()+1)});M.hot=[pick(ks),pick(ks)];M.hotT=t+HOT_EVERY;ch=true}
+  const before=M.orders.length;M.orders=M.orders.filter(o=>o.exp>t);if(M.orders.length!==before){ch=true;if(!M.ordT||M.ordT<t)M.ordT=t+ORDER_GAP}
+  if(M.orders.length<orderSlots()&&t>=M.ordT){do newOrder();while(M.orders.length<Math.min(2,orderSlots()));M.ordT=t+ORDER_GAP;ch=true}
+  if(t>=M.stockT||!M.stock){newStock();ch=true}
+  return ch}
+function deliverOrder(id){const M=mkt(),o=M.orders.find(x=>x.id===+id);if(!o||orderHave(o)<o.n)return;
+  if(o.kind==='g')takeGood(o.key,o.n);else matTake(o.t,o.n,o.z);
+  const r0=rankNow(),c=o.c*rankMult()*coinMult();S.coins+=c;M.rep+=o.rep;M.done=(M.done||0)+1;M.orders=M.orders.filter(x=>x!==o);M.ordT=now()+ORDER_GAP;
+  if(o.kind==='g')bump(o.key,1.05,.5);gainXp(o.xp*xpMult());
+  toast(`Order filled: +${fmt(c)} coins, +${fmt(o.xp*xpMult())} XP, +${o.rep} rep`);
+  const r1=rankNow();if(r1>r0)toast(`Market rank up: ${RANK_N[r1]}! Better prices and more orders`);
+  else{const nx=r0+1;if(nx<RANK_N.length&&M.rep>=RANK_REP[nx]&&S.lvl<RANK_LVL[nx])toast(`Enough reputation for ${RANK_N[nx]}. Reach fisher level ${RANK_LVL[nx]} to rank up`)}}
 /* ---------- bosses ---------- */
 const BOSS_CHANCE=1/150,AUTO_HITS=1.5,BOSS_HP_MULT=[1.5,2.5,3,3,3,3];
 function bossHP(i){return ZONES[i].boss.hp*BOSS_HP_MULT[i]}
@@ -967,7 +1076,7 @@ function bossReady(i){return unlocked(i)}
 function startBoss(i){
   if(B||!bossReady(i))return;const b=ZONES[i].boss;
   const dur=(30+i*3)*1000*(S.cls==='ice'?1.3:1);
-  B={zi:i,hp:bossHP(i),max:bossHP(i),ends:now()+dur,dur,harpoon:S.harpoon,shake:0,flash:0,rise:0,auto:.6};S.harpoon=false;if(!S.bseen)S.bseen=[0,0,0,0,0,0];S.bseen[i]++;
+  B={zi:i,hp:bossHP(i),max:bossHP(i),ends:now()+dur,dur,harpoon:S.harpoon,smith:S.smithB||0,shake:0,flash:0,rise:0,auto:.6};S.harpoon=false;S.smithB=0;if(!S.bseen)S.bseen=[0,0,0,0,0,0];S.bseen[i]++;
   toast(`${b.name} surfaces! Your ${curC().animal.toLowerCase()} fights it on their own. Tap the boss to strike harder`);
   if(S.zone!==i){S.zone=i;renderZones()}
   splash(200,100,24,'#e8f6ff');
@@ -1102,12 +1211,12 @@ const act={
   netswap(){const Rr=netRule();Rr.swap=!Rr.swap;renderPanel()},
   netsellt(t){const Rr=netRule();t=+t;if(Rr.sell[t])delete Rr.sell[t];else Rr.sell[t]=true;renderPanel()},
   aqcat(k){aqCat=k;renderPanel()},
-  tankup(){const i=(S.tankLv||0)+1;if(i>=TANK_SIZE.length||S.coins<TANK_COST[i]||S.lvl<TANK_LVL[i])return;S.coins-=TANK_COST[i];S.tankLv=i;aqVer++;toast(`Tank upgraded: room for ${TANK_SIZE[i]} fish`);renderPanel()},
+  tankup(){const i=(S.tankLv||0)+1;if(i>=TANK_SIZE.length||S.coins<TANK_COST[i]||S.lvl<TANK_LVL[i]||!partOk(TANK_PART[i]))return;S.coins-=TANK_COST[i];partTake(TANK_PART[i]);S.tankLv=i;aqVer++;toast(`Tank upgraded: room for ${TANK_SIZE[i]} fish`);renderPanel()},
   water(w){const W3=WATERS.find(x=>x.id===w);if(!W3)return;if(!S.waterOwn)S.waterOwn={fresh:1};
     if(!S.waterOwn[w]){if(S.coins<W3.p||S.lvl<W3.lvl)return;S.coins-=W3.p;S.waterOwn[w]=1}
     if(S.water!==w){S.water=w;const moved=fixTank(S);aqVer++;toast(`Tank switched to ${W3.n}${moved?`. ${moved} fish moved back to your Net`:''}`)}renderPanel()},
   tankclean(){const c=cleanCost();if(S.coins<c||(S.clean||0)>=99.5)return;S.coins-=c;S.clean=100;toast('Tank scrubbed clean');renderPanel()},
-  filterup(){const i=(S.filter||0)+1;if(i>=FILTERS.length||S.coins<FILTERS[i].p)return;S.coins-=FILTERS[i].p;S.filter=i;toast(`${FILTERS[i].n} installed`);renderPanel()},
+  filterup(){const i=(S.filter||0)+1;if(i>=FILTERS.length||S.coins<FILTERS[i].p||!partOk(FILTER_PART[i]))return;S.coins-=FILTERS[i].p;partTake(FILTER_PART[i]);S.filter=i;toast(`${FILTERS[i].n} installed`);renderPanel()},
   tankout(a){const [id,L0]=String(a).split('|'),L=+L0||0;if(!(S.tank[id]&&S.tank[id][L]>0))return;S.tank[id][L]--;if(!S.tank[id][L])delete S.tank[id][L];netAdd(id,L,1);aqVer++;renderPanel()},
   aqbuy(a){const [cat,id]=String(a).split('|'),D=aqd();let item,key;if(cat==='decor'){item=DECOR_BY[id];key='d_'+id}else{item=STY[cat]&&STY[cat].find(x=>x.id===id);key=cat+'_'+id}
     if(!item||D.own[key]||S.coins<item.p)return;S.coins-=item.p;D.own[key]=1;if(cat==='decor')D.placed[id]=1;else D[cat]=id;toast(`${item.n} added to your aquarium`);renderPanel()},
@@ -1120,8 +1229,8 @@ const act={
     netAdd(id,L,-n);if(!S.tank[id])S.tank[id]={};S.tank[id][L]=(S.tank[id][L]||0)+n;aqVer++;
     toast(`${n>1?n+' ':''}${L?'level '+L+' ':''}${e.f[0]} moved into the aquarium`);renderPanel()},
   netsell(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id],have=netN(id,L);if(!e||!(have>0))return;const n=all?have:1,v=sellPrice(id,L)*n;
-    netAdd(id,L,-n);S.coins+=v;toast(`Sold ${n>1?n+' ':''}${L?'level '+L+' ':''}${e.f[0]} for ${fmt(v)} coins`);renderPanel()},
-  selljunk(){let v=0,n=0;netItems().forEach(it=>{if(FISHBY[it.id].f[1]!==0)return;v+=sellPrice(it.id,it.L)*it.n;n+=it.n;netAdd(it.id,it.L,-it.n)});S.coins+=v;
+    netAdd(id,L,-n);S.coins+=v;fishSold(id,n);toast(`Sold ${n>1?n+' ':''}${L?'level '+L+' ':''}${e.f[0]} for ${fmt(v)} coins`);renderPanel()},
+  selljunk(){let v=0,n=0;netItems().forEach(it=>{if(FISHBY[it.id].f[1]!==0)return;v+=sellPrice(it.id,it.L)*it.n;n+=it.n;netAdd(it.id,it.L,-it.n);fishSold(it.id,it.n)});S.coins+=v;
     toast(n?`Sold ${n} bits of junk for ${fmt(v)} coins`:'No junk to sell');renderPanel()},
   netbreedall(){let k=0;for(let pass=0;pass<=MAX_FLVL;pass++){let any=false;netItems().forEach(it=>{if(FISHBY[it.id].f[1]===0||it.L>=MAX_FLVL)return;while(netN(it.id,it.L)>=2){netAdd(it.id,it.L,-2);netAdd(it.id,it.L+1,1);k++;any=true}});if(!any)break}
     netSel=null;toast(k?`Bred ${k} pair${k>1?'s':''} in your Net`:'Nothing to breed. You need two of the same fish at the same level');renderPanel()},
@@ -1138,6 +1247,13 @@ const act={
   idxt(t){idxT=+t;renderPanel()},
   bagsel(k){bagSel=k;renderPanel()},
   hatchegg(r){openHatch(r)},
+  gooduse(key){useGood(key)},
+  msell(a){const [k,i,all]=String(a).split(':'),key=gk(k,i);let n=all?gN(key):Math.min(1,gN(key));if(!n)return;let v=0;
+    for(let q=0;q<n;q++){v+=goodSell(key);takeGood(key,1);bump(key,.97,.5)}S.coins+=v;toast(`Sold ${n>1?n+' ':''}${gName(key)} for ${fmt(v)} coins`);renderPanel()},
+  mdeliver(id){deliverOrder(id);renderPanel()},
+  mskip(id){const M=mkt();M.orders=M.orders.filter(o=>o.id!==+id);M.ordT=now()+ORDER_GAP;toast('Order turned down. A new trader turns up in a minute');renderPanel()},
+  mbuy(n){const M=mkt(),st=M.stock[+n];if(!st||st.n<1)return;const p=stockPrice(st);if(S.coins<p)return;S.coins-=p;st.n--;addGood(st.key,1,st.base);toast(`Bought ${gName(st.key)}`);renderPanel()},
+  mrestock(){const c=restockCost();if(S.coins<c)return;S.coins-=c;newStock();toast('Fresh stock is in');renderPanel()},
   hatchequip(){if(HATCH&&HATCH.win&&S.pets[HATCH.win.id]){S.eq=[HATCH.win.id];toast(`${HATCH.win.n} hops into the dinghy`);$('hatchequip').hidden=true;renderPetBar();renderPanel()}},
   hatchagain(){if(!HATCH||HATCH.phase!=='done')return;const r=HATCH.r;HATCH=null;openHatch(r)},
   hatchdone(){if(HATCH&&HATCH.phase!=='done')return;HATCH=null;$('hatchbox').hidden=true},
@@ -1160,7 +1276,7 @@ const act={
     applyTheme();if(!unlocked(S.zone))S.zone=maxZone();S.wx=null;spawnAmbient();wxTick();$('picker').hidden=true;setLogo();castMax=castLeft=castTime();renderAll();
     toast(`${CLS[k].animal} the ${CLS[k].title} takes the boat · Lv ${S.lvl}`)},
   zone(i){i=+i;if(B||!unlocked(i))return;S.zone=i;wxTick();renderZones();castLeft=castMax=castTime();spawnAmbient()},
-  rod(i){i=+i;const r=RODS[i];if(!S.rods.includes(i)){if(S.coins<r.p||S.lvl<ROD_LVL[i])return;S.coins-=r.p;S.rods.push(i);toast(`Bought ${gearName(i)}`)}S.rod=i;renderPanel()},
+  rod(i){i=+i;const r=RODS[i];if(!S.rods.includes(i)){if(S.coins<r.p||S.lvl<ROD_LVL[i]||!partOk(ROD_PART[i]))return;S.coins-=r.p;partTake(ROD_PART[i]);S.rods.push(i);toast(`Bought ${gearName(i)}`)}S.rod=i;renderPanel()},
   bait(i){i=+i;const b=BAITS[i];if(!S.baits.includes(i)){if(S.coins<b.p||S.lvl<BAIT_LVL[i])return;S.coins-=b.p;S.baits.push(i);toast(`Bought ${b.n}`)}S.bait=i;renderPanel()},
   buy(k){const p=itemPrice(k);if(S.coins<p)return;S.coins-=p;S.bag[k]++;toast(`${ITEMS[k].n} added to your bag`);renderPanel()},
   use(k){if(!S.bag[k])return;const it=ITEMS[k];S.bag[k]--;
@@ -1186,6 +1302,8 @@ function renderBuffs(){
   const out=[];const t=now();
   for(const k in ITEMS){const b=ITEMS[k].buff;if(b&&S.buffs[b]>t)out.push(`<span class="buff px">${ITEMS[k].n} · ${Math.ceil((S.buffs[b]-t)/1000)}s</span>`)}
   if(S.harpoon)out.push('<span class="buff px">Harpoon loaded</span>');
+  for(const ty in (S.cb||{})){const c=S.cb[ty];if(c&&c.t>t)out.push(`<span class="buff px" style="color:#ffd08a">${CB_NAME[ty]} +${Math.round(c.v*100)}% · ${Math.ceil((c.t-t)/60000)}m</span>`)}
+  if(S.smithB)out.push(`<span class="buff px" style="color:#ffd08a">Boss fitting +${Math.round(S.smithB*100)}%</span>`);
   const w=S.wx&&WX[S.wx.k];if(w&&w.d)out.push(`<span class="buff px" style="color:#9fd8ff">${w.n}: ${w.d}</span>`);if(TS.n>.6)out.push('<span class="buff px" style="color:#c8b8ff">Night: +15% luck</span>');
   $('buffs').innerHTML=out.join('');
 }
@@ -1256,14 +1374,36 @@ const ITEM_PAL={chum:{g:'#7a9a5a',m:'#8a8a9a',r:'#c0392b'},lure:{y:'#ffcd3c',e:'
 function renderPanel(){
   const P=$('panel');let h='';
   if(tab==='shop'){
-    h+=`<div class="sect"><h3>${curC().gear}</h3><p>${S.cls&&S.cls!=='std'?'Faster spells and harder boss strikes.':'Faster casts and harder boss strikes.'}</p>`+RODS.map((r,i)=>{
-      const own=S.rods.includes(i);const btn=S.rod===i?'<button class="btn ok" disabled>Equipped</button>':own?`<button class="btn ghost" data-act="rod" data-arg="${i}">Equip</button>`:S.lvl<ROD_LVL[i]?`<button class="btn" disabled>Level ${ROD_LVL[i]}</button>`:`<button class="btn" data-act="rod" data-arg="${i}" data-cost="${r.p}">${money(r.p)}</button>`;
-      return`<div class="row px"><div class="ic">${imgTag(gearIcon(i),2)}</div><div class="info"><div class="nm">${gearName(i)}</div><div class="ds">${S.cls&&S.cls!=='std'?'Channel':'Cast'} ${r.cast}s · Strike ${fmt(r.pow)}</div></div>${btn}</div>`}).join('')+`</div>`;
+    h+=`<div class="sect"><h3>${curC().gear}</h3><p>${S.cls&&S.cls!=='std'?'Faster spells and harder boss strikes.':'Faster casts and harder boss strikes.'} From the third tier up, each one also needs smithed parts. Make them in Crafts or buy them at the Market.</p>`+RODS.map((r,i)=>{
+      const own=S.rods.includes(i),pt=ROD_PART[i];const btn=S.rod===i?'<button class="btn ok" disabled>Equipped</button>':own?`<button class="btn ghost" data-act="rod" data-arg="${i}">Equip</button>`:S.lvl<ROD_LVL[i]?`<button class="btn" disabled>Level ${ROD_LVL[i]}</button>`:!partOk(pt)?'<button class="btn" disabled>Need parts</button>':`<button class="btn" data-act="rod" data-arg="${i}" data-cost="${r.p}">${money(r.p)}</button>`;
+      return`<div class="row px"><div class="ic">${imgTag(gearIcon(i),2)}</div><div class="info"><div class="nm">${gearName(i)}</div><div class="ds">${S.cls&&S.cls!=='std'?'Channel':'Cast'} ${r.cast}s · Strike ${fmt(r.pow)}</div>${pt&&!own?`<div class="ds">Needs ${partTxt(pt)} from Smithing <span style="color:${partOk(pt)?'var(--mint)':'var(--buoy)'}">(have ${gN(gk(pt.k,pt.i))})</span> and ${fmt(r.p)} coins</div>`:''}</div>${btn}</div>`}).join('')+`</div>`;
     h+=`<div class="sect"><h3>Bait</h3><p>Any bait cuts down on junk, and better bait shifts the odds towards rarer catches. Luck makes rare, epic and legendary fish bite more often.</p>`+BAITS.map((b,i)=>{
       const own=S.baits.includes(i);const btn=S.bait===i?'<button class="btn ok" disabled>Using</button>':own?`<button class="btn ghost" data-act="bait" data-arg="${i}">Use</button>`:S.lvl<BAIT_LVL[i]?`<button class="btn" disabled>Level ${BAIT_LVL[i]}</button>`:`<button class="btn" data-act="bait" data-arg="${i}" data-cost="${b.p}">${money(b.p)}</button>`;
       return`<div class="row px"><div class="ic">${imgTag(BAIT_IC[i],3)}</div><div class="info"><div class="nm">${b.n}</div><div class="ds">+${Math.round(b.luck*100)}% luck</div></div>${btn}</div>`}).join('')+`</div>`;
     h+=`<div class="sect"><h3>Supplies</h3><p>Bought supplies go to your Bag. Prices rise as you reach new waters.</p>`+Object.keys(ITEMS).map(k=>{const p=itemPrice(k);
       return`<div class="row px"><div class="ic">${imgTag(mk(ITEM_MAP[k],ITEM_PAL[k]),3)}</div><div class="info"><div class="nm">${ITEMS[k].n} <span class="ds">(you have ${S.bag[k]})</span></div><div class="ds">${ITEMS[k].d}</div></div><button class="btn" data-act="buy" data-arg="${k}" data-cost="${p}">${money(p)}</button></div>`}).join('')+`</div>`;
+  }
+  else if(tab==='market'){mktTick();const M=mkt(),r=rankNow(),nx=r+1<RANK_N.length?r+1:null,t=now();
+    const pct=nx?Math.min(100,(M.rep-RANK_REP[r])/(RANK_REP[nx]-RANK_REP[r])*100):100;
+    h+=`<div class="sect"><h3>Market · ${RANK_N[r]}</h3><p>Sell the goods you craft, fill traders' orders and buy parts you can't make yet. Prices move all the time: sell what's in demand and hold on to what isn't. Selling lots of one thing pushes its price down for a while. Filled orders pay well and give fisher XP and reputation. More reputation means better prices, more orders and cheaper stock, but each rank also needs a higher fisher level.</p>
+      <div class="prog"><div class="bar"><b style="width:${pct}%"></b></div><span class="num">${nx?fmt(M.rep)+' / '+fmt(RANK_REP[nx])+' rep':'MAX'}</span></div>
+      <div class="kv"><span>Rank</span><span class="num">${r+1} / ${RANK_N.length}</span><span>Sell prices</span><span class="num">+${Math.round((rankMult()-1)*100)}%</span><span>Order slots</span><span class="num">${orderSlots()}</span><span>Stock discount</span><span class="num">${r*3}%</span><span>Orders filled</span><span class="num">${fmt(M.done||0)}</span></div>
+      ${nx?`<p class="hint">${M.rep>=RANK_REP[nx]&&S.lvl<RANK_LVL[nx]?`<span style="color:var(--brass)">You have the reputation for ${RANK_N[nx]}. Reach fisher level ${RANK_LVL[nx]} to rank up.</span>`:`Next: ${RANK_N[nx]} at ${fmt(RANK_REP[nx])} rep and fisher level ${RANK_LVL[nx]}.`}</p>`:''}</div>`;
+    h+=`<div class="sect"><h3>Orders <span class="hint num">${M.orders.length}/${orderSlots()}</span></h3><p>Traders want goods or fish. Fish orders take level 0 fish of that rarity, caught in that zone, from your Net. A new trader arrives about a minute after one leaves.</p>`+
+      (M.orders.length?M.orders.map(o=>{const have=orderHave(o),ok=have>=o.n,left=Math.max(0,o.exp-t);
+        return`<div class="row px"><div class="ic">${imgTag(orderIc(o),o.kind==='g'?3:2)}</div><div class="info"><div class="nm" style="color:${o.kind==='g'?goodCol(gsplit(o.key)[1]):FRAR[o.t].c}">${o.n}× ${orderName(o)}</div>
+          <div class="ds">Pays ${money(o.c*rankMult()*coinMult())} · +${fmt(o.xp*xpMult())} XP · +${o.rep} rep</div><div class="ds"><span style="color:${ok?'var(--mint)':'var(--muted)'}">You have ${fmt(have)}/${o.n}</span> · leaves in ${Math.ceil(left/60000)} min</div>
+          <div class="eggbtns" style="justify-content:flex-start;margin-top:6px"><button class="btn" data-act="mdeliver" data-arg="${o.id}" ${ok?'':'disabled'}>Deliver</button><button class="btn ghost" data-act="mskip" data-arg="${o.id}">Skip</button></div></div></div>`}).join('')
+      :`<p class="hint">No traders right now. One will turn up in ${Math.max(1,Math.ceil((M.ordT-t)/1000))}s.</p>`)+`</div>`;
+    const own=Object.keys(goods()).filter(k=>gN(k)>0).sort((a,b)=>goodSell(b)-goodSell(a));
+    h+=`<div class="sect"><h3>Sell goods</h3>`+(own.length?own.map(key=>{const [k,i]=gsplit(key),n=gN(key),p=goodSell(key);
+      return`<div class="row px"><div class="ic">${imgTag(goodIcon(key),3)}</div><div class="info"><div class="nm" style="color:${goodCol(i)}">${gName(key)} <span class="num ds">×${fmt(n)}</span> ${demTag(key)}</div><div class="ds">${SKILLS[k].n} · ${USE_BTN[k]}: ${goodEffect(k,i)}</div>
+        <div class="eggbtns" style="justify-content:flex-start;margin-top:6px"><button class="btn ghost" data-act="msell" data-arg="${key}">Sell 1 · ${fmt(p)}</button>${n>1?`<button class="btn ghost" data-act="msell" data-arg="${key}:all">Sell all ${fmt(n)}</button>`:''}<button class="btn ghost" data-act="gooduse" data-arg="${key}">${USE_BTN[k]}</button></div></div></div>`}).join('')
+      :`<p class="hint">Nothing to sell yet. Start a recipe in Crafts. Each one turns a few fish from your Net into goods.</p>`)+`</div>`;
+    h+=`<div class="sect"><h3>Fish prices</h3><p>What the fish market pays right now, compared with normal. Selling from your Net, and the Net rules, use these prices.</p><div class="oddrow">${FRAR.slice(0,6).map((rr,ti)=>`<span><b style="color:${rr.c}">${rr.n}</b> ${demTag('f'+ti)}</span>`).join('')}</div></div>`;
+    h+=`<div class="sect"><h3>Trader stock</h3><p>Goods made by other crafters, at a price. New stock arrives in ${Math.max(1,Math.ceil((M.stockT-t)/60000))} min. Parts for your next upgrade often turn up here.</p>`+
+      M.stock.map((st,n)=>{const [k,i]=gsplit(st.key),p=stockPrice(st);return`<div class="row px"><div class="ic">${imgTag(goodIcon(st.key),3)}</div><div class="info"><div class="nm" style="color:${goodCol(i)}">${gName(st.key)} <span class="num ds">${st.n} left</span></div><div class="ds">${SKILLS[k].n} · ${USE_BTN[k]}: ${goodEffect(k,i)} · you have ${fmt(gN(st.key))}</div></div>${st.n>0?`<button class="btn" data-act="mbuy" data-arg="${n}" data-cost="${p}">${money(p)}</button>`:'<button class="btn" disabled>Sold out</button>'}</div>`}).join('')+
+      `<div><button class="btn ghost" data-act="mrestock" data-cost="${restockCost()}">Restock now · ${fmt(restockCost())}</button></div></div>`;
   }
   else if(tab==='pets'){
     const tot=['coin','speed','xp','luck'].map(t=>`<span>${BTYPE[t][0].toUpperCase()+BTYPE[t].slice(1)}</span><span class="num">+${Math.round(petBonus(t)*100)}%</span>`).join('');
@@ -1273,7 +1413,7 @@ function renderPanel(){
         if(boss!==id)return`<div class="job px"><div class="worker">${imgTag(petSpr(id),2)}<span><b style="color:var(--foam)">${P.n}</b> is resting. ${PETS[boss].n} is already doing ${SK.n.toLowerCase()}, and only one pet works each craft.</span></div></div>`;
         const run=j.on;return`<div class="job px"><div class="top"><div class="worker">${imgTag(petSpr(id),2)}<span><b style="color:var(--foam)">${P.n}</b><br><span style="color:${SK.col}">${SK.n} · Lv ${j.lvl}</span></span></div>${run?`<button class="btn ghost" data-act="craftstop" data-arg="${k}">Stop</button>`:`<button class="btn" data-act="craftgo" data-arg="${k}">Start</button>`}</div>
           <label class="hint" for="crew-${k}">Making</label><select id="crew-${k}" class="rsel" data-chg="recipe" data-skill="${k}">${SK.recipes.map((rn,i)=>`<option value="${i}" ${i===j.rec?'selected':''} ${j.lvl<REC_LVL[i]?'disabled':''}>${rn}${j.lvl<REC_LVL[i]?` (Lv ${REC_LVL[i]})`:` · +${fmtR(craftXp(k,i,id))} XP`}</option>`).join('')}</select>
-          <div class="bar"><b id="cpb-${k}" style="width:${j.p/REC_TIME[j.rec]*100}%"></b></div><div class="hint">${run?'Working':'Not started'} · ${petSpeedOf(id).toFixed(2)}× speed · +${Math.round(petValOf(id)*100)}% craft XP</div></div>`}).join('')
+          <div class="bar"><b id="cpb-${k}" style="width:${j.p/REC_TIME[j.rec]*100}%"></b></div><div class="hint">${run?(j.wait?`<span style="color:var(--buoy)">Out of materials: needs ${MAT[j.rec][1]} ${FRAR[MAT[j.rec][0]].n} fish</span>`:'Working'):'Not started'} · ${petSpeedOf(id).toFixed(2)}× speed · +${Math.round(petValOf(id)*100)}% craft XP</div></div>`}).join('')
       :`<p class="hint">No pet equipped. Hatch an egg, then tap the pet in the pet bar at the top or press Equip in your collection.</p>`)+`</div>`;
     const craftEgg=(e,i)=>`<div class="egg px">${imgTag(mk(MAPS.EGG,e.pal),5)}<div style="font-weight:600">${e.n}</div><div class="ds">10 pets in ${SKILLS[e.skill].hats}. They do ${SKILLS[e.skill].n.toLowerCase()} while you fish.</div><div class="num" style="font-size:20px">×${S.eggs[e.skill]||0}</div><div class="eggbtns"><button class="btn" data-act="hatchegg" data-arg="${e.skill}" ${(S.eggs[e.skill]||0)?'':'disabled'}>Hatch</button><button class="btn ghost dexbtn" data-act="eggdex" data-arg="${i}" title="See the pets in the ${e.n}" aria-label="See the pets in the ${e.n}">${imgTag(DEX_IC(),2)}</button></div></div>`;
     h+=`<div class="sect"><h3>Hatchery</h3><p>Pets ride behind your boat in rubber dinghies the colour of their egg. Each pet does its craft for you, so you can fish and craft at the same time. Rarer pets are better. Duplicates add a star, up to 5★.</p><p>Eggs can't be bought. Every fish you catch has a small chance (about 1 in ${fmt(oneIn('cooking'))} for each kind) to bring up an egg. Hatching spins a roulette to decide which pet, and how rare, is inside. Tap the book on an egg to see its pets and their chances.</p>
@@ -1290,7 +1430,7 @@ function renderPanel(){
   }
   else if(tab==='craft'){
     const k=crSel,SK=SKILLS[k],j=skJ(k),pet=craftPetFor(k),aj=avatarJob();
-    h+=`<div class="sect"><h3>Crafts</h3><p>Crafting doesn't earn coins. Each finished recipe gives craft XP, and every craft level gives a lasting bonus. Your fisher can work one craft at a time and stops fishing while they do. Equip a pet from that craft's egg and the pet does the work, so you keep fishing. You can also start your pets from the crew list in the Pets tab.</p>
+    h+=`<div class="sect"><h3>Crafts</h3><p>Crafting turns fish from your Net into goods. Food, drinks, potions and runes give timed boosts. Smithed gear and engineered parts are needed for better ${S.cls&&S.cls!=='std'?'staffs':'rods'}, tanks and filters. Tailored cloth makes your Net bigger for good. Anything you don't need can be sold at the Market. Every craft level adds 2% to the value of what you make, and gives a lasting bonus. Your fisher can work one craft at a time and stops fishing while they do. When the materials run out, they go back to fishing until there's enough. Equip a pet from that craft's egg and the pet does the work, so you keep fishing. You can also start your pets from the crew list in the Pets tab.</p>
       <div class="sk-row">${SK_ORDER.map(q=>`<button class="skc px" data-act="crsel" data-arg="${q}" aria-pressed="${q===k}"><i style="background:${SKILLS[q].col}"></i>${SKILLS[q].n} <span class="num">${skL(q)}</span>${skJ(q).on&&(craftPetFor(q)||S.craft===q)?'<span class="run">ON</span>':''}</button>`).join('')}</div></div>`;
     const lvPct=j.lvl>=SK_MAX?100:j.xp/skNeed(j.lvl)*100;
     const bonusNow={cooking:`+${j.lvl-1}% coins`,brewing:`+${j.lvl-1}% XP`,smithing:`+${(j.lvl-1)*2}% boss strike`,alchemy:`+${j.lvl-1}% luck`,engineering:`+${((j.lvl-1)*.5).toFixed(1)}% catch speed`,tailoring:`+${j.lvl-1}% crafting speed`,enchanting:`+${j.lvl-1}% aquarium income`}[k];
@@ -1298,17 +1438,17 @@ function renderPanel(){
     const worker=pet?`<div class="worker">${imgTag(petSpr(pet),2)}<span><b style="color:var(--foam)">${PETS[pet].n}</b> works this for you at ${petSpeedOf(pet).toFixed(2)}× speed and +${Math.round(petValOf(pet)*100)}% craft XP. You keep fishing.</span></div>`
       :`<div class="worker"><span>No ${SK.n} pet equipped, so your ${curC().animal.toLowerCase()} does this and stops fishing. Hatch eggs you fish up until you get a ${SK.n.toLowerCase()} pet, then take it out to do both.</span></div>`;
     const running=j.on&&(pet||S.craft===k);
-    h+=`<div class="job px"><div class="top"><div><div style="font-weight:600">${SK.recipes[j.rec]}</div><div class="hint" id="cps-${k}">${running?'Crafting…':j.on?'Waiting':'Not started'}</div></div>${j.on?`<button class="btn ghost" data-act="craftstop" data-arg="${k}">Stop</button>`:`<button class="btn" data-act="craftgo" data-arg="${k}">Start</button>`}</div><div class="bar"><b id="cpb-${k}" style="width:${j.p/REC_TIME[j.rec]*100}%"></b></div>${worker}${aj&&aj!==k&&!pet?`<div class="hint">Starting this stops ${SKILLS[aj].n}.</div>`:''}</div>`;
-    h+=SK.recipes.map((rn,i)=>{const lock=j.lvl<REC_LVL[i],sel=j.rec===i;      return`<div class="row px"><div class="info"><div class="nm">${rn}</div><div class="ds">${REC_TIME[i]}s · +${fmtR(craftXp(k,i,pet))} XP</div></div>${lock?`<button class="btn" disabled>Lv ${REC_LVL[i]}</button>`:sel?'<button class="btn ok" disabled>Selected</button>':`<button class="btn ghost" data-act="recipe" data-arg="${k}:${i}">Select</button>`}</div>`}).join('')+`</div>`;
+    h+=`<div class="job px"><div class="top"><div><div style="font-weight:600">${SK.recipes[j.rec]}</div><div class="hint" id="cps-${k}">${running?(j.wait?`<span style="color:var(--buoy)">Out of materials: needs ${MAT[j.rec][1]} ${FRAR[MAT[j.rec][0]].n} fish in your Net</span>`:'Crafting…'):j.on?(j.wait?`<span style="color:var(--buoy)">Out of materials: needs ${MAT[j.rec][1]} ${FRAR[MAT[j.rec][0]].n} fish in your Net. Fishing until there's enough</span>`:'Waiting'):'Not started'} · ${fmt(gN(gk(k,j.rec)))} in your Bag</div></div>${j.on?`<button class="btn ghost" data-act="craftstop" data-arg="${k}">Stop</button>`:`<button class="btn" data-act="craftgo" data-arg="${k}">Start</button>`}</div><div class="bar"><b id="cpb-${k}" style="width:${j.p/REC_TIME[j.rec]*100}%"></b></div>${worker}${aj&&aj!==k&&!pet?`<div class="hint">Starting this stops ${SKILLS[aj].n}.</div>`:''}</div>`;
+    h+=SK.recipes.map((rn,i)=>{const lock=j.lvl<REC_LVL[i],sel=j.rec===i;      const [mt,mn]=MAT[i],hv=matHave(mt);return`<div class="row px"><div class="ic">${imgTag(goodIcon(gk(k,i)),3)}</div><div class="info"><div class="nm" style="color:${goodCol(i)}">${rn} <span class="num ds">×${fmt(gN(gk(k,i)))}</span></div><div class="ds">${REC_TIME[i]}s · +${fmtR(craftXp(k,i,pet))} XP · uses ${mn} ${FRAR[mt].n} fish <span style="color:${hv>=mn?'var(--mint)':'var(--buoy)'}">(${fmt(hv)} in Net)</span></div><div class="ds">${USE_BTN[k]}: ${goodEffect(k,i)}</div></div>${lock?`<button class="btn" disabled>Lv ${REC_LVL[i]}</button>`:sel?'<button class="btn ok" disabled>Selected</button>':`<button class="btn ghost" data-act="recipe" data-arg="${k}:${i}">Select</button>`}</div>`}).join('')+`</div>`;
   }
   else if(tab==='aqua'){const gs=tankGroups(),tot=gs.reduce((a,g)=>a+g.n,0),kinds=new Set(gs.map(g=>g.id)).size;
     h+=`<div class="sect"><h3>Aquarium</h3><p>Fish only go into the tank when you move them in from your Net (in the Bag). Visitors pay to see them: more fish, rarer fish and higher-level fish earn more. The aquarium keeps earning while you fish or craft, and at half rate while you're away.</p>
       <div class="kv"><span>Income</span><span class="num" id="aqrate">${fmtR(aqRate())}/s</span><span>Fish in the tank</span><span class="num">${fmt(tot)} / ${tankCap()}</span><span>Kinds</span><span class="num">${kinds}</span><span>Visitors</span><span class="num" id="aqvis">${fmt(S.visitors||0)}</span></div><p class="hint">Tap the glass to make the fish dart about.</p></div>`;
     {const nx=(S.tankLv||0)+1,cl=Math.round(S.clean==null?100:S.clean),fn=(S.filter||0)+1;
      h+=`<div class="sect"><h3>Tank</h3><p>Your tank only holds so many fish, and every fish needs the right water: freshwater for the first three zones, saltwater for the coast, deep-sea for the trench and cosmic for the abyss. Only one water type can be in the tank at a time, so choose your best fish. The tank also gets dirty over time and a dirty tank puts visitors off.</p>
-      <div class="row px"><div class="info"><div class="nm">Size · ${tankCap()} fish</div><div class="ds">${nx<TANK_SIZE.length?`Next: ${TANK_SIZE[nx]} fish${S.lvl<TANK_LVL[nx]?` (needs level ${TANK_LVL[nx]})`:''}`:'Biggest tank'}</div></div>${nx<TANK_SIZE.length?(S.lvl<TANK_LVL[nx]?`<button class="btn" disabled>Level ${TANK_LVL[nx]}</button>`:`<button class="btn" data-act="tankup" data-cost="${TANK_COST[nx]}">${money(TANK_COST[nx])}</button>`):''}</div>
+      <div class="row px"><div class="info"><div class="nm">Size · ${tankCap()} fish</div><div class="ds">${nx<TANK_SIZE.length?`Next: ${TANK_SIZE[nx]} fish${S.lvl<TANK_LVL[nx]?` (needs level ${TANK_LVL[nx]})`:''}`:'Biggest tank'}</div>${nx<TANK_SIZE.length&&TANK_PART[nx]?`<div class="ds">Needs ${partTxt(TANK_PART[nx])} from Engineering <span style="color:${partOk(TANK_PART[nx])?'var(--mint)':'var(--buoy)'}">(have ${gN(gk('engineering',TANK_PART[nx].i))})</span></div>`:''}</div>${nx<TANK_SIZE.length?(S.lvl<TANK_LVL[nx]?`<button class="btn" disabled>Level ${TANK_LVL[nx]}</button>`:!partOk(TANK_PART[nx])?'<button class="btn" disabled>Need parts</button>':`<button class="btn" data-act="tankup" data-cost="${TANK_COST[nx]}">${money(TANK_COST[nx])}</button>`):''}</div>
       <div class="row px"><div class="info"><div class="nm">Cleanliness · ${cl}%</div><div class="bar" style="margin:4px 0"><b style="width:${cl}%;background:${cl>60?'var(--mint)':cl>30?'var(--brass)':'var(--buoy)'}"></b></div><div class="ds">Income ×${cleanFactor().toFixed(2)} · ${FILTERS[S.filter||0].n}</div></div><button class="btn" data-act="tankclean" data-cost="${cleanCost()}" ${cl>=100?'disabled':''}>Clean ${money(cleanCost())}</button></div>
-      ${fn<FILTERS.length?`<div class="row px"><div class="info"><div class="nm">${FILTERS[fn].n}</div><div class="ds">The tank gets dirty ${Math.round((1-FILTERS[fn].rate)*100)}% slower</div></div><button class="btn" data-act="filterup" data-cost="${FILTERS[fn].p}">${money(FILTERS[fn].p)}</button></div>`:''}
+      ${fn<FILTERS.length?`<div class="row px"><div class="info"><div class="nm">${FILTERS[fn].n}</div><div class="ds">The tank gets dirty ${Math.round((1-FILTERS[fn].rate)*100)}% slower</div>${FILTER_PART[fn]?`<div class="ds">Needs ${partTxt(FILTER_PART[fn])} from Engineering <span style="color:${partOk(FILTER_PART[fn])?'var(--mint)':'var(--buoy)'}">(have ${gN(gk('engineering',FILTER_PART[fn].i))})</span></div>`:''}</div>${partOk(FILTER_PART[fn])?`<button class="btn" data-act="filterup" data-cost="${FILTERS[fn].p}">${money(FILTERS[fn].p)}</button>`:'<button class="btn" disabled>Need parts</button>'}</div>`:''}
       <div class="egghead">Water</div>`+WATERS.map(w=>{const own=(S.waterOwn||{fresh:1})[w.id],on=(S.water||'fresh')===w.id;return`<div class="row px"><div class="ic"><span class="swatch" style="background:${w.c}"></span></div><div class="info"><div class="nm">${w.n}</div><div class="ds">For fish from ${w.zones.map(z=>ZONES[z].name).join(', ')}</div></div>${on?'<button class="btn ok" disabled>In use</button>':own?`<button class="btn ghost" data-act="water" data-arg="${w.id}">Switch</button>`:S.lvl<w.lvl?`<button class="btn" disabled>Level ${w.lvl}</button>`:`<button class="btn" data-act="water" data-arg="${w.id}" data-cost="${w.p}">${money(w.p)}</button>`}</div>`}).join('')+`</div>`}
     {const D=aqd(),bonus=Math.round(decorBonus()*100);
      h+=`<div class="sect"><h3>Aquarium shop</h3><p>Buy decorations and styles to make the tank your own. Each decoration on show adds +1% aquarium income, and each style you change from the default adds +2%. Decor bonus now: +${bonus}%.</p>
@@ -1346,15 +1486,17 @@ function renderPanel(){
   else if(tab==='bag'){
     const inv=[];SK_ORDER.forEach(r=>{if(S.eggs[r]>0)inv.push({key:'egg'+r,ic:mk(MAPS.EGG,eggPal(r)),sc:4,n:S.eggs[r],name:EGGR[r].n,col:EGGR[r].c,desc:`Fished up by chance (about 1 in ${fmt(oneIn(r))} catches). Hatches a ${SKILLS[r].n.toLowerCase()} pet; the roulette decides how rare.`,act:'hatchegg',arg:r,btn:'Hatch'})});
     Object.keys(ITEMS).forEach(k=>{if(S.bag[k]>0)inv.push({key:k,ic:mk(ITEM_MAP[k],ITEM_PAL[k]),sc:4,n:S.bag[k],name:ITEMS[k].n,col:'var(--foam)',desc:ITEMS[k].d+(ITEMS[k].buff?'. Using more adds to the time left.':'.'),act:'use',arg:k,btn:'Use'})});
+    Object.keys(goods()).sort((a,b)=>gsplit(a)[1]-gsplit(b)[1]||a.localeCompare(b)).forEach(key=>{const [k,i]=gsplit(key),g=goods()[key];if(!(g.n>0))return;
+      inv.push({key:'g'+key,ic:goodIcon(key),sc:4,n:g.n,name:gName(key),col:goodCol(i),desc:`${SKILLS[k].n} goods. ${USE_BTN[k]}: ${goodEffect(k,i)}. Sells for about ${fmt(goodSell(key))} at the Market.`,act:'gooduse',arg:key,btn:USE_BTN[k],sell:key})});
     if(!inv.find(it=>it.key===bagSel))bagSel=inv.length?inv[0].key:null;
-    const eggTot=SK_ORDER.reduce((a,r)=>a+(S.eggs[r]||0),0),supTot=Object.keys(ITEMS).reduce((a,k)=>a+(S.bag[k]||0),0);
+    const eggTot=SK_ORDER.reduce((a,r)=>a+(S.eggs[r]||0),0),supTot=Object.keys(ITEMS).reduce((a,k)=>a+(S.bag[k]||0),0),gdTot=Object.values(goods()).reduce((a,g)=>a+g.n,0);
     const slots=Math.max(10,Math.ceil(inv.length/5)*5);
-    h+=`<div class="sect"><h3>Bag</h3><div class="invsum"><span>Eggs <b class="num">${eggTot}</b></span><span>Supplies <b class="num">${supTot}</b></span></div>
+    h+=`<div class="sect"><h3>Bag</h3><div class="invsum"><span>Eggs <b class="num">${eggTot}</b></span><span>Supplies <b class="num">${supTot}</b></span><span>Goods <b class="num">${gdTot}</b></span></div>
       <div class="inv">${Array.from({length:slots},(_,n)=>{const it=inv[n];if(!it)return'<div class="slot empty px"></div>';
         return`<button class="slot px" data-act="bagsel" data-arg="${it.key}" aria-pressed="${it.key===bagSel}" aria-label="${it.name}, ${it.n}" title="${it.name}" style="--rc:${it.col}">${imgTag(it.ic,it.sc)}<span class="cnt">${it.n}</span></button>`}).join('')}</div>`;
     const sel=inv.find(it=>it.key===bagSel);
-    h+=sel?`<div class="row px"><div class="ic">${imgTag(sel.ic,3)}</div><div class="info"><div class="nm" style="color:${sel.col}">${sel.name} <span class="num ds">×${sel.n}</span></div><div class="ds">${sel.desc}</div></div><button class="btn" data-act="${sel.act}" data-arg="${sel.arg}">${sel.btn}</button></div>`
-      :`<p class="hint">Your bag is empty. Eggs turn up while you fish, and supplies are in the Shop.</p>`;
+    h+=sel?`<div class="row px"><div class="ic">${imgTag(sel.ic,3)}</div><div class="info"><div class="nm" style="color:${sel.col}">${sel.name} <span class="num ds">×${sel.n}</span></div><div class="ds">${sel.desc}</div></div><div class="eggbtns"><button class="btn" data-act="${sel.act}" data-arg="${sel.arg}">${sel.btn}</button>${sel.sell?`<button class="btn ghost" data-act="msell" data-arg="${sel.sell}">Sell · ${fmt(goodSell(sel.sell))}</button>`:''}</div></div>`
+      :`<p class="hint">Your bag is empty. Eggs turn up while you fish, supplies are in the Shop, and crafted goods land here.</p>`;
     h+=`</div>`;
     const items=netItems(),netTot=items.reduce((a,it)=>a+it.n,0),kinds=new Set(items.map(it=>it.id)).size;
     const shown=items.filter(it=>netT<0||FISHBY[it.id].f[1]===netT).sort((a,b)=>FISHBY[b.id].f[1]-FISHBY[a.id].f[1]||b.L-a.L||FISHBY[b.id].zi-FISHBY[a.id].zi||FISHBY[a.id].f[0].localeCompare(FISHBY[b.id].f[0]));
@@ -1749,7 +1891,8 @@ function aqLabel(){const n=tankCount();return n?`Aquarium · ${n} fish`:'Aquariu
 function aqTick(dt){if(!S.cls)return;{const f=FILTERS[S.filter||0].rate,load=tankCount()/Math.max(1,tankCap());S.clean=Math.max(0,(S.clean==null?100:S.clean)-dt*(100/7200)*f*(.5+load))}S.aqPend=(S.aqPend||0)+aqRate()*dt;const vis=tab==='aqua'&&!document.hidden;aqPayT+=dt;
   if((!vis&&aqPayT>1)||(vis&&S.aqPend>aqRate()*12)){aqPayT=0;if(S.aqPend>0){S.coins+=S.aqPend;S.aqPend=0}}}
 /* the Net: level 0 fish are in S.net, bred ones in S.netLv[id][level] */
-function sellPrice(id,L){const e=FISHBY[id];return e?e.f[2]*.6*Math.pow(LVL_MULT,L)*coinMult()*(S.cls==='earth'?1.25:1):0}
+function fishSold(id,n){const e=FISHBY[id];if(e&&id[0]==='f'&&n>0)bump('f'+e.f[1],Math.pow(.9985,n),.6)}
+function sellPrice(id,L){const e=FISHBY[id];return e?(id[0]==='f'?dem('f'+e.f[1]):1)*e.f[2]*.6*Math.pow(LVL_MULT,L)*coinMult()*(S.cls==='earth'?1.25:1):0}
 function netN(id,L){return L?((S.netLv||{})[id]||{})[L]||0:(S.net||{})[id]||0}
 function netAdd(id,L,n){if(L){if(!S.netLv)S.netLv={};if(!S.netLv[id])S.netLv[id]={};S.netLv[id][L]=(S.netLv[id][L]||0)+n;if(S.netLv[id][L]<=0)delete S.netLv[id][L]}else{S.net[id]=(S.net[id]||0)+n}}
 function netItems(){const out=[];for(const id in S.net||{})if(FISHBY[id]&&S.net[id]>0)out.push({id,L:0,n:S.net[id]});for(const id in S.netLv||{}){if(!FISHBY[id])continue;for(const L in S.netLv[id]){const n=S.netLv[id][L];if(n>0)out.push({id,L:+L,n})}}return out}
@@ -2162,7 +2305,7 @@ function loop(t){
   if(S.cls)craftTick(dt);
   aqTick(dt);
   renderHeader();draw(dt);
-  uiAcc+=dt;if(uiAcc>.25){if(tab==='aqua'&&!B)$('zlabel').textContent=aqLabel();uiAcc=0;wxTick();refreshPanel();renderBuffs();const tt=dayT();$('clock').innerHTML=`${phaseName(tt)} ${clockStr(tt)}<br>${S.wx?WX[S.wx.k].n:''}`}
+  uiAcc+=dt;if(uiAcc>.25){if(tab==='aqua'&&!B)$('zlabel').textContent=aqLabel();uiAcc=0;wxTick();if(mktTick()&&tab==='market')renderPanel();refreshPanel();renderBuffs();const tt=dayT();$('clock').innerHTML=`${phaseName(tt)} ${clockStr(tt)}<br>${S.wx?WX[S.wx.k].n:''}`}
   saveAcc+=dt;if(saveAcc>5){saveAcc=0;save()}
   requestAnimationFrame(loop);
 }
@@ -2179,13 +2322,13 @@ function offline(){
   const away=Math.min((now()-S.last)/1000,8*3600);if(away<30)return;
   {const f=FILTERS[S.filter||0].rate;S.clean=Math.max(0,(S.clean==null?100:S.clean)-away*(100/7200)*f*.8)}
   const aqOff=aqRate()*away*.5;if(aqOff>=1){S.coins+=aqOff;toast(`Your aquarium earned +${fmt(aqOff)} coins while you were away`)}
-  const cc0=craftOffline(away);if(avatarJob()){S.last=now();if(cc0>0)toast(`While you were away: crafted goods worth +${fmt(cc0)} coins`);return}
-  const n=Math.floor(away/castTime()*0.5);if(n<1){if(cc0>0)toast(`While you were away: crafting earned +${fmt(cc0)} coins`);return}const sim=Math.min(n,400),scale=n/sim;let coins=0,xp=0,news=0;
+  const cc0=craftOffline(away);if(avatarJob()){S.last=now();if(cc0>0)toast(`While you were away: crafted ${fmt(cc0)} goods`);return}
+  const n=Math.floor(away/castTime()*0.5);if(n<1){if(cc0>0)toast(`While you were away: crafted ${fmt(cc0)} goods`);return}const sim=Math.min(n,400),scale=n/sim;let coins=0,xp=0,news=0;
   for(let i=0;i<sim;i++){const c=rollFish(S.zone,luck());const cc=c.value*coinMult()*scale,xx=FRAR[c.tier].xp*(1+S.zone*1.5)*xpMult()*scale;
     const id=c.f[6];if(!S.idx[id]){S.idx[id]={n:0,best:0};news++}S.idx[id].n+=Math.round(scale);if(!S.net)S.net={};netStore(id,Math.min(50,Math.round(scale)));S.idx[id].best=Math.max(S.idx[id].best,c.weight);coins+=cc;xp+=xx}
   S.total+=n;S.zc[S.zone]+=n;S.last=now();gainXp(xp);
   let eggsGot=0;for(const r of SK_ORDER){const ex=n*eggChance(r),k=Math.floor(ex)+(Math.random()<ex%1?1:0);if(k){S.eggs[r]=(S.eggs[r]||0)+k;eggsGot+=k}}
-  toast(`While you were away: caught ${fmt(n)} (now in your Net), +${fmt(xp)} XP${cc0>0?`, +${fmt(cc0)} coins from crafting`:''}${eggsGot?`, ${eggsGot} egg${eggsGot>1?'s':''}`:''}${news?`, ${news} new in the index`:''}`);
+  toast(`While you were away: caught ${fmt(n)} (now in your Net), +${fmt(xp)} XP${cc0>0?`, ${fmt(cc0)} goods crafted`:''}${eggsGot?`, ${eggsGot} egg${eggsGot>1?'s':''}`:''}${news?`, ${news} new in the index`:''}`);
 }
 
 /* ---------- input ---------- */
