@@ -21,3 +21,10 @@ A pixel-art idle fishing game that runs in the browser. Open `index.html` to pla
 - **Net and Aquarium**: catches give XP only and are kept in the Net (in the Bag), where you can sell or breed them; fish you move in from the Net go on show in an aquarium, where you can breed pairs into higher-level fish and visitors stroll by, point and take photos, earning coins based on how many fish you have and how rare they are. An aquarium shop sells 27 decorations plus water dyes, lights, floors, backdrops, frames and rooms
 - **Day and night cycle** (20 minutes per full day) and **random weather** (rain, storms, fog, snow, meteor showers, aurora) with small bonuses
 - Saves in the browser and keeps fishing at half speed while you're away (up to 8 hours)
+
+## Difficulty
+
+- Levels unlock rods, bait, tank upgrades, tank water types and zones; each level adds 5 Net space
+- The Net has limited space, so catches are released when it is full
+- The aquarium tank has limited, upgradable space; fish need the right water type (freshwater, saltwater, deep-sea or cosmic) and the tank gets dirty over time
+- Bosses are tougher and rarer, fish sell for less, gear costs more and eggs are rarer

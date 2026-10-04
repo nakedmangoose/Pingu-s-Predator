@@ -309,18 +309,19 @@ ZONES.forEach(z=>{z.fish=z.f2;delete z.f2});
 const FISHBY={};ZONES.forEach((z,zi)=>z.fish.forEach(f=>FISHBY[f[6]]={f,zi}));
 const BOSS_KG=[180,420,900,2600,6400,24000];ZONES.forEach((z,zi)=>{const b=z.boss;FISHBY['b'+zi]={f:[b.name,6,b.reward,BOSS_KG[zi],b.spr,b.pal,'b'+zi],zi,boss:1}});
 const RODS=[
- {n:'Twig Rod',p:0,pow:1,cast:4.0,col:'#8a5a2a'},{n:'Bamboo Rod',p:150,pow:3,cast:3.5,col:'#d8c070'},{n:'Fiberglass Rod',p:1200,pow:10,cast:3.0,col:'#e8e8e8'},
- {n:'Carbon Rod',p:9000,pow:35,cast:2.6,col:'#4a4a5a'},{n:'Titanium Rod',p:60000,pow:120,cast:2.2,col:'#a8c8e0'},{n:'Abyssal Rod',p:400000,pow:450,cast:1.9,col:'#7a4ad0'},
- {n:'Starforged Rod',p:3e6,pow:1800,cast:1.6,col:'#ffcd3c'}];
+ {n:'Twig Rod',p:0,pow:1,cast:4.0,col:'#8a5a2a'},{n:'Bamboo Rod',p:600,pow:3,cast:3.5,col:'#d8c070'},{n:'Fiberglass Rod',p:5000,pow:10,cast:3.0,col:'#e8e8e8'},
+ {n:'Carbon Rod',p:40000,pow:35,cast:2.6,col:'#4a4a5a'},{n:'Titanium Rod',p:300000,pow:120,cast:2.2,col:'#a8c8e0'},{n:'Abyssal Rod',p:2e6,pow:450,cast:1.9,col:'#7a4ad0'},
+ {n:'Starforged Rod',p:15e6,pow:1800,cast:1.6,col:'#ffcd3c'}];
 const BAITS=[
- {n:'Bread Crumbs',p:0,luck:0,col:'#e8c88a'},{n:'Earthworms',p:300,luck:.15,col:'#e07a8a'},{n:'Crickets',p:3000,luck:.35,col:'#6a5a2a'},
- {n:'Tiger Shrimp',p:25000,luck:.6,col:'#ff8a5a'},{n:'Glow Squid',p:200000,luck:1.0,col:'#7ff0ff'},{n:'Stardust',p:1.5e6,luck:1.6,col:'#ffcd3c'}];
+ {n:'Bread Crumbs',p:0,luck:0,col:'#e8c88a'},{n:'Earthworms',p:900,luck:.15,col:'#e07a8a'},{n:'Crickets',p:10000,luck:.35,col:'#6a5a2a'},
+ {n:'Tiger Shrimp',p:90000,luck:.6,col:'#ff8a5a'},{n:'Glow Squid',p:800000,luck:1.0,col:'#7ff0ff'},{n:'Stardust',p:6e6,luck:1.6,col:'#ffcd3c'}];
+const ROD_LVL=[1,4,9,15,22,30,40],BAIT_LVL=[1,3,7,13,20,28];
 const ITEMS={
- chum:{n:'Chum Bucket',d:'Fish bite twice as fast for 60s',buff:'speed',dur:60,base:80},
- lure:{n:'Golden Lure',d:'Double coins from selling fish and the aquarium for 60s',buff:'coin',dur:60,base:100},
- charm:{n:'Lucky Charm',d:'+100% luck for 60s',buff:'luck',dur:60,base:120},
- tonic:{n:'Sea Salt Tonic',d:'Double XP for 120s',buff:'xp',dur:120,base:80},
- harpoon:{n:'Harpoon',d:'+50% strike damage in your next boss fight',buff:null,dur:0,base:250}};
+ chum:{n:'Chum Bucket',d:'Fish bite twice as fast for 60s',buff:'speed',dur:60,base:200},
+ lure:{n:'Golden Lure',d:'Double coins from selling fish and the aquarium for 60s',buff:'coin',dur:60,base:250},
+ charm:{n:'Lucky Charm',d:'+100% luck for 60s',buff:'luck',dur:60,base:300},
+ tonic:{n:'Sea Salt Tonic',d:'Double XP for 120s',buff:'xp',dur:120,base:200},
+ harpoon:{n:'Harpoon',d:'+50% strike damage in your next boss fight',buff:null,dur:0,base:600}};
 const ZMULT=[1,6,40,300,2500,20000];
 const EGGS=[];
 /* ---- crafting skills ---- */
@@ -853,7 +854,7 @@ function url(c,scale){const k=c.toDataURL();return k}
 function imgTag(c,scale,alt){const key=(c._u||(c._u=c.toDataURL()));return`<img src="${key}" width="${c.width*scale}" height="${c.height*scale}" alt="${alt||''}">`}
 
 function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},eggs:{[SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)]]:1},
- buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,net:{},netLv:{},tank:{},aqd:null,aqPend:0,visitors:0,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
+ buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,net:{},netLv:{},tank:{},aqd:null,tankLv:0,water:'fresh',waterOwn:{fresh:1},clean:100,filter:0,aqPend:0,visitors:0,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
 let PROF={}; /* every fisher is a separate save: PROF[cls] holds their whole state; S is the active one */
 let S=fresh(), B=null, tab='shop', castLeft=4, castMax=4, logItems=[];
 
@@ -861,7 +862,7 @@ let S=fresh(), B=null, tab='shop', castLeft=4, castMax=4, logItems=[];
 const $=id=>document.getElementById(id);
 function fmt(n){n=Math.floor(n);if(n<1000)return String(n);const u=['K','M','B','T','Qa'];let i=-1;while(n>=1000&&i<u.length-1){n/=1000;i++}return(n<10?n.toFixed(2):n<100?n.toFixed(1):Math.floor(n))+u[i]}
 function kg(w){return w<1?w.toFixed(2)+' kg':w<100?w.toFixed(1)+' kg':fmt(w)+' kg'}
-function xpNeed(l){return Math.floor(15*Math.pow(1.2,l-1))}
+function xpNeed(l){return Math.floor(30*Math.pow(1.25,l-1))}
 function now(){return Date.now()}
 function buffOn(k){return S.buffs[k]>now()}
 function petStarMult(id){return 1+0.5*((S.pets[id]||1)-1)}
@@ -876,7 +877,7 @@ function xpMult(){return(1+petBonus('xp')+envMods().xp)*(buffOn('xp')?2:1)*(1+.0
 function unlocked(i){return S.lvl>=ZONES[i].lvl&&(i===0||S.beaten[i-1]>0)}
 function maxZone(){let m=0;ZONES.forEach((z,i)=>{if(unlocked(i))m=i});return m}
 function itemPrice(k){return ITEMS[k].base*ZMULT[maxZone()]}
-function strikeDmg(){return RODS[S.rod].pow*(1+S.lvl*0.05)*(B&&B.harpoon?1.5:1)*(S.cls==='fire'?1.4:1)*(1+.02*(skL('smithing')-1))}
+function strikeDmg(){return RODS[S.rod].pow*(1+S.lvl*0.02)*(B&&B.harpoon?1.5:1)*(S.cls==='fire'?1.4:1)*(1+.02*(skL('smithing')-1))}
 function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;$('toasts').appendChild(t);setTimeout(()=>t.remove(),2600);while($('toasts').children.length>3)$('toasts').firstChild.remove()}
 
 /* ---------- fishing ---------- */
@@ -894,10 +895,13 @@ function rollFish(zi,lk){
   const weight=f[3]*(0.6+Math.random()*0.8)*big*(S.cls==='earth'?1.25:1);
   return{zi,fi,f,tier,weight,value:f[2]*weight/f[3]};
 }
+function netCap(){return 30+5*S.lvl}
+function netTotal(){let t=0;for(const id in S.net||{})t+=S.net[id]||0;for(const id in S.netLv||{})for(const L in S.netLv[id])t+=S.netLv[id][L]||0;return t}
+let _netFullT=0;
 function record(c,coins,xp){
   const id=c.f[6];const e=S.idx[id];const isNew=!e;
   if(!e)S.idx[id]={n:1,best:c.weight};else{e.n++;if(c.weight>e.best)e.best=c.weight}
-  if(!S.net)S.net={};S.net[id]=(S.net[id]||0)+1;aqVer++;
+  if(!S.net)S.net={};if(netTotal()<netCap()){S.net[id]=(S.net[id]||0)+1;aqVer++}else if(now()>_netFullT){_netFullT=now()+20000;toast(`Your Net is full (${netCap()}). Catches are being released, so sell, breed or level up for more room`)}
   S.coins+=coins;S.total++;S.zc[c.zi]++;gainXp(xp);return isNew;
 }
 function catchFish(){
@@ -924,7 +928,7 @@ function gainXp(x){
 /* ---------- crafting ---------- */
 function skJ(k){if(!S.sk)S.sk={};if(!S.sk[k])S.sk[k]={lvl:1,xp:0,rec:0,on:false,p:0,paid:false};return S.sk[k]}
 function skL(k){return S.sk&&S.sk[k]?S.sk[k].lvl:1}
-function skNeed(l){return Math.floor(20*Math.pow(1.18,l-1))}
+function skNeed(l){return Math.floor(35*Math.pow(1.22,l-1))}
 function cpStar(id){return 1+.1*((S.pets[id]||1)-1)}
 function craftPetFor(k){let best=null;S.eq.forEach(id=>{const p=PETS[id];if(p&&p.skill===k&&(!best||p.tier>PETS[best].tier))best=id});return best}
 function petSpeedOf(id){return PET_SPEED[PETS[id].tier]*cpStar(id)}
@@ -946,12 +950,13 @@ function craftOffline(away){let total=0;SK_ORDER.forEach(k=>{const j=skJ(k);if(!
   const cyc=Math.min(2000,Math.floor(away*.5*(pet?petSpeedOf(pet):1)*(1+.01*(skL('tailoring')-1))/REC_TIME[j.rec]));if(cyc<1)return;
   for(let i=0;i<cyc&&skL(k)<SK_MAX;i++)skGain(k,craftXp(k,j.rec,pet))});return total}
 /* ---------- bosses ---------- */
-const BOSS_CHANCE=1/80,AUTO_HITS=3;
+const BOSS_CHANCE=1/150,AUTO_HITS=1.5,BOSS_HP_MULT=[1.5,2.5,3,3,3,3];
+function bossHP(i){return ZONES[i].boss.hp*BOSS_HP_MULT[i]}
 function bossReady(i){return unlocked(i)}
 function startBoss(i){
   if(B||!bossReady(i))return;const b=ZONES[i].boss;
   const dur=(30+i*3)*1000*(S.cls==='ice'?1.3:1);
-  B={zi:i,hp:b.hp,max:b.hp,ends:now()+dur,dur,harpoon:S.harpoon,shake:0,flash:0,rise:0,auto:.6};S.harpoon=false;if(!S.bseen)S.bseen=[0,0,0,0,0,0];S.bseen[i]++;
+  B={zi:i,hp:bossHP(i),max:bossHP(i),ends:now()+dur,dur,harpoon:S.harpoon,shake:0,flash:0,rise:0,auto:.6};S.harpoon=false;if(!S.bseen)S.bseen=[0,0,0,0,0,0];S.bseen[i]++;
   toast(`${b.name} surfaces! Your ${curC().animal.toLowerCase()} fights it on their own. Tap the boss to strike harder`);
   if(S.zone!==i){S.zone=i;renderZones()}
   splash(200,100,24,'#e8f6ff');
@@ -987,7 +992,7 @@ function setLogo(){$('logo').src=avatarCanvas(S.cls||'std').toDataURL();$('hint'
 let crSel='cooking',_dexIc=null,bagSel=null,idxZ=null,idxT=1,netT=-1,netSel=null,aqCat='decor';
 /* fished eggs, by rarity: chance per fish caught (luck raises it a little) */
 /* one egg per craft; each is an equal, rare catch. The roulette decides the pet's rarity */
-const EGGR=Object.fromEntries(SK_ORDER.map(k=>[k,{n:SKILLS[k].n+' Egg',c:SKILLS[k].col,d:mix(SKILLS[k].col,'#05060c',.35),ch:.006}]));
+const EGGR=Object.fromEntries(SK_ORDER.map(k=>[k,{n:SKILLS[k].n+' Egg',c:SKILLS[k].col,d:mix(SKILLS[k].col,'#05060c',.35),ch:.003}]));
 const DUPE_COINS=[200,800,3000,12000,50000];
 function eggPal(r){return EGGS[SK_ORDER.indexOf(r)].pal}
 function eggChance(r){return EGGR[r].ch*(1+luck()*.5)*(S.cls==='leaf'?1.5:1)}
@@ -1052,11 +1057,21 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('eggdex').hidden
 function craftArgs(a){const [k,i]=String(a).split(':');return[k,+i]}
 const act={
   aqcat(k){aqCat=k;renderPanel()},
+  tankup(){const i=(S.tankLv||0)+1;if(i>=TANK_SIZE.length||S.coins<TANK_COST[i]||S.lvl<TANK_LVL[i])return;S.coins-=TANK_COST[i];S.tankLv=i;aqVer++;toast(`Tank upgraded: room for ${TANK_SIZE[i]} fish`);renderPanel()},
+  water(w){const W3=WATERS.find(x=>x.id===w);if(!W3)return;if(!S.waterOwn)S.waterOwn={fresh:1};
+    if(!S.waterOwn[w]){if(S.coins<W3.p||S.lvl<W3.lvl)return;S.coins-=W3.p;S.waterOwn[w]=1}
+    if(S.water!==w){S.water=w;const moved=fixTank(S);aqVer++;toast(`Tank switched to ${W3.n}${moved?`. ${moved} fish moved back to your Net`:''}`)}renderPanel()},
+  tankclean(){const c=cleanCost();if(S.coins<c||(S.clean||0)>=99.5)return;S.coins-=c;S.clean=100;toast('Tank scrubbed clean');renderPanel()},
+  filterup(){const i=(S.filter||0)+1;if(i>=FILTERS.length||S.coins<FILTERS[i].p)return;S.coins-=FILTERS[i].p;S.filter=i;toast(`${FILTERS[i].n} installed`);renderPanel()},
+  tankout(a){const [id,L0]=String(a).split('|'),L=+L0||0;if(!(S.tank[id]&&S.tank[id][L]>0))return;S.tank[id][L]--;if(!S.tank[id][L])delete S.tank[id][L];netAdd(id,L,1);aqVer++;renderPanel()},
   aqbuy(a){const [cat,id]=String(a).split('|'),D=aqd();let item,key;if(cat==='decor'){item=DECOR_BY[id];key='d_'+id}else{item=STY[cat]&&STY[cat].find(x=>x.id===id);key=cat+'_'+id}
     if(!item||D.own[key]||S.coins<item.p)return;S.coins-=item.p;D.own[key]=1;if(cat==='decor')D.placed[id]=1;else D[cat]=id;toast(`${item.n} added to your aquarium`);renderPanel()},
   aquse(a){const [cat,id]=String(a).split('|'),D=aqd();if(!D.own[cat+'_'+id])return;D[cat]=id;renderPanel()},
   aqplace(id){const D=aqd();if(!D.own['d_'+id])return;if(D.placed[id])delete D.placed[id];else D.placed[id]=1;renderPanel()},
-  tankput(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id],have=netN(id,L);if(!e||e.f[1]===0||!(have>0))return;const n=all?have:1;
+  tankput(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id],have=netN(id,L);if(!e||e.f[1]===0||!(have>0))return;
+    if(habitatOf(id)!==(S.water||'fresh')){toast(`${e.f[0]} needs ${waterName(habitatOf(id))} water. Your tank is ${waterName(S.water||'fresh')}`);return}
+    const space=tankCap()-tankCount();if(space<=0){toast(`The tank is full (${tankCap()}). Upgrade it in the Aquarium tab or take a fish out`);return}
+    const n=Math.min(all?have:1,space);
     netAdd(id,L,-n);if(!S.tank[id])S.tank[id]={};S.tank[id][L]=(S.tank[id][L]||0)+n;aqVer++;
     toast(`${n>1?n+' ':''}${L?'level '+L+' ':''}${e.f[0]} moved into the aquarium`);renderPanel()},
   netsell(a){const [id,L0,all]=String(a).split('|'),L=+L0||0,e=FISHBY[id],have=netN(id,L);if(!e||!(have>0))return;const n=all?have:1,v=sellPrice(id,L)*n;
@@ -1100,8 +1115,8 @@ const act={
     applyTheme();if(!unlocked(S.zone))S.zone=maxZone();S.wx=null;spawnAmbient();wxTick();$('picker').hidden=true;setLogo();castMax=castLeft=castTime();renderAll();
     toast(`${CLS[k].animal} the ${CLS[k].title} takes the boat · Lv ${S.lvl}`)},
   zone(i){i=+i;if(B||!unlocked(i))return;S.zone=i;wxTick();renderZones();castLeft=castMax=castTime();spawnAmbient()},
-  rod(i){i=+i;const r=RODS[i];if(!S.rods.includes(i)){if(S.coins<r.p)return;S.coins-=r.p;S.rods.push(i);toast(`Bought ${gearName(i)}`)}S.rod=i;renderPanel()},
-  bait(i){i=+i;const b=BAITS[i];if(!S.baits.includes(i)){if(S.coins<b.p)return;S.coins-=b.p;S.baits.push(i);toast(`Bought ${b.n}`)}S.bait=i;renderPanel()},
+  rod(i){i=+i;const r=RODS[i];if(!S.rods.includes(i)){if(S.coins<r.p||S.lvl<ROD_LVL[i])return;S.coins-=r.p;S.rods.push(i);toast(`Bought ${gearName(i)}`)}S.rod=i;renderPanel()},
+  bait(i){i=+i;const b=BAITS[i];if(!S.baits.includes(i)){if(S.coins<b.p||S.lvl<BAIT_LVL[i])return;S.coins-=b.p;S.baits.push(i);toast(`Bought ${b.n}`)}S.bait=i;renderPanel()},
   buy(k){const p=itemPrice(k);if(S.coins<p)return;S.coins-=p;S.bag[k]++;toast(`${ITEMS[k].n} added to your bag`);renderPanel()},
   use(k){if(!S.bag[k])return;const it=ITEMS[k];S.bag[k]--;
     if(k==='harpoon'){S.harpoon=true;toast('Harpoon loaded for your next boss')}
@@ -1197,10 +1212,10 @@ function renderPanel(){
   const P=$('panel');let h='';
   if(tab==='shop'){
     h+=`<div class="sect"><h3>${curC().gear}</h3><p>${S.cls&&S.cls!=='std'?'Faster spells and harder boss strikes.':'Faster casts and harder boss strikes.'}</p>`+RODS.map((r,i)=>{
-      const own=S.rods.includes(i);const btn=S.rod===i?'<button class="btn ok" disabled>Equipped</button>':own?`<button class="btn ghost" data-act="rod" data-arg="${i}">Equip</button>`:`<button class="btn" data-act="rod" data-arg="${i}" data-cost="${r.p}">${money(r.p)}</button>`;
+      const own=S.rods.includes(i);const btn=S.rod===i?'<button class="btn ok" disabled>Equipped</button>':own?`<button class="btn ghost" data-act="rod" data-arg="${i}">Equip</button>`:S.lvl<ROD_LVL[i]?`<button class="btn" disabled>Level ${ROD_LVL[i]}</button>`:`<button class="btn" data-act="rod" data-arg="${i}" data-cost="${r.p}">${money(r.p)}</button>`;
       return`<div class="row px"><div class="ic">${imgTag(gearIcon(i),2)}</div><div class="info"><div class="nm">${gearName(i)}</div><div class="ds">${S.cls&&S.cls!=='std'?'Channel':'Cast'} ${r.cast}s · Strike ${fmt(r.pow)}</div></div>${btn}</div>`}).join('')+`</div>`;
     h+=`<div class="sect"><h3>Bait</h3><p>Any bait cuts down on junk, and better bait shifts the odds towards rarer catches. Luck makes rare, epic and legendary fish bite more often.</p>`+BAITS.map((b,i)=>{
-      const own=S.baits.includes(i);const btn=S.bait===i?'<button class="btn ok" disabled>Using</button>':own?`<button class="btn ghost" data-act="bait" data-arg="${i}">Use</button>`:`<button class="btn" data-act="bait" data-arg="${i}" data-cost="${b.p}">${money(b.p)}</button>`;
+      const own=S.baits.includes(i);const btn=S.bait===i?'<button class="btn ok" disabled>Using</button>':own?`<button class="btn ghost" data-act="bait" data-arg="${i}">Use</button>`:S.lvl<BAIT_LVL[i]?`<button class="btn" disabled>Level ${BAIT_LVL[i]}</button>`:`<button class="btn" data-act="bait" data-arg="${i}" data-cost="${b.p}">${money(b.p)}</button>`;
       return`<div class="row px"><div class="ic">${imgTag(BAIT_IC[i],3)}</div><div class="info"><div class="nm">${b.n}</div><div class="ds">+${Math.round(b.luck*100)}% luck</div></div>${btn}</div>`}).join('')+`</div>`;
     h+=`<div class="sect"><h3>Supplies</h3><p>Bought supplies go to your Bag. Prices rise as you reach new waters.</p>`+Object.keys(ITEMS).map(k=>{const p=itemPrice(k);
       return`<div class="row px"><div class="ic">${imgTag(mk(ITEM_MAP[k],ITEM_PAL[k]),3)}</div><div class="info"><div class="nm">${ITEMS[k].n} <span class="ds">(you have ${S.bag[k]})</span></div><div class="ds">${ITEMS[k].d}</div></div><button class="btn" data-act="buy" data-arg="${k}" data-cost="${p}">${money(p)}</button></div>`}).join('')+`</div>`;
@@ -1243,7 +1258,13 @@ function renderPanel(){
   }
   else if(tab==='aqua'){const gs=tankGroups(),tot=gs.reduce((a,g)=>a+g.n,0),kinds=new Set(gs.map(g=>g.id)).size;
     h+=`<div class="sect"><h3>Aquarium</h3><p>Fish only go into the tank when you move them in from your Net (in the Bag). Visitors pay to see them: more fish, rarer fish and higher-level fish earn more. The aquarium keeps earning while you fish or craft, and at half rate while you're away.</p>
-      <div class="kv"><span>Income</span><span class="num" id="aqrate">${fmtR(aqRate())}/s</span><span>Fish in the tank</span><span class="num">${fmt(tot)}</span><span>Kinds</span><span class="num">${kinds}</span><span>Visitors</span><span class="num" id="aqvis">${fmt(S.visitors||0)}</span></div><p class="hint">Tap the glass to make the fish dart about.</p></div>`;
+      <div class="kv"><span>Income</span><span class="num" id="aqrate">${fmtR(aqRate())}/s</span><span>Fish in the tank</span><span class="num">${fmt(tot)} / ${tankCap()}</span><span>Kinds</span><span class="num">${kinds}</span><span>Visitors</span><span class="num" id="aqvis">${fmt(S.visitors||0)}</span></div><p class="hint">Tap the glass to make the fish dart about.</p></div>`;
+    {const nx=(S.tankLv||0)+1,cl=Math.round(S.clean==null?100:S.clean),fn=(S.filter||0)+1;
+     h+=`<div class="sect"><h3>Tank</h3><p>Your tank only holds so many fish, and every fish needs the right water: freshwater for the first three zones, saltwater for the coast, deep-sea for the trench and cosmic for the abyss. Only one water type can be in the tank at a time, so choose your best fish. The tank also gets dirty over time and a dirty tank puts visitors off.</p>
+      <div class="row px"><div class="info"><div class="nm">Size · ${tankCap()} fish</div><div class="ds">${nx<TANK_SIZE.length?`Next: ${TANK_SIZE[nx]} fish${S.lvl<TANK_LVL[nx]?` (needs level ${TANK_LVL[nx]})`:''}`:'Biggest tank'}</div></div>${nx<TANK_SIZE.length?(S.lvl<TANK_LVL[nx]?`<button class="btn" disabled>Level ${TANK_LVL[nx]}</button>`:`<button class="btn" data-act="tankup" data-cost="${TANK_COST[nx]}">${money(TANK_COST[nx])}</button>`):''}</div>
+      <div class="row px"><div class="info"><div class="nm">Cleanliness · ${cl}%</div><div class="bar" style="margin:4px 0"><b style="width:${cl}%;background:${cl>60?'var(--mint)':cl>30?'var(--brass)':'var(--buoy)'}"></b></div><div class="ds">Income ×${cleanFactor().toFixed(2)} · ${FILTERS[S.filter||0].n}</div></div><button class="btn" data-act="tankclean" data-cost="${cleanCost()}" ${cl>=100?'disabled':''}>Clean ${money(cleanCost())}</button></div>
+      ${fn<FILTERS.length?`<div class="row px"><div class="info"><div class="nm">${FILTERS[fn].n}</div><div class="ds">The tank gets dirty ${Math.round((1-FILTERS[fn].rate)*100)}% slower</div></div><button class="btn" data-act="filterup" data-cost="${FILTERS[fn].p}">${money(FILTERS[fn].p)}</button></div>`:''}
+      <div class="egghead">Water</div>`+WATERS.map(w=>{const own=(S.waterOwn||{fresh:1})[w.id],on=(S.water||'fresh')===w.id;return`<div class="row px"><div class="ic"><span class="swatch" style="background:${w.c}"></span></div><div class="info"><div class="nm">${w.n}</div><div class="ds">For fish from ${w.zones.map(z=>ZONES[z].name).join(', ')}</div></div>${on?'<button class="btn ok" disabled>In use</button>':own?`<button class="btn ghost" data-act="water" data-arg="${w.id}">Switch</button>`:S.lvl<w.lvl?`<button class="btn" disabled>Level ${w.lvl}</button>`:`<button class="btn" data-act="water" data-arg="${w.id}" data-cost="${w.p}">${money(w.p)}</button>`}</div>`}).join('')+`</div>`}
     {const D=aqd(),bonus=Math.round(decorBonus()*100);
      h+=`<div class="sect"><h3>Aquarium shop</h3><p>Buy decorations and styles to make the tank your own. Each decoration on show adds +1% aquarium income, and each style you change from the default adds +2%. Decor bonus now: +${bonus}%.</p>
        <div class="sk-row">${AQCATS.map(([k,n])=>`<button class="skc px" data-act="aqcat" data-arg="${k}" aria-pressed="${aqCat===k}">${n}</button>`).join('')}</div>`;
@@ -1256,7 +1277,7 @@ function renderPanel(){
     const pairs=gs.reduce((a,g)=>a+(g.lvl<MAX_FLVL?Math.floor(g.n/2):0),0);
     h+=`<div class="sect"><h3>Breeding</h3><p>Breed two fish of the same kind and the same level. They join into one fish a level higher, and the two parents are gone. Every fish starts at level 0. Each level makes a fish earn ${LVL_MULT}× as much.</p>`+
       (rows.length?`<div><button class="btn" data-act="breedall" ${pairs?'':'disabled'}>Breed every pair (${pairs})</button></div>`+rows.map(g=>{const e=FISHBY[g.id],ok=g.n>=2&&g.lvl<MAX_FLVL;
-        return`<div class="row px"><div class="ic">${imgTag(fishSpr(e.f),2)}</div><div class="info"><div class="nm" style="color:${FRAR[e.f[1]].c}">${e.f[0]} <span class="lvtag">Lv ${g.lvl}</span> <span class="num ds">×${g.n}</span></div><div class="ds">Each earns ${fmtR(fishEarnL(g.id,g.lvl))}/s · a level ${g.lvl+1} earns ${fmtR(fishEarnL(g.id,g.lvl+1))}/s</div></div><button class="btn" data-act="breed" data-arg="${g.id}|${g.lvl}" ${ok?'':'disabled'}>${ok?'Breed 2':'Need 2'}</button></div>`}).join('')
+        return`<div class="row px"><div class="ic">${imgTag(fishSpr(e.f),2)}</div><div class="info"><div class="nm" style="color:${FRAR[e.f[1]].c}">${e.f[0]} <span class="lvtag">Lv ${g.lvl}</span> <span class="num ds">×${g.n}</span></div><div class="ds">Each earns ${fmtR(fishEarnL(g.id,g.lvl))}/s · a level ${g.lvl+1} earns ${fmtR(fishEarnL(g.id,g.lvl+1))}/s</div></div><div class="eggbtns"><button class="btn" data-act="breed" data-arg="${g.id}|${g.lvl}" ${ok?'':'disabled'}>${ok?'Breed 2':'Need 2'}</button><button class="btn ghost" data-act="tankout" data-arg="${g.id}|${g.lvl}">Take out</button></div></div>`}).join('')
       :`<p class="hint">Your tank is empty. Open the Bag, pick a fish in your Net and press Put in aquarium.</p>`)+`</div>`;
   }
   else if(tab==='index'){
@@ -1275,7 +1296,7 @@ function renderPanel(){
     h+=`<div class="sect"><h3>Bosses <span class="hint num">${bb}/${ZONES.length}</span></h3><p>Each zone's boss surfaces at random while you fish there, about once every ${Math.round(1/BOSS_CHANCE)} catches. Fights play out on their own: your fisher strikes ${AUTO_HITS} times a second and your pet bites too. Tap the boss to strike harder. Beating a boss catches it and puts it in your Net, opens the next zone, and gives +5% coins forever.</p>`+ZONES.map((z,i)=>{const b=z.boss,seen=(S.bseen&&S.bseen[i])||S.beaten[i];
       const tag=S.beaten[i]?`<span class="tag done">Beaten ×${S.beaten[i]}</span>`:seen?'<span class="tag">Escaped</span>':!unlocked(i)?'<span class="tag">Locked</span>':'<span class="tag">Not seen yet</span>';
       const sp=bossSpr(z,seen?null:'#3a4a72');const sc=Math.max(1,Math.floor(40/Math.max(sp.width,sp.height*1.6)));
-      return`<div class="boss px"><div class="top"><div class="who">${imgTag(sp,sc)}<div><div style="font-weight:600">${seen?b.name:'???'}</div><div class="hint">${z.name}${seen?` · ${fmt(b.hp)} HP · ${S.beaten[i]?'caught ×'+S.beaten[i]:'catch it to keep it'}`:''}</div></div></div>${tag}</div>${seen?`<div class="hint">${b.desc}</div>`:''}</div>`}).join('')+`</div>`;
+      return`<div class="boss px"><div class="top"><div class="who">${imgTag(sp,sc)}<div><div style="font-weight:600">${seen?b.name:'???'}</div><div class="hint">${z.name}${seen?` · ${fmt(bossHP(i))} HP · ${S.beaten[i]?'caught ×'+S.beaten[i]:'catch it to keep it'}`:''}</div></div></div>${tag}</div>${seen?`<div class="hint">${b.desc}</div>`:''}</div>`}).join('')+`</div>`;
   }
   else if(tab==='bag'){
     const inv=[];SK_ORDER.forEach(r=>{if(S.eggs[r]>0)inv.push({key:'egg'+r,ic:mk(MAPS.EGG,eggPal(r)),sc:4,n:S.eggs[r],name:EGGR[r].n,col:EGGR[r].c,desc:`Fished up by chance (about 1 in ${fmt(oneIn(r))} catches). Hatches a ${SKILLS[r].n.toLowerCase()} pet; the roulette decides how rare.`,act:'hatchegg',arg:r,btn:'Hatch'})});
@@ -1294,7 +1315,7 @@ function renderPanel(){
     const shown=items.filter(it=>netT<0||FISHBY[it.id].f[1]===netT).sort((a,b)=>FISHBY[b.id].f[1]-FISHBY[a.id].f[1]||b.L-a.L||FISHBY[b.id].zi-FISHBY[a.id].zi||FISHBY[a.id].f[0].localeCompare(FISHBY[b.id].f[0]));
     const nkey=it=>it.id+'|'+it.L;if(!shown.find(it=>nkey(it)===netSel))netSel=shown[0]?nkey(shown[0]):null;
     const netPairs=items.reduce((a,it)=>a+(FISHBY[it.id].f[1]>0&&it.L<MAX_FLVL?Math.floor(it.n/2):0),0);
-    h+=`<div class="sect"><h3>Net</h3><div class="invsum"><span>Catches <b class="num">${fmt(netTot)}</b></span><span>Kinds <b class="num">${kinds}</b></span></div>
+    h+=`<div class="sect"><h3>Net</h3><div class="invsum"><span>Space <b class="num" style="color:${netTot>=netCap()?'var(--buoy)':'var(--foam)'}">${fmt(netTot)} / ${netCap()}</b></span><span>Kinds <b class="num">${kinds}</b></span></div>
       <p class="hint" style="margin:0">Catches don't pay coins any more. Sell them here, breed them, or put them in the aquarium.</p>
       <div class="eggbtns" style="justify-content:flex-start"><button class="btn" data-act="netbreedall" ${netPairs?'':'disabled'}>Breed all (${fmt(netPairs)} pair${netPairs===1?'':'s'})</button>${(()=>{const jv=items.filter(it=>FISHBY[it.id].f[1]===0).reduce((a,it)=>a+sellPrice(it.id,it.L)*it.n,0),jn=items.filter(it=>FISHBY[it.id].f[1]===0).reduce((a,it)=>a+it.n,0);return`<button class="btn ghost" data-act="selljunk" ${jn?'':'disabled'}>Sell all junk (${fmt(jv)})</button>`})()}</div>
       <p class="hint" style="margin:0">Breed all pairs up every fish at the same level, again and again, until nothing is left to pair. Junk is skipped.</p>
@@ -1303,18 +1324,22 @@ function renderPanel(){
     const nsel=shown.find(it=>nkey(it)===netSel);
     if(nsel){const sel=nsel;const e=FISHBY[sel.id],fishy=e.f[1]>0,canBreed=fishy&&sel.n>=2&&sel.L<MAX_FLVL,arg=nkey(sel);
       h+=`<div class="row px"><div class="ic">${imgTag(fishSpr(e.f),2)}</div><div class="info"><div class="nm" style="color:${FRAR[e.f[1]].c}">${e.f[0]} ${sel.L?`<span class="lvtag">Lv ${sel.L}</span> `:''}<span class="num ds">×${fmt(sel.n)}</span></div>
-        <div class="ds">${FRAR[e.f[1]].n} · ${ZONES[e.zi].name} · best ${kg((S.idx[sel.id]||{}).best||0)}${fishy?` · in the aquarium each earns ${fmtR(fishEarnL(sel.id,sel.L))}/s`:' · junk can\'t go in the aquarium or be bred'}</div>
+        <div class="ds">${FRAR[e.f[1]].n} · ${ZONES[e.zi].name} · best ${kg((S.idx[sel.id]||{}).best||0)}${fishy?` · needs ${waterName(habitatOf(sel.id))} water · in the aquarium each earns ${fmtR(fishEarnL(sel.id,sel.L))}/s`:' · junk can\'t go in the aquarium or be bred'}</div>
         <div class="ds">Sells for ${fmt(sellPrice(sel.id,sel.L))} each</div>
         <div class="eggbtns" style="justify-content:flex-start;margin-top:6px"><button class="btn ghost" data-act="netsell" data-arg="${arg}">Sell 1 · ${fmt(sellPrice(sel.id,sel.L))}</button>${sel.n>1?`<button class="btn ghost" data-act="netsell" data-arg="${arg}|all">Sell all ${fmt(sel.n)} · ${fmt(sellPrice(sel.id,sel.L)*sel.n)}</button>`:''}</div>
         ${fishy?`<div class="eggbtns" style="justify-content:flex-start;margin-top:6px"><button class="btn" data-act="tankput" data-arg="${arg}">Put in aquarium</button>${sel.n>1?`<button class="btn ghost" data-act="tankput" data-arg="${arg}|all">Put all ${fmt(sel.n)} in</button>`:''}${canBreed?`<button class="btn" data-act="netbreed" data-arg="${arg}">Breed 2 → Lv ${sel.L+1}</button>`:''}${canBreed&&sel.n>=4?`<button class="btn ghost" data-act="netbreed" data-arg="${arg}|all">Breed all pairs</button>`:''}</div>`:''}</div></div>`}
     else h+=`<p class="hint">Your net is empty. Everything you catch is kept here. Pick a fish and press Put in aquarium to put it on show.</p>`;
     h+=`</div>`;
     h+=`<div class="sect"><h3>Fisher</h3><div class="row px"><div class="ic" style="width:84px">${imgTag(avatarCanvas(S.cls||'std'),1.5)}</div><div class="info"><div class="nm">${curC().animal} · ${curC().title}</div><div class="ds">${curC().perk}</div></div><button class="btn ghost" data-act="pick">Change</button></div></div>`;
+    {const ups=[];for(let L=S.lvl+1;L<=S.lvl+40&&ups.length<6;L++){const u=[];ROD_LVL.forEach((v,i)=>{if(v===L)u.push(gearName(i))});BAIT_LVL.forEach((v,i)=>{if(v===L)u.push(BAITS[i].n)});
+       TANK_LVL.forEach((v,i)=>{if(v===L&&i>0)u.push(`Tank for ${TANK_SIZE[i]} fish`)});WATERS.forEach(w=>{if(w.lvl===L&&w.lvl>1)u.push(`${w.n} tank water`)});ZONES.forEach(z=>{if(z.lvl===L)u.push(z.name)});
+       if(u.length)ups.push(`<span>Lv ${L}</span><span>${u.join(', ')}</span>`)}
+     h+=`<div class="sect"><h3>Level ${S.lvl} rewards</h3><p>Every level adds 5 Net space (now ${netCap()}). Coming up:</p><div class="kv">${ups.join('')||'<span>All unlocked</span><span></span>'}</div></div>`}
     h+=`<div class="sect"><h3>Stats</h3><div class="kv">
       <span>${S.cls&&S.cls!=='std'?'Focus':'Rod'}</span><span>${gearName(S.rod)}</span><span>Bait</span><span>${BAITS[S.bait].n}</span>
       <span>Cast time</span><span class="num">${castTime().toFixed(2)}s</span><span>Luck</span><span class="num">+${Math.round(luck()*100)}%</span>
       <span>Coin bonus</span><span class="num">×${coinMult().toFixed(2)}</span><span>XP bonus</span><span class="num">×${xpMult().toFixed(2)}</span>
-      <span>Boss strike</span><span class="num">${fmt(RODS[S.rod].pow*(1+S.lvl*0.05))}</span><span>Fish caught</span><span class="num">${fmt(S.total)}</span>
+      <span>Boss strike</span><span class="num">${fmt(RODS[S.rod].pow*(1+S.lvl*0.02))}</span><span>Fish caught</span><span class="num">${fmt(S.total)}</span>
       <span>Bosses beaten</span><span class="num">${S.beaten.filter(Boolean).length}/${ZONES.length}</span></div></div>`;
     h+=`<div class="sect"><h3>Save</h3><p>Progress saves in this browser every few seconds, and each fisher has a separate save. While you are away your active fisher keeps fishing at half speed, for up to 8 hours.</p><div><button class="btn ghost" data-act="reset">${resetArm?`Tap again to erase this ${curC().animal.toLowerCase()}`:'Start this fisher over'}</button></div></div>`;
   }
@@ -1646,20 +1671,35 @@ function drawStation(F,boatX,deckY,pX,pY,dt,C){
   else if(f==='worried'){R(cx,ex-1,ey-2,1,1,K);R(cx,ex+1,ey-3,1,1,K);R(cx,pX+4,pY+3,1,2,'#9fe0ff')}
 }
 /* ---------- aquarium ---------- */
-const AQ={x0:10,y0:10,x1:246,y1:124},AQ_RATE=.01;
+const AQ={x0:10,y0:10,x1:246,y1:124},AQ_RATE=.004;
 let aqGlints=[],aqHearts=[],aqFish=[],aqKey='',aqPeople=[],aqFloats=[],aqBubbles=[],aqSpawn=.6,_aqR=0,_aqFor=null,_aqV=-1,aqVer=0,aqPayT=0,aqBG=null;
 function fmtR(v){return v<10?v.toFixed(1):fmt(v)}
 const LVL_MULT=2.5,MAX_FLVL=30;
 function tankGroups(){const out=[];for(const id in S.tank||{}){if(!FISHBY[id])continue;for(const L in S.tank[id]){const n=S.tank[id][L];if(n>0)out.push({id,lvl:+L,n})}}return out}
 function tankCount(){return tankGroups().reduce((a,g)=>a+g.n,0)}
 function aqSpecies(){return [...new Set(tankGroups().map(g=>g.id))]}
-function fishEarnL(id,lvl){const e=FISHBY[id];return e?e.f[2]*Math.pow(LVL_MULT,lvl)*AQ_RATE*coinMult()*(1+.01*(skL('enchanting')-1))*(1+decorBonus()):0}
-function aqRate(){if(_aqFor!==S||_aqV!==aqVer){let a=0;tankGroups().forEach(g=>a+=FISHBY[g.id].f[2]*Math.pow(LVL_MULT,g.lvl)*g.n);_aqR=a*AQ_RATE;_aqFor=S;_aqV=aqVer}return _aqR*coinMult()*(1+.01*(skL('enchanting')-1))*(1+decorBonus())}
+function fishEarnL(id,lvl){const e=FISHBY[id];return e?e.f[2]*Math.pow(LVL_MULT,lvl)*AQ_RATE*coinMult()*(1+.01*(skL('enchanting')-1))*(1+decorBonus())*cleanFactor():0}
+function aqRate(){if(_aqFor!==S||_aqV!==aqVer){let a=0;tankGroups().forEach(g=>a+=FISHBY[g.id].f[2]*Math.pow(LVL_MULT,g.lvl)*g.n);_aqR=a*AQ_RATE;_aqFor=S;_aqV=aqVer}return _aqR*coinMult()*(1+.01*(skL('enchanting')-1))*(1+decorBonus())*cleanFactor()}
+const TANK_SIZE=[4,6,9,12,16,20,25,30,40,50],TANK_COST=[0,800,3000,9000,25000,70000,180000,450000,1.2e6,3e6],TANK_LVL=[1,3,6,10,14,18,23,28,34,40];
+const WATERS=[{id:'fresh',n:'Freshwater',zones:[0,1,2],p:0,lvl:1,c:'#46b4e0'},{id:'salt',n:'Saltwater',zones:[3],p:20000,lvl:15,c:'#2ab0c0'},{id:'deep',n:'Deep-sea pressure',zones:[4],p:250000,lvl:25,c:'#2a4a8a'},{id:'cosmic',n:'Cosmic',zones:[5],p:2e6,lvl:35,c:'#8a5ae0'}];
+const FILTERS=[{n:'No filter',p:0,rate:1},{n:'Sponge filter',p:4000,rate:.6},{n:'Canister filter',p:40000,rate:.35},{n:'Ultra filter',p:400000,rate:.15}];
+function tankCap(){return TANK_SIZE[S.tankLv||0]}
+function habitatOf(id){const e=FISHBY[id];if(!e)return'fresh';return(WATERS.find(w=>w.zones.includes(e.zi))||WATERS[0]).id}
+function waterName(w){return(WATERS.find(x=>x.id===w)||WATERS[0]).n}
+function cleanFactor(){const c=S.clean==null?100:S.clean;return .25+.75*c/100}
+function cleanCost(){return Math.round(30*tankCap()*(1+S.lvl*.15))}
+/* moves fish that no longer fit (too many, or wrong water) back to the Net */
+function fixTank(o){if(!o||!o.tank)return;const W2=o.water||'fresh',cap=TANK_SIZE[o.tankLv||0];const list=[];
+  for(const id in o.tank)for(const L in o.tank[id]){const n=o.tank[id][L];if(!n)continue;for(let k=0;k<n;k++)list.push({id,L:+L,v:(FISHBY[id]?FISHBY[id].f[2]:0)*Math.pow(LVL_MULT,+L)})}
+  list.sort((a,b)=>b.v-a.v);const keep={};let kept=0,moved=0;if(!o.net)o.net={};if(!o.netLv)o.netLv={};
+  list.forEach(it=>{const ok=(WATERS.find(w=>w.id===W2)||WATERS[0]).zones.includes(FISHBY[it.id]?FISHBY[it.id].zi:0);if(ok&&kept<cap){kept++;if(!keep[it.id])keep[it.id]={};keep[it.id][it.L]=(keep[it.id][it.L]||0)+1}
+    else{moved++;if(it.L){if(!o.netLv[it.id])o.netLv[it.id]={};o.netLv[it.id][it.L]=(o.netLv[it.id][it.L]||0)+1}else o.net[it.id]=(o.net[it.id]||0)+1}});
+  o.tank=keep;return moved}
 function aqLabel(){const n=tankCount();return n?`Aquarium · ${n} fish`:'Aquarium · empty tank'}
-function aqTick(dt){if(!S.cls)return;S.aqPend=(S.aqPend||0)+aqRate()*dt;const vis=tab==='aqua'&&!document.hidden;aqPayT+=dt;
+function aqTick(dt){if(!S.cls)return;{const f=FILTERS[S.filter||0].rate,load=tankCount()/Math.max(1,tankCap());S.clean=Math.max(0,(S.clean==null?100:S.clean)-dt*(100/7200)*f*(.5+load))}S.aqPend=(S.aqPend||0)+aqRate()*dt;const vis=tab==='aqua'&&!document.hidden;aqPayT+=dt;
   if((!vis&&aqPayT>1)||(vis&&S.aqPend>aqRate()*12)){aqPayT=0;if(S.aqPend>0){S.coins+=S.aqPend;S.aqPend=0}}}
 /* the Net: level 0 fish are in S.net, bred ones in S.netLv[id][level] */
-function sellPrice(id,L){const e=FISHBY[id];return e?e.f[2]*Math.pow(LVL_MULT,L)*coinMult()*(S.cls==='earth'?1.25:1):0}
+function sellPrice(id,L){const e=FISHBY[id];return e?e.f[2]*.6*Math.pow(LVL_MULT,L)*coinMult()*(S.cls==='earth'?1.25:1):0}
 function netN(id,L){return L?((S.netLv||{})[id]||{})[L]||0:(S.net||{})[id]||0}
 function netAdd(id,L,n){if(L){if(!S.netLv)S.netLv={};if(!S.netLv[id])S.netLv[id]={};S.netLv[id][L]=(S.netLv[id][L]||0)+n;if(S.netLv[id][L]<=0)delete S.netLv[id][L]}else{S.net[id]=(S.net[id]||0)+n}}
 function netItems(){const out=[];for(const id in S.net||{})if(FISHBY[id]&&S.net[id]>0)out.push({id,L:0,n:S.net[id]});for(const id in S.netLv||{}){if(!FISHBY[id])continue;for(const L in S.netLv[id]){const n=S.netLv[id][L];if(n>0)out.push({id,L:+L,n})}}return out}
@@ -1842,6 +1882,7 @@ function drawAquarium(dt){anims.length=0;parts.length=0;motes.length=0;floats.le
   for(let i=aqHearts.length-1;i>=0;i--){const hh=aqHearts[i];hh.t+=dt;hh.y-=10*dt;const x=Math.round(hh.x+Math.sin(hh.t*5)*2),y=Math.round(hh.y);if(hh.t<1.4){R(cx,x-1,y,1,1,'#ff6a9a');R(cx,x+1,y,1,1,'#ff6a9a');R(cx,x-1,y+1,3,1,'#ff6a9a');R(cx,x,y+2,1,1,'#ff6a9a')}if(hh.t>1.6)aqHearts.splice(i,1)}
   {const fy=floorY();placedDecor().forEach(d=>{if(d.an&&d.z>=4)d.an(cx,d.x,fy,T,true)})}
   drawLightsFront();
+  {const d=1-(S.clean==null?100:S.clean)/100;if(d>.05){cx.fillStyle=`rgba(70,90,30,${d*.45})`;cx.fillRect(AQ.x0,AQ.y0,AQ.x1-AQ.x0,AQ.y1-AQ.y0);const n=Math.round(d*90),r=rng(3);for(let i=0;i<n;i++){R(cx,AQ.x0+r()*(AQ.x1-AQ.x0),AQ.y0+r()*(AQ.y1-AQ.y0),2,1,'#3a6a2a')}}}
   cx.globalAlpha=.09;line(AQ.x0+34,AQ.y0+2,AQ.x0+12,AQ.y0+44,'#ffffff');line(AQ.x0+40,AQ.y0+2,AQ.x0+16,AQ.y0+50,'#ffffff');line(AQ.x1-30,AQ.y0+40,AQ.x1-6,AQ.y0+4,'#ffffff');cx.globalAlpha=1;
   cx.globalAlpha=.14;R(cx,AQ.x0,AQ.y1+12,AQ.x1-AQ.x0,5,styleOf('water').c[0]);cx.globalAlpha=1;
   const nsp=tankCount();
@@ -2076,7 +2117,7 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 function save(){S.last=now();if(S.cls)PROF[S.cls]=S;try{localStorage.setItem(SAVE_KEY,JSON.stringify({v:2,active:S.cls,profiles:PROF}))}catch(e){}}
-function cleanPets(o){if(!o)return o;if(!o.tank)o.tank={};if(!o.aqd)o.aqd=aqdFresh();if(!o.netLv)o.netLv={};if(o.idx)for(const k in o.idx)if(k[0]!=='f'&&k[0]!=='b')delete o.idx[k];if(!o.net){o.net={};for(const k in o.idx||{})if(FISHBY[k])o.net[k]=o.idx[k].n}if(Array.isArray(o.eggs)){const n=o.eggs.reduce((a,b)=>a+(b||0),0);o.eggs={};for(let i=0;i<n;i++){const k=SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)];o.eggs[k]=(o.eggs[k]||0)+1}}if(!o.eggs)o.eggs={};for(const id in o.pets||{})if(!PETS[id])delete o.pets[id];o.eq=(o.eq||[]).filter(id=>PETS[id]).slice(0,1);return o}
+function cleanPets(o){if(!o)return o;if(o.tank&&Object.keys(o.tank).length&&typeof FISHBY!=='undefined')fixTank(o);if(!o.tank)o.tank={};if(!o.aqd)o.aqd=aqdFresh();if(!o.netLv)o.netLv={};if(o.idx)for(const k in o.idx)if(k[0]!=='f'&&k[0]!=='b')delete o.idx[k];if(!o.net){o.net={};for(const k in o.idx||{})if(FISHBY[k])o.net[k]=o.idx[k].n}if(Array.isArray(o.eggs)){const n=o.eggs.reduce((a,b)=>a+(b||0),0);o.eggs={};for(let i=0;i<n;i++){const k=SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)];o.eggs[k]=(o.eggs[k]||0)+1}}if(!o.eggs)o.eggs={};for(const id in o.pets||{})if(!PETS[id])delete o.pets[id];o.eq=(o.eq||[]).filter(id=>PETS[id]).slice(0,1);return o}
 function fromData(d){const r0=fromData0(d);if(r0){for(const k in r0.P)cleanPets(r0.P[k]);cleanPets(r0.pending)}return r0}
 function fromData0(d){/* v2: separate profiles. v1 (older single save): becomes the chosen fisher's save; other fishers keep only their level */
   const P={};if(d&&d.profiles){for(const k in d.profiles)if(CLS[k])P[k]=Object.assign(fresh(),d.profiles[k],{cls:k});return{P,active:CLS[d.active]?d.active:null}}
@@ -2086,11 +2127,12 @@ function fromData0(d){/* v2: separate profiles. v1 (older single save): becomes 
 function load(){try{const r=localStorage.getItem(SAVE_KEY);if(r)return fromData(JSON.parse(r))}catch(e){}return null}
 function offline(){
   const away=Math.min((now()-S.last)/1000,8*3600);if(away<30)return;
+  {const f=FILTERS[S.filter||0].rate;S.clean=Math.max(0,(S.clean==null?100:S.clean)-away*(100/7200)*f*.8)}
   const aqOff=aqRate()*away*.5;if(aqOff>=1){S.coins+=aqOff;toast(`Your aquarium earned +${fmt(aqOff)} coins while you were away`)}
   const cc0=craftOffline(away);if(avatarJob()){S.last=now();if(cc0>0)toast(`While you were away: crafted goods worth +${fmt(cc0)} coins`);return}
   const n=Math.floor(away/castTime()*0.5);if(n<1){if(cc0>0)toast(`While you were away: crafting earned +${fmt(cc0)} coins`);return}const sim=Math.min(n,400),scale=n/sim;let coins=0,xp=0,news=0;
   for(let i=0;i<sim;i++){const c=rollFish(S.zone,luck());const cc=c.value*coinMult()*scale,xx=FRAR[c.tier].xp*(1+S.zone*1.5)*xpMult()*scale;
-    const id=c.f[6];if(!S.idx[id]){S.idx[id]={n:0,best:0};news++}S.idx[id].n+=Math.round(scale);if(!S.net)S.net={};S.net[id]=(S.net[id]||0)+Math.round(scale);aqVer++;S.idx[id].best=Math.max(S.idx[id].best,c.weight);coins+=cc;xp+=xx}
+    const id=c.f[6];if(!S.idx[id]){S.idx[id]={n:0,best:0};news++}S.idx[id].n+=Math.round(scale);if(!S.net)S.net={};{const room=Math.max(0,netCap()-netTotal()),add=Math.min(room,Math.round(scale));if(add)S.net[id]=(S.net[id]||0)+add;}aqVer++;S.idx[id].best=Math.max(S.idx[id].best,c.weight);coins+=cc;xp+=xx}
   S.total+=n;S.zc[S.zone]+=n;S.last=now();gainXp(xp);
   let eggsGot=0;for(const r of SK_ORDER){const ex=n*eggChance(r),k=Math.floor(ex)+(Math.random()<ex%1?1:0);if(k){S.eggs[r]=(S.eggs[r]||0)+k;eggsGot+=k}}
   toast(`While you were away: caught ${fmt(n)} (now in your Net), +${fmt(xp)} XP${cc0>0?`, +${fmt(cc0)} coins from crafting`:''}${eggsGot?`, ${eggsGot} egg${eggsGot>1?'s':''}`:''}${news?`, ${news} new in the index`:''}`);
