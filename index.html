@@ -1020,7 +1020,7 @@ function openHatch(r){if(!(S.eggs[r]>0)||HATCH)return;S.eggs[r]--;const win=pick
   const N=46,W=38,strip=[];for(let i=0;i<N;i++)strip.push(i===W?win:all[Math.floor(Math.random()*all.length)]);
   $('hatchtitle').textContent=`Hatching a ${EGGR[r].n}`;$('hatchtitle').style.color=EGGR[r].c;
   $('reelstrip').innerHTML=strip.map(reelSlot).join('');$('reel').hidden=false;$('hatchcv').hidden=true;$('hatchbtns').hidden=true;$('hatchres').innerHTML='Spinning…';
-  $('hatchbox').hidden=false;HATCH={r,win,t0:performance.now(),phase:'spin',W};
+  $('hatchbox').hidden=false;HATCH={r,win,t0:performance.now(),phase:'spin',W,dupe:!!S.pets[win.id]};
   const box=$('reel').clientWidth||560,slot=84,target=W*slot+38-box/2+(Math.random()-.5)*44;HATCH.target=target;
   const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;HATCH.dur=reduce?300:4200;
   requestAnimationFrame(hatchStep);if(tab==='bag'||tab==='pets')renderPanel()}
@@ -1029,19 +1029,31 @@ function hatchStep(now2){const H=HATCH;if(!H)return;const e=(now2-H.t0)/H.dur;
     if(q>=1){H.phase='land';H.t0=now2;const sl=$('reelstrip').children[H.W];if(sl)sl.classList.add('win');$('hatchres').innerHTML=`<span style="color:${RAR[H.win.tier].c}">${RAR[H.win.tier].n}</span> ${SKILLS[H.win.skill].n} pet!`}
     requestAnimationFrame(hatchStep);return}
   if(H.phase==='land'){if(now2-H.t0>1100){H.phase='egg';H.t0=now2;$('reel').hidden=true;$('hatchcv').hidden=false;$('hatchres').textContent='…'}requestAnimationFrame(hatchStep);return}
-  if(H.phase==='egg'){const t=(now2-H.t0)/1000;drawHatch(t,H);if(t<3.2){requestAnimationFrame(hatchStep);return}finishHatch()}}
+  if(H.phase==='egg'){const t=(now2-H.t0)/1000;drawHatch(t,H);if(t<(H.dupe?5:3.2)){requestAnimationFrame(hatchStep);return}finishHatch()}}
 function drawHatch(t,H){const c=$('hatchcv'),g=c.getContext('2d');g.imageSmoothingEnabled=false;const W2=40,H2=34;g.clearRect(0,0,W2,H2);
   const P=H.win,er=EGGR[H.r],K='#0e0f17',ecx=20,ecy=21;
   const px=(x,y,col)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),1,1)};
+  const BOOM=3.05;c.style.transform='';
+  if(H.dupe&&t>=BOOM){drawNuke(g,px,t-BOOM,K,c);return}
   /* glow behind */const gl=Math.min(1,t/1.2);g.globalAlpha=.25*gl;g.fillStyle=er.c;for(let y=-14;y<=14;y++)for(let x=-14;x<=14;x++)if(x*x+y*y<196&&(x+y)%2===0)g.fillRect(ecx+x,ecy-2+y,1,1);g.globalAlpha=1;
   const inEgg=(x,y)=>{const yy=y/(y<0?10.5:9),xx=x/8;return xx*xx+yy*yy<=1};
   const crackY=x=>Math.round(-1+((x+20)%4<2?-1:1));
   const wob=t<1.3?Math.round(Math.sin(t*(8+t*14))*(t>.4?1:0)):0;
   const broken=t>=1.45,lift=broken?Math.min(1,(t-1.45)/.6):0;
   /* pet rises out once the shell breaks, arms up */
-  if(broken){const rise=Math.min(1,(t-1.45)/.5),bob=t>2?Math.round(Math.sin((t-2)*10)):0;const ppx=ecx-8,ppy=ecy-15+Math.round((1-rise)*9);
+  if(broken&&!H.dupe){const rise=Math.min(1,(t-1.45)/.5),bob=t>2?Math.round(Math.sin((t-2)*10)):0;const ppx=ecx-8,ppy=ecy-15+Math.round((1-rise)*9);
     g.drawImage(petBody(P.id,false),ppx,ppy);const pu=PAW.up;g.drawImage(pawCv(P.id,'up'),ppx+pu.x,ppy+pu.y-1+bob);g.drawImage(pawCv(P.id,'up'),ppx+pu.x-6,ppy+pu.y-2-bob);
     const HH=HAT2[SKILLS[P.skill].hat],[ox,oy]=hatOff(HH,HH.gog?0:1);g.drawImage(hatCv(P.skill),ppx+HH.x+ox,ppy+HH.y+oy)}
+  /* duplicate: the pet peeks out, spots the incoming nuke and panics */
+  if(broken&&H.dupe){const rise=Math.min(1,(t-1.45)/.5),scared=t>1.9,shk=scared?(Math.floor(t*30)%2?1:-1):0;const ppx=ecx-8+shk,ppy=ecy-15+Math.round((1-rise)*9);
+    g.drawImage(petBody(P.id,false),ppx,ppy);
+    if(scared){/* paws clutching its cheeks */const pr=PAW.rest;g.drawImage(pawCv(P.id,'rest'),ppx+pr.x+1,ppy+pr.y-1);
+      /* sweat drops */const sd=Math.floor(t*6)%3;px(ppx+7,ppy+3+sd,'#9fd8ff');px(ppx+7,ppy+4+sd,'#5aa8e8');px(ppx+15,ppy+2+(sd+1)%3,'#9fd8ff');
+      /* ! mark */if(Math.floor(t*8)%2){g.fillStyle='#ff4040';g.fillRect(ppx+17,ppy+1,1,3);px(ppx+17,ppy+5,'#ff4040')}}
+    else{const pu=PAW.rest;g.drawImage(pawCv(P.id,'rest'),ppx+pu.x,ppy+pu.y)}
+    const HH=HAT2[SKILLS[P.skill].hat],[ox,oy]=hatOff(HH,HH.gog?0:scared?2:1);g.drawImage(hatCv(P.skill),ppx+HH.x+ox,ppy+HH.y+oy);
+    if(scared){/* wide white eye with a tiny pupil staring up, gaping mouth */g.fillStyle='#ffffff';g.fillRect(ppx+10,ppy+5,3,2);px(ppx+10,ppy+4,K);px(ppx+11,ppy+4,K);px(ppx+12,ppy+5,K);
+      g.fillStyle=K;g.fillRect(ppx+12,ppy+9,3,2);px(ppx+13,ppy+10,'#c0405a')}}
   /* egg: whole, then the bottom cup stays and the top flies off */
   for(let y=-11;y<=9;y++)for(let x=-9;x<=9;x++){if(!inEgg(x,y))continue;const cy=crackY(x);const top=y<cy;
     if(broken&&top)continue;const edge=!inEgg(x-1,y)||!inEgg(x+1,y)||!inEgg(x,y-1)||!inEgg(x,y+1);
@@ -1050,13 +1062,33 @@ function drawHatch(t,H){const c=$('hatchcv'),g=c.getContext('2d');g.imageSmoothi
     if(broken&&y===cy)col=K;px(ecx+x+wob,ecy+y,col)}
   if(broken&&lift<1){const ox=Math.round(lift*14),oy=Math.round(-lift*16+lift*lift*8);g.globalAlpha=1-lift*.7;
     for(let y=-11;y<=1;y++)for(let x=-9;x<=9;x++){if(!inEgg(x,y)||y>=crackY(x))continue;const edge=!inEgg(x-1,y)||!inEgg(x,y-1)||y===crackY(x)-1;px(ecx+x+(x<0?-ox:ox),ecy+y+oy,edge?K:(x+y<-8?mix(er.c,'#ffffff',.45):er.c))}g.globalAlpha=1}
-  /* sparkles */if(broken)for(let n=0;n<10;n++){const an=n*.63+t*2,rd=6+((t-1.45)*14+n*3)%12;if(Math.floor(t*10+n)%3)px(ecx+Math.cos(an)*rd,ecy-6+Math.sin(an)*rd*.7,n%2?'#ffffff':RAR[P.tier].c)}}
+  if(H.dupe)dropNuke(g,px,t,K);
+  /* sparkles */if(broken&&!H.dupe)for(let n=0;n<10;n++){const an=n*.63+t*2,rd=6+((t-1.45)*14+n*3)%12;if(Math.floor(t*10+n)%3)px(ecx+Math.cos(an)*rd,ecy-6+Math.sin(an)*rd*.7,n%2?'#ffffff':RAR[P.tier].c)}}
+function drawNukeBomb(g,px,x,y,K){const m=[".k.k.","kfkfk",".kgk.","kgggk","kyKyk","kgggk","kgggk",".kgk.","..k.."],P={k:K,f:'#8a8f98',g:'#6f7f52',y:'#f5d02c',K:K};
+  m.forEach((r,j)=>[...r].forEach((ch,i)=>{if(ch!=='.')px(x+i,y+j,ch==='g'&&i===1?'#93a56c':P[ch])}))}
+function dropNuke(g,px,t,K){/* falls between t=2.15 and BOOM */const q=Math.max(0,Math.min(1,(t-2.15)/.9));if(t<2.15)return;
+  const y=Math.round(-10+q*q*28);drawNukeBomb(g,px,18,y,K);for(let i=1;i<4;i++)if(Math.floor(t*20+i)%2)px(20+(i%2?-1:1)*(i>1?2:0),y-i*2,'#dfe6f0');
+  g.globalAlpha=.25+q*.4;g.fillStyle=K;const w=2+Math.round(q*6);g.fillRect(20-w,31,w*2,1);g.globalAlpha=1}
+function drawNuke(g,px,e,K,c){const cx=20,gy=30;
+  if(e<.14){g.fillStyle='#ffffff';g.fillRect(0,0,40,34);return}
+  const sh=e<1.1?Math.round(Math.sin(e*90)*(1.1-e)*3):0;c.style.transform=`translate(${sh}px,${-sh>>1}px)`;
+  const fade=Math.max(0,Math.min(1,(e-.9)/1.0)),fire=(a,b)=>mix(a,'#5c5c66',fade*.85);
+  const hot=['#ffffff','#fff4a0','#ffc23a','#ff7a1a','#d8341c'];
+  /* scorched ground */g.fillStyle='#2a2320';g.fillRect(4,gy+1,32,3);g.fillStyle='#3d302a';g.fillRect(10,gy,20,1);
+  /* initial fireball */const r=Math.min(11,e*60);if(e<.6){for(let y=-12;y<=2;y++)for(let x=-12;x<=12;x++){const d=Math.sqrt(x*x+y*y*1.2);if(d>r)continue;const k=Math.min(4,Math.floor(d/r*5+((x+y)&1)*.4));px(cx+x,gy+y-1,hot[k])}}
+  /* mushroom cloud rises */const up=Math.min(1,Math.max(0,(e-.25)/.8)),capY=gy-4-Math.round(up*16),capR=4+Math.round(up*7);
+  if(e>=.25){for(let y=capY+2;y<=gy;y++){const w=y>gy-3?3+(gy-y):2+((y+Math.floor(e*12))&1);for(let x=-w;x<=w;x++)px(cx+x,y,fire(hot[Math.min(4,1+Math.abs(x)+((y+Math.floor(e*16))&1))]))}
+    for(let y=-capR;y<=Math.ceil(capR*.6);y++)for(let x=-capR-2;x<=capR+2;x++){const d=(x*x)/((capR+2)*(capR+2))+(y*y)/(capR*capR*.55);if(d>1)continue;
+      const k=Math.min(4,Math.floor(d*3+(y>0?1.5:0)+(((x+y+Math.floor(e*14))&1)?.5:0)));px(cx+x,capY+y,fire(hot[k]))}
+    /* ring at the base */for(let x=-14;x<=14;x++){const a=Math.abs(x);if(a<4)continue;if((x+Math.floor(e*20))%3===0)continue;px(cx+x,gy-1-(a>10?0:1),fire('#c9b8a8'))}}
+  /* debris */for(let n=0;n<14;n++){const an=-Math.PI*(.1+.8*((n*37)%14)/14),sp=14+(n*13)%11,tt=Math.min(e,1.4),dx=Math.cos(an)*sp*tt,dy=Math.sin(an)*sp*tt+12*tt*tt;
+    if(gy-2+dy<gy+1&&e<1.6)px(cx+dx,gy-2+dy,n%3?K:'#ffb03a')}}
 function finishHatch(){const H=HATCH;const p=H.win,cur=S.pets[p.id]||0;let msg;
-  if(cur>=5){S.coins+=DUPE_COINS[p.tier];msg=`${p.n} is already 5★, so you get ${fmt(DUPE_COINS[p.tier])} coins instead.`}
-  else{S.pets[p.id]=cur+1;msg=cur?`${p.n} ranked up to ${cur+1}★!`:`A new pet for your collection!`;if(!cur&&!S.eq.length)S.eq=[p.id]}
+  if(cur>=5){S.coins+=DUPE_COINS[p.tier];msg=`💥 Duplicate nuked! ${p.n} is already 5★, so the fallout is worth ${fmt(DUPE_COINS[p.tier])} coins.`}
+  else{S.pets[p.id]=cur+1;msg=cur?`💥 Duplicate nuked! Its power flows into your ${p.n}: now ${cur+1}★!`:`A new pet for your collection!`;if(!cur&&!S.eq.length)S.eq=[p.id]}
   $('hatchres').innerHTML=`<span style="color:${RAR[p.tier].c}">${RAR[p.tier].n}</span> ${p.n}<small>${SKILLS[p.skill].n} pet · ${msg}</small>`;
   $('hatchbtns').hidden=false;$('hatchequip').hidden=S.eq[0]===p.id||!S.pets[p.id];$('hatchagain').hidden=!(S.eggs[H.r]>0);$('hatchagain').textContent=`Hatch another ${EGGR[H.r].n}`;
-  H.phase='done';renderPetBar();if(tab==='bag'||tab==='pets')renderPanel();save()}
+  H.phase='done';$('hatchcv').style.transform='';renderPetBar();if(tab==='bag'||tab==='pets')renderPanel();save()}
 function openDex(i){const e=EGGS[i];if(!e)return;const tw=e.pets.reduce((a,p)=>a+p[5],0);
   $('dextitle').textContent=e.n;$('dextitle').style.color=e.pal.b;
   $('dexsub').textContent=e.skill?`Every pet in this egg wears ${SKILLS[e.skill].hats} and does ${SKILLS[e.skill].n.toLowerCase()} for you while you fish. The chance shown is how often a hatch lands on that pet. Duplicates add a star (up to 5★), and each star adds another 10%.`:'';
