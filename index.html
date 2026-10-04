@@ -854,7 +854,7 @@ function url(c,scale){const k=c.toDataURL();return k}
 function imgTag(c,scale,alt){const key=(c._u||(c._u=c.toDataURL()));return`<img src="${key}" width="${c.width*scale}" height="${c.height*scale}" alt="${alt||''}">`}
 
 function fresh(){return{coins:0,xp:0,lvl:1,zone:0,rod:0,rods:[0],bait:0,baits:[0],bag:{chum:1,lure:1,charm:0,tonic:0,harpoon:0},eggs:{[SK_ORDER[Math.floor(Math.random()*SK_ORDER.length)]]:1},
- buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,net:{},netLv:{},tank:{},aqd:null,tankLv:0,water:'fresh',waterOwn:{fresh:1},clean:100,filter:0,aqPend:0,visitors:0,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
+ buffs:{speed:0,coin:0,luck:0,xp:0},harpoon:false,pets:{},eq:[],idx:{},zc:[0,0,0,0,0,0],beaten:[0,0,0,0,0,0],bseen:[0,0,0,0,0,0],bossCd:0,total:0,last:Date.now(),seen:{pets:0},wx:null,cls:null,craft:null,net:{},netLv:{},tank:{},aqd:null,tankLv:0,water:'fresh',netRule:{swap:true,sell:{0:true}},waterOwn:{fresh:1},clean:100,filter:0,aqPend:0,visitors:0,sk:Object.fromEntries(SK_ORDER.map(k=>[k,{lvl:1,xp:0,rec:0,on:false,p:0,paid:false}]))}}
 let PROF={}; /* every fisher is a separate save: PROF[cls] holds their whole state; S is the active one */
 let S=fresh(), B=null, tab='shop', castLeft=4, castMax=4, logItems=[];
 
@@ -898,10 +898,21 @@ function rollFish(zi,lk){
 function netCap(){return 30+5*S.lvl}
 function netTotal(){let t=0;for(const id in S.net||{})t+=S.net[id]||0;for(const id in S.netLv||{})for(const L in S.netLv[id])t+=S.netLv[id][L]||0;return t}
 let _netFullT=0;
+function netRule(){if(!S.netRule)S.netRule={swap:true,sell:{0:true}};if(!S.netRule.sell)S.netRule.sell={};return S.netRule}
+/* stores n of a catch following the Net rules: auto-sell tiers, keep rarer catches by selling the least valuable fish when full */
+function netStore(id,n){const e=FISHBY[id],t=e?e.f[1]:0,Rr=netRule();let kept=0,coins=0,released=0;
+  if(Rr.sell[t]){coins=sellPrice(id,0)*n;S.coins+=coins;return{kept,coins,released,sold:n}}
+  for(let k=0;k<n;k++){
+    if(netTotal()<netCap()){S.net[id]=(S.net[id]||0)+1;kept++;continue}
+    if(Rr.swap){let worst=null;for(const vid in S.net){if(!(S.net[vid]>0)||vid[0]==='b')continue;const ve=FISHBY[vid];if(!ve)continue;
+        const key=ve.f[1]*1e12+ve.f[2];if(ve.f[1]<t||(ve.f[1]===t&&ve.f[2]<e.f[2]&&vid!==id)){if(!worst||key<worst.key)worst={vid,key}}}
+      if(worst){S.net[worst.vid]--;if(!S.net[worst.vid])delete S.net[worst.vid];const c=sellPrice(worst.vid,0);S.coins+=c;coins+=c;S.net[id]=(S.net[id]||0)+1;kept++;continue}}
+    released+=n-k;break}
+  aqVer++;return{kept,coins,released,sold:0}}
 function record(c,coins,xp){
   const id=c.f[6];const e=S.idx[id];const isNew=!e;
   if(!e)S.idx[id]={n:1,best:c.weight};else{e.n++;if(c.weight>e.best)e.best=c.weight}
-  if(!S.net)S.net={};if(netTotal()<netCap()){S.net[id]=(S.net[id]||0)+1;aqVer++}else if(now()>_netFullT){_netFullT=now()+20000;toast(`Your Net is full (${netCap()}). Catches are being released, so sell, breed or level up for more room`)}
+  if(!S.net)S.net={};{const r=netStore(id,1);if(r.released&&now()>_netFullT){_netFullT=now()+20000;toast(`Your Net is full (${netCap()}) and nothing in it is less valuable, so this catch was released`)}}
   S.coins+=coins;S.total++;S.zc[c.zi]++;gainXp(xp);return isNew;
 }
 function catchFish(){
@@ -1056,6 +1067,8 @@ function openDex(i){const e=EGGS[i];if(!e)return;const tw=e.pets.reduce((a,p)=>a
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('eggdex').hidden)$('eggdex').hidden=true});
 function craftArgs(a){const [k,i]=String(a).split(':');return[k,+i]}
 const act={
+  netswap(){const Rr=netRule();Rr.swap=!Rr.swap;renderPanel()},
+  netsellt(t){const Rr=netRule();t=+t;if(Rr.sell[t])delete Rr.sell[t];else Rr.sell[t]=true;renderPanel()},
   aqcat(k){aqCat=k;renderPanel()},
   tankup(){const i=(S.tankLv||0)+1;if(i>=TANK_SIZE.length||S.coins<TANK_COST[i]||S.lvl<TANK_LVL[i])return;S.coins-=TANK_COST[i];S.tankLv=i;aqVer++;toast(`Tank upgraded: room for ${TANK_SIZE[i]} fish`);renderPanel()},
   water(w){const W3=WATERS.find(x=>x.id===w);if(!W3)return;if(!S.waterOwn)S.waterOwn={fresh:1};
@@ -1317,6 +1330,11 @@ function renderPanel(){
     const netPairs=items.reduce((a,it)=>a+(FISHBY[it.id].f[1]>0&&it.L<MAX_FLVL?Math.floor(it.n/2):0),0);
     h+=`<div class="sect"><h3>Net</h3><div class="invsum"><span>Space <b class="num" style="color:${netTot>=netCap()?'var(--buoy)':'var(--foam)'}">${fmt(netTot)} / ${netCap()}</b></span><span>Kinds <b class="num">${kinds}</b></span></div>
       <p class="hint" style="margin:0">Catches don't pay coins any more. Sell them here, breed them, or put them in the aquarium.</p>
+      <div class="job px"><div style="font-weight:600">Net rules</div>
+        <div class="top"><span class="hint" style="flex:1">When the Net is full, sell the least valuable fish to make room for a rarer catch</span><button class="btn ${netRule().swap?'':'ghost'}" data-act="netswap">${netRule().swap?'On':'Off'}</button></div>
+        <div class="hint">Auto-sell these rarities as soon as they're caught, so they never take up space:</div>
+        <div class="sk-row">${FRAR.slice(0,6).map((r,t)=>`<button class="skc px" data-act="netsellt" data-arg="${t}" aria-pressed="${!!netRule().sell[t]}"><i style="background:${r.c}"></i>${r.n}${netRule().sell[t]?' · sell':''}</button>`).join('')}</div>
+        <div class="hint">Bred fish and bosses are never sold automatically.</div></div>
       <div class="eggbtns" style="justify-content:flex-start"><button class="btn" data-act="netbreedall" ${netPairs?'':'disabled'}>Breed all (${fmt(netPairs)} pair${netPairs===1?'':'s'})</button>${(()=>{const jv=items.filter(it=>FISHBY[it.id].f[1]===0).reduce((a,it)=>a+sellPrice(it.id,it.L)*it.n,0),jn=items.filter(it=>FISHBY[it.id].f[1]===0).reduce((a,it)=>a+it.n,0);return`<button class="btn ghost" data-act="selljunk" ${jn?'':'disabled'}>Sell all junk (${fmt(jv)})</button>`})()}</div>
       <p class="hint" style="margin:0">Breed all pairs up every fish at the same level, again and again, until nothing is left to pair. Junk is skipped.</p>
       <div class="sk-row"><button class="skc px" data-act="nett" data-arg="-1" aria-pressed="${netT<0}">All</button>${FRAR.map((r,t)=>`<button class="skc px" data-act="nett" data-arg="${t}" aria-pressed="${netT===t}"><i style="background:${r.c}"></i>${r.n} <span class="num">${new Set(items.filter(it=>FISHBY[it.id].f[1]===t).map(it=>it.id)).size}</span></button>`).join('')}</div>
@@ -2132,7 +2150,7 @@ function offline(){
   const cc0=craftOffline(away);if(avatarJob()){S.last=now();if(cc0>0)toast(`While you were away: crafted goods worth +${fmt(cc0)} coins`);return}
   const n=Math.floor(away/castTime()*0.5);if(n<1){if(cc0>0)toast(`While you were away: crafting earned +${fmt(cc0)} coins`);return}const sim=Math.min(n,400),scale=n/sim;let coins=0,xp=0,news=0;
   for(let i=0;i<sim;i++){const c=rollFish(S.zone,luck());const cc=c.value*coinMult()*scale,xx=FRAR[c.tier].xp*(1+S.zone*1.5)*xpMult()*scale;
-    const id=c.f[6];if(!S.idx[id]){S.idx[id]={n:0,best:0};news++}S.idx[id].n+=Math.round(scale);if(!S.net)S.net={};{const room=Math.max(0,netCap()-netTotal()),add=Math.min(room,Math.round(scale));if(add)S.net[id]=(S.net[id]||0)+add;}aqVer++;S.idx[id].best=Math.max(S.idx[id].best,c.weight);coins+=cc;xp+=xx}
+    const id=c.f[6];if(!S.idx[id]){S.idx[id]={n:0,best:0};news++}S.idx[id].n+=Math.round(scale);if(!S.net)S.net={};netStore(id,Math.min(50,Math.round(scale)));S.idx[id].best=Math.max(S.idx[id].best,c.weight);coins+=cc;xp+=xx}
   S.total+=n;S.zc[S.zone]+=n;S.last=now();gainXp(xp);
   let eggsGot=0;for(const r of SK_ORDER){const ex=n*eggChance(r),k=Math.floor(ex)+(Math.random()<ex%1?1:0);if(k){S.eggs[r]=(S.eggs[r]||0)+k;eggsGot+=k}}
   toast(`While you were away: caught ${fmt(n)} (now in your Net), +${fmt(xp)} XP${cc0>0?`, +${fmt(cc0)} coins from crafting`:''}${eggsGot?`, ${eggsGot} egg${eggsGot>1?'s':''}`:''}${news?`, ${news} new in the index`:''}`);

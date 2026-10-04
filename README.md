@@ -25,6 +25,6 @@ A pixel-art idle fishing game that runs in the browser. Open `index.html` to pla
 ## Difficulty
 
 - Levels unlock rods, bait, tank upgrades, tank water types and zones; each level adds 5 Net space
-- The Net has limited space, so catches are released when it is full
+- The Net has limited space. Net rules can sell the least valuable fish to make room for rarer catches, and auto-sell chosen rarities (Junk by default)
 - The aquarium tank has limited, upgradable space; fish need the right water type (freshwater, saltwater, deep-sea or cosmic) and the tank gets dirty over time
 - Bosses are tougher and rarer, fish sell for less, gear costs more and eggs are rarer
